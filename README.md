@@ -39,19 +39,23 @@ flowchart TD
 ```text
 ai-lab/
 ├── notebooks/
+│   ├── randomized_reflex_agent.ipynb     # Question 2: Randomized Reflex Agent simulation & Viva guide
 │   ├── simple_reflex_vacuum_agent.ipynb  # Question 1: Simple Reflex Vacuum Agent simulation & Viva guide
 │   └── starter_experiment.ipynb          # Interactive experimentation starter notebook
 ├── src/
 │   ├── __init__.py                       # Package initialization & public exports
 │   ├── experiment.py                     # Core experiment metrics and simulation runner
+│   ├── randomized_agent.py               # Question 2: Randomized Reflex Agent & 1D Grid Environment
 │   └── vacuum_agent.py                   # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                       # Test package marker
 │   ├── test_experiment.py                # Unit test suite for experiment runner
+│   ├── test_randomized_agent.py          # Unit tests for Question 2 randomized agent & 1D grid
 │   └── test_vacuum_agent.py              # Unit tests for vacuum agent reflex rules & simulation traces
 ├── .gitignore                            # Comprehensive ignores (Python, Jupyter, venv, IDE)
 ├── README.md                             # Project documentation and practical guide
 ├── requirements.txt                      # Dependencies for notebooks and ML libraries
+├── run_randomized_agent.py               # CLI & interactive runner for Question 2 (1D Grid Simulation)
 ├── run_vacuum_agent.py                   # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 └── test.py                               # Starter entry point and verification script
 ```
@@ -104,6 +108,64 @@ flowchart TD
 
 6. **Interactive Jupyter Notebook**:
    Open [`notebooks/simple_reflex_vacuum_agent.ipynb`](notebooks/simple_reflex_vacuum_agent.ipynb) in Jupyter Lab or Antigravity IDE.
+
+---
+
+### Question 2: Randomized Reflex Agent
+
+- **Syllabus Area**: Intelligent Agents
+- **Difficulty**: 🟢 Beginner
+- **Core AI Concept**: Randomized Agent Behavior, Handling Unobservable States, Escaping Boundary Loops
+- **Complexity**: Time Complexity: $O(N)$ average | Space Complexity: $O(N)$
+
+#### Condition-Action Stochastic Rules
+```mermaid
+flowchart TD
+    Percept["Percept: Status of Current Room<br/>(0=Clean, 1=Dirty)"] --> CheckStatus{"Status is Dirty (1)?"}
+    CheckStatus -->|Yes| Clean["Action: Clean<br/>(Set room status to 0)"]
+    CheckStatus -->|No| RandomChoice{"Random Choice<br/>random.choice(['Left', 'Right'])"}
+    RandomChoice -->|50% Probability| MoveLeft["Action: Left<br/>(Move left / bump boundary 0)"]
+    RandomChoice -->|50% Probability| MoveRight["Action: Right<br/>(Move right / bump boundary N-1)"]
+```
+
+#### Running the Randomized Reflex Agent Simulation
+
+1. **Sample Scenario with Exact 12-Step Reproducibility** (`[1, 0, 0, 1, 1]`, Start Index: `2`, Seed: `58`):
+   ```bash
+   python run_randomized_agent.py --seed 58
+   ```
+   *Output*:
+   ```text
+   All rooms clean in 12 steps.
+   Total Navigation Moves   : 9
+   Total Cleaning Actions   : 3
+   Final Grid State         : [0, 0, 0, 0, 0]
+   Final Agent Location     : Room [4]
+   ```
+
+2. **Custom Room State & Start Index**:
+   ```bash
+   python run_randomized_agent.py --state "1 0 1 1 0" --start-index 1
+   ```
+
+3. **Interactive Mode**:
+   ```bash
+   python run_randomized_agent.py --interactive
+   ```
+
+4. **Monte Carlo Empirical Benchmark (100 Trials)**:
+   ```bash
+   python run_randomized_agent.py --benchmark --trials 100
+   ```
+
+5. **Display Viva Voce Theory Guide**:
+   ```bash
+   python run_randomized_agent.py --viva
+   ```
+
+6. **Interactive Jupyter Notebook**:
+   Open [`notebooks/randomized_reflex_agent.ipynb`](notebooks/randomized_reflex_agent.ipynb) in Jupyter Lab or Antigravity IDE.
+
 
 ## Getting Started
 
