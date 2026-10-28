@@ -54,5 +54,27 @@ __all__ = [
     "ROOM_CLEAN",
     "ROOM_DIRTY",
     "ACTION_CLEAN",
+    # Question 3: Model-Based Reflex Agent
+    "ModelBasedAgent",
+    "TwoByTwoGridEnvironment",
+    "ModelAgentStepRecord",
+    "ModelSimulationResult",
+    "run_model_based_simulation",
+    "STATUS_CLEAN",
+    "STATUS_DIRTY",
+    "ACTION_SHUTDOWN",
+    "TERMINATION_MESSAGE",
 ]
+
+from src.model_based_agent import (  # noqa: E402
+    ACTION_SHUTDOWN,
+    STATUS_CLEAN,
+    STATUS_DIRTY,
+    TERMINATION_MESSAGE,
+    ModelAgentStepRecord,
+    ModelBasedAgent,
+    ModelSimulationResult,
+    TwoByTwoGridEnvironment,
+    run_model_based_simulation,
+)
 

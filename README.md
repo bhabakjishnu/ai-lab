@@ -39,25 +39,29 @@ flowchart TD
 ```text
 ai-lab/
 ├── notebooks/
-│   ├── randomized_reflex_agent.ipynb     # Question 2: Randomized Reflex Agent simulation & Viva guide
-│   ├── simple_reflex_vacuum_agent.ipynb  # Question 1: Simple Reflex Vacuum Agent simulation & Viva guide
-│   └── starter_experiment.ipynb          # Interactive experimentation starter notebook
+│   ├── model_based_reflex_agent.ipynb   # Question 3: Model-Based Reflex Agent simulation & Viva guide
+│   ├── randomized_reflex_agent.ipynb    # Question 2: Randomized Reflex Agent simulation & Viva guide
+│   ├── simple_reflex_vacuum_agent.ipynb # Question 1: Simple Reflex Vacuum Agent simulation & Viva guide
+│   └── starter_experiment.ipynb         # Interactive experimentation starter notebook
 ├── src/
-│   ├── __init__.py                       # Package initialization & public exports
-│   ├── experiment.py                     # Core experiment metrics and simulation runner
-│   ├── randomized_agent.py               # Question 2: Randomized Reflex Agent & 1D Grid Environment
-│   └── vacuum_agent.py                   # Question 1: Simple Reflex Vacuum Agent & Environments
+│   ├── __init__.py                      # Package initialization & public exports
+│   ├── experiment.py                    # Core experiment metrics and simulation runner
+│   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
+│   ├── randomized_agent.py              # Question 2: Randomized Reflex Agent & 1D Grid Environment
+│   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
-│   ├── __init__.py                       # Test package marker
-│   ├── test_experiment.py                # Unit test suite for experiment runner
-│   ├── test_randomized_agent.py          # Unit tests for Question 2 randomized agent & 1D grid
-│   └── test_vacuum_agent.py              # Unit tests for vacuum agent reflex rules & simulation traces
-├── .gitignore                            # Comprehensive ignores (Python, Jupyter, venv, IDE)
-├── README.md                             # Project documentation and practical guide
-├── requirements.txt                      # Dependencies for notebooks and ML libraries
-├── run_randomized_agent.py               # CLI & interactive runner for Question 2 (1D Grid Simulation)
-├── run_vacuum_agent.py                   # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
-└── test.py                               # Starter entry point and verification script
+│   ├── __init__.py                      # Test package marker
+│   ├── test_experiment.py               # Unit test suite for experiment runner
+│   ├── test_model_based_agent.py        # Unit tests for Question 3 model-based agent & 2x2 grid
+│   ├── test_randomized_agent.py         # Unit tests for Question 2 randomized agent & 1D grid
+│   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
+├── .gitignore                           # Comprehensive ignores (Python, Jupyter, venv, IDE)
+├── README.md                            # Project documentation and practical guide
+├── requirements.txt                     # Dependencies for notebooks and ML libraries
+├── run_model_based_agent.py             # CLI & interactive runner for Question 3 (2x2 Grid Simulation)
+├── run_randomized_agent.py              # CLI & interactive runner for Question 2 (1D Grid Simulation)
+├── run_vacuum_agent.py                  # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
+└── test.py                              # Starter entry point and verification script
 ```
 
 ## Lab Practicals
@@ -165,6 +169,66 @@ flowchart TD
 
 6. **Interactive Jupyter Notebook**:
    Open [`notebooks/randomized_reflex_agent.ipynb`](notebooks/randomized_reflex_agent.ipynb) in Jupyter Lab or Antigravity IDE.
+
+---
+
+### Question 3: Model-Based Reflex Agent
+
+- **Syllabus Area**: Intelligent Agents
+- **Difficulty**: 🟡 Intermediate
+- **Core AI Concept**: Model-Based Reflex Agent, Internal State Representation, Transition Models, Sensor Models
+- **Complexity**: Time Complexity: $O(N)$ | Space Complexity: $O(N)$ where $N=4$ for 2x2 grid
+
+#### Model-Based Architecture & Decision Flow
+```mermaid
+flowchart TD
+    Percept["Percept: ((row, col), Status)"] --> UpdateState["Update Internal State<br/>• visited.add(pos)<br/>• model[pos] = status<br/>• Apply Transition Model"]
+    UpdateState --> CheckDirty{"Is Current Room Dirty?"}
+    CheckDirty -->|Yes| Clean["Action: Clean<br/>(model[pos] = 'Clean')"]
+    CheckDirty -->|No| CheckAllClean{"Internal Model Confirms<br/>All Rooms Clean & Visited?"}
+    CheckAllClean -->|Yes| Shutdown["Action: Shutdown<br/>'Agent visited all rooms. Cleaning complete. Shutting down.'"]
+    CheckAllClean -->|No| PlanMove["Action: Plan Navigation<br/>(BFS to closest unvisited or dirty room)"]
+```
+
+#### Running the Model-Based Agent Simulation
+
+1. **Default Sample Scenario** (2x2 Grid: `[[Dirty, Clean], [Dirty, Dirty]]`, Start at `(0, 0)`):
+   ```bash
+   python run_model_based_agent.py
+   ```
+   *Expected Output*:
+   ```text
+   Step  1: Pos (0, 0) | Percept: Dirty | Action: Clean    | Visited: {(0,0)}
+   Step  2: Pos (0, 0) | Percept: Clean | Action: Down     | Visited: {(0,0)}
+   Step  3: Pos (1, 0) | Percept: Dirty | Action: Clean    | Visited: {(0,0), (1,0)}
+   Step  4: Pos (1, 0) | Percept: Clean | Action: Right    | Visited: {(0,0), (1,0)}
+   Step  5: Pos (1, 1) | Percept: Dirty | Action: Clean    | Visited: {(0,0), (1,0), (1,1)}
+   Step  6: Pos (1, 1) | Percept: Clean | Action: Up       | Visited: {(0,0), (1,0), (1,1)}
+   Step  7: Pos (0, 1) | Percept: Clean | Action: Shutdown | Visited: {(0,0), (0,1), (1,0), (1,1)} -> Agent visited all rooms. Cleaning complete. Shutting down.
+   ```
+
+2. **Custom Grid & Start Position**:
+   ```bash
+   python run_model_based_agent.py --grid "Dirty Clean, Dirty Dirty" --start-row 0 --start-col 0
+   ```
+
+3. **Optional Challenge (Stochastic Sensor Failure)**:
+   ```bash
+   python run_model_based_agent.py --sensor-failure 0.2 --seed 42
+   ```
+
+4. **Interactive Walkthrough Mode**:
+   ```bash
+   python run_model_based_agent.py --interactive
+   ```
+
+5. **Display Viva Voce Reference & Theory Guide**:
+   ```bash
+   python run_model_based_agent.py --viva
+   ```
+
+6. **Interactive Jupyter Notebook**:
+   Open [`notebooks/model_based_reflex_agent.ipynb`](notebooks/model_based_reflex_agent.ipynb) in Jupyter Lab or Antigravity IDE.
 
 
 ## Getting Started
