@@ -24,7 +24,7 @@ A structured workspace for prototyping, experimenting with AI ideas, scripts, an
 flowchart TD
   User([Developer]) --> Workflow{Workflow}
   Workflow -->|Interactive Experimentation| NB[notebooks/starter_experiment.ipynb]
-  Workflow -->|Script Execution| Script[test.py]
+  Workflow -->|Script Execution| Script[scripts/smoke_test.py]
   Workflow -->|Automated Validation| Tests[tests/test_experiment.py]
   
   NB --> Core[src/experiment.py]
@@ -43,8 +43,15 @@ ai-lab/
 │   ├── randomized_reflex_agent.ipynb    # Question 2: Randomized Reflex Agent simulation & Viva guide
 │   ├── simple_reflex_vacuum_agent.ipynb # Question 1: Simple Reflex Vacuum Agent simulation & Viva guide
 │   └── starter_experiment.ipynb         # Interactive experimentation starter notebook
+├── scripts/
+│   ├── __init__.py                      # Scripts package marker
+│   ├── run_model_based_agent.py         # CLI & interactive runner for Question 3 (2x2 Grid Simulation)
+│   ├── run_randomized_agent.py          # CLI & interactive runner for Question 2 (1D Grid Simulation)
+│   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
+│   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
 │   ├── randomized_agent.py              # Question 2: Randomized Reflex Agent & 1D Grid Environment
@@ -54,14 +61,15 @@ ai-lab/
 │   ├── test_experiment.py               # Unit test suite for experiment runner
 │   ├── test_model_based_agent.py        # Unit tests for Question 3 model-based agent & 2x2 grid
 │   ├── test_randomized_agent.py         # Unit tests for Question 2 randomized agent & 1D grid
+│   ├── test_scripts.py                  # Unit tests for script runners & CLI dispatcher
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
+├── data/
+│   ├── processed/                       # Processed artifacts & experiment outputs
+│   └── raw/                             # Raw inputs & data snapshots
 ├── .gitignore                           # Comprehensive ignores (Python, Jupyter, venv, IDE)
+├── pyproject.toml                       # Modern Python project configuration & packaging
 ├── README.md                            # Project documentation and practical guide
-├── requirements.txt                     # Dependencies for notebooks and ML libraries
-├── run_model_based_agent.py             # CLI & interactive runner for Question 3 (2x2 Grid Simulation)
-├── run_randomized_agent.py              # CLI & interactive runner for Question 2 (1D Grid Simulation)
-├── run_vacuum_agent.py                  # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
-└── test.py                              # Starter entry point and verification script
+└── requirements.txt                     # Dependencies for notebooks and ML libraries
 ```
 
 ## Lab Practicals
@@ -87,27 +95,27 @@ flowchart TD
 
 1. **Default Sample Scenario** (Initial Location: `A`, Location A: `Dirty`, Location B: `Clean`, 5 Steps):
    ```bash
-   python run_vacuum_agent.py
+   python scripts/run_vacuum_agent.py
    ```
 
 2. **Custom Location & Square States**:
    ```bash
-   python run_vacuum_agent.py --location B --status-a Dirty --status-b Dirty --steps 5
+   python scripts/run_vacuum_agent.py --location B --status-a Dirty --status-b Dirty --steps 5
    ```
 
 3. **Interactive Mode**:
    ```bash
-   python run_vacuum_agent.py --interactive
+   python scripts/run_vacuum_agent.py --interactive
    ```
 
 4. **Optional Challenge (3x3 Grid with Randomized Dirt Placement)**:
    ```bash
-   python run_vacuum_agent.py --grid --steps 10
+   python scripts/run_vacuum_agent.py --grid --steps 10
    ```
 
 5. **Display Viva Voce Q&A and Theory Guide**:
    ```bash
-   python run_vacuum_agent.py --viva
+   python scripts/run_vacuum_agent.py --viva
    ```
 
 6. **Interactive Jupyter Notebook**:
@@ -136,7 +144,7 @@ flowchart TD
 
 1. **Sample Scenario with Exact 12-Step Reproducibility** (`[1, 0, 0, 1, 1]`, Start Index: `2`, Seed: `58`):
    ```bash
-   python run_randomized_agent.py --seed 58
+   python scripts/run_randomized_agent.py --seed 58
    ```
    *Output*:
    ```text
@@ -149,22 +157,22 @@ flowchart TD
 
 2. **Custom Room State & Start Index**:
    ```bash
-   python run_randomized_agent.py --state "1 0 1 1 0" --start-index 1
+   python scripts/run_randomized_agent.py --state "1 0 1 1 0" --start-index 1
    ```
 
 3. **Interactive Mode**:
    ```bash
-   python run_randomized_agent.py --interactive
+   python scripts/run_randomized_agent.py --interactive
    ```
 
 4. **Monte Carlo Empirical Benchmark (100 Trials)**:
    ```bash
-   python run_randomized_agent.py --benchmark --trials 100
+   python scripts/run_randomized_agent.py --benchmark --trials 100
    ```
 
 5. **Display Viva Voce Theory Guide**:
    ```bash
-   python run_randomized_agent.py --viva
+   python scripts/run_randomized_agent.py --viva
    ```
 
 6. **Interactive Jupyter Notebook**:
@@ -194,7 +202,7 @@ flowchart TD
 
 1. **Default Sample Scenario** (2x2 Grid: `[[Dirty, Clean], [Dirty, Dirty]]`, Start at `(0, 0)`):
    ```bash
-   python run_model_based_agent.py
+   python scripts/run_model_based_agent.py
    ```
    *Expected Output*:
    ```text
@@ -209,22 +217,22 @@ flowchart TD
 
 2. **Custom Grid & Start Position**:
    ```bash
-   python run_model_based_agent.py --grid "Dirty Clean, Dirty Dirty" --start-row 0 --start-col 0
+   python scripts/run_model_based_agent.py --grid "Dirty Clean, Dirty Dirty" --start-row 0 --start-col 0
    ```
 
 3. **Optional Challenge (Stochastic Sensor Failure)**:
    ```bash
-   python run_model_based_agent.py --sensor-failure 0.2 --seed 42
+   python scripts/run_model_based_agent.py --sensor-failure 0.2 --seed 42
    ```
 
 4. **Interactive Walkthrough Mode**:
    ```bash
-   python run_model_based_agent.py --interactive
+   python scripts/run_model_based_agent.py --interactive
    ```
 
 5. **Display Viva Voce Reference & Theory Guide**:
    ```bash
-   python run_model_based_agent.py --viva
+   python scripts/run_model_based_agent.py --viva
    ```
 
 6. **Interactive Jupyter Notebook**:
@@ -246,7 +254,7 @@ pip install -r requirements.txt
 From the project root:
 
 ```bash
-python test.py
+python scripts/smoke_test.py
 ```
 
 ### 3. Run Automated Tests

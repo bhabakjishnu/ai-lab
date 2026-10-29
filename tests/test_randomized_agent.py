@@ -8,7 +8,7 @@ mechanics, reproducibility via random seeds, safety limit cutoffs, and edge case
 import unittest
 from typing import List
 
-from run_randomized_agent import parse_state_argument
+from scripts.run_randomized_agent import parse_state_argument
 from src.randomized_agent import (
     ACTION_CLEAN,
     ACTION_LEFT,

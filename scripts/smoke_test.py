@@ -3,6 +3,14 @@
 Demonstrates running a baseline trial using the modular experiment runner.
 """
 
+from pathlib import Path
+import sys
+
+# Ensure repository root is on sys.path for direct execution
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
 from src.experiment import ExperimentRunner
 
 

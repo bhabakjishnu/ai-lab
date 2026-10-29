@@ -6,7 +6,13 @@ extensions (3x3 grid and viva voce reference study notes).
 """
 
 import argparse
+from pathlib import Path
 import sys
+
+# Ensure repository root is on sys.path for direct execution
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 from typing import Dict
 
 from src.vacuum_agent import (
