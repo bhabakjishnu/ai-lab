@@ -333,7 +333,7 @@ class TestSensorFailureChallenge(unittest.TestCase):
         self.assertEqual(percepts1, percepts2)
 
 
-from run_model_based_agent import parse_grid_argument
+from scripts.run_model_based_agent import parse_grid_argument
 
 
 class TestStatusNormalization(unittest.TestCase):
