@@ -30,6 +30,34 @@ from src.vacuum_agent import (
     StepRecord,
     TwoSquareEnvironment,
 )
+from src.model_based_agent import (
+    ACTION_SHUTDOWN,
+    STATUS_CLEAN,
+    STATUS_DIRTY,
+    TERMINATION_MESSAGE,
+    ModelAgentStepRecord,
+    ModelBasedAgent,
+    ModelSimulationResult,
+    TwoByTwoGridEnvironment,
+    run_model_based_simulation,
+)
+from src.goal_based_agent import (
+    ACTION_DOWN,
+    ACTION_UP,
+    DIAGONAL_DELTAS,
+    ORTHOGONAL_DELTAS,
+    GoalBasedNavigationAgent,
+    GoalSimulationResult,
+    GridEnvironment,
+    NavigationStepRecord,
+    euclidean_distance,
+    generate_random_coordinate,
+    get_successors,
+    is_diagonal_movement,
+    manhattan_distance,
+    run_goal_based_simulation,
+    validate_orthogonal_transition,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -64,17 +92,20 @@ __all__ = [
     "STATUS_DIRTY",
     "ACTION_SHUTDOWN",
     "TERMINATION_MESSAGE",
+    # Question 4: Goal-Based Navigation Agent
+    "GoalBasedNavigationAgent",
+    "GridEnvironment",
+    "NavigationStepRecord",
+    "GoalSimulationResult",
+    "run_goal_based_simulation",
+    "manhattan_distance",
+    "euclidean_distance",
+    "get_successors",
+    "is_diagonal_movement",
+    "validate_orthogonal_transition",
+    "generate_random_coordinate",
+    "ACTION_UP",
+    "ACTION_DOWN",
+    "ORTHOGONAL_DELTAS",
+    "DIAGONAL_DELTAS",
 ]
-
-from src.model_based_agent import (  # noqa: E402
-    ACTION_SHUTDOWN,
-    STATUS_CLEAN,
-    STATUS_DIRTY,
-    TERMINATION_MESSAGE,
-    ModelAgentStepRecord,
-    ModelBasedAgent,
-    ModelSimulationResult,
-    TwoByTwoGridEnvironment,
-    run_model_based_simulation,
-)
-

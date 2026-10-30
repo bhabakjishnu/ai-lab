@@ -4,6 +4,7 @@ Allows running simulations directly via module syntax:
     python -m src vacuum --steps 5
     python -m src randomized --seed 58
     python -m src model-based
+    python -m src goal-based
     python -m src smoke-test
 """
 
@@ -29,6 +30,9 @@ def main(argv: Optional[List[str]] = None) -> None:
     # Model-based reflex agent runner
     subparsers.add_parser("model-based", help="Run Question 3: Model-Based Reflex Agent (2x2 Grid)")
 
+    # Goal-based navigation agent runner
+    subparsers.add_parser("goal-based", help="Run Question 4: Goal-Based Navigation Agent (5x5 Grid)")
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -36,7 +40,7 @@ def main(argv: Optional[List[str]] = None) -> None:
         argv = sys.argv[1:]
 
     # If first arg matches a subcommand, forward remaining args to that script
-    if argv and argv[0] in {"vacuum", "randomized", "model-based", "smoke-test"}:
+    if argv and argv[0] in {"vacuum", "randomized", "model-based", "goal-based", "smoke-test"}:
         cmd = argv[0]
         remaining = argv[1:]
         if cmd == "vacuum":
@@ -51,6 +55,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_model_based_agent import main as model_main
             sys.argv = [sys.argv[0]] + remaining
             model_main()
+        elif cmd == "goal-based":
+            from scripts.run_goal_based_agent import main as goal_main
+            sys.argv = [sys.argv[0]] + remaining
+            goal_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
