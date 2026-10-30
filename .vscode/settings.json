@@ -1,4 +1,5 @@
 {
+    "python.condaPath": "C:\\Users\\jishn\\miniconda3\\condabin\\conda.bat",
     "python.terminal.activateEnvironment": false,
     "terminal.integrated.profiles.windows": {
         "PowerShell": {
