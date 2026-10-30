@@ -39,26 +39,30 @@ flowchart TD
 ```text
 ai-lab/
 ├── notebooks/
+│   ├── goal_based_navigation_agent.ipynb# Question 4: Goal-Based Navigation Agent simulation & Viva guide
 │   ├── model_based_reflex_agent.ipynb   # Question 3: Model-Based Reflex Agent simulation & Viva guide
 │   ├── randomized_reflex_agent.ipynb    # Question 2: Randomized Reflex Agent simulation & Viva guide
 │   ├── simple_reflex_vacuum_agent.ipynb # Question 1: Simple Reflex Vacuum Agent simulation & Viva guide
 │   └── starter_experiment.ipynb         # Interactive experimentation starter notebook
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
+│   ├── run_goal_based_agent.py          # CLI & interactive runner for Question 4 (5x5 Grid Simulation)
 │   ├── run_model_based_agent.py         # CLI & interactive runner for Question 3 (2x2 Grid Simulation)
 │   ├── run_randomized_agent.py          # CLI & interactive runner for Question 2 (1D Grid Simulation)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
+│   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
 │   ├── randomized_agent.py              # Question 2: Randomized Reflex Agent & 1D Grid Environment
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
 │   ├── test_experiment.py               # Unit test suite for experiment runner
+│   ├── test_goal_based_agent.py         # Unit tests for Question 4 goal-based agent & 5x5 grid
 │   ├── test_model_based_agent.py        # Unit tests for Question 3 model-based agent & 2x2 grid
 │   ├── test_randomized_agent.py         # Unit tests for Question 2 randomized agent & 1D grid
 │   ├── test_scripts.py                  # Unit tests for script runners & CLI dispatcher
@@ -237,6 +241,80 @@ flowchart TD
 
 6. **Interactive Jupyter Notebook**:
    Open [`notebooks/model_based_reflex_agent.ipynb`](notebooks/model_based_reflex_agent.ipynb) in Jupyter Lab or Antigravity IDE.
+
+---
+
+### Question 4: Goal-Based Navigation Agent
+
+- **Syllabus Area**: Intelligent Agents
+- **Difficulty**: 🟡 Intermediate
+- **Core AI Concept**: Goal-Based Agent, Distance Metrics (Manhattan & Euclidean), Greedy Coordinate Reduction
+- **Complexity**: Time Complexity: $O(D)$ | Space Complexity: $O(D)$ where $D = |x_1 - x_2| + |y_1 - y_2|$ is Manhattan distance
+
+#### Goal-Based Decision Architecture
+```mermaid
+flowchart TD
+    Percept["Percept: Current Location (x, y)<br/>Goal Coordinate (gx, gy)"] --> CheckGoal{"At Charging Station?<br/>(x, y) == (gx, gy)"}
+    CheckGoal -->|Yes| Halt["Goal Reached<br/>Halt & Output Path"]
+    CheckGoal -->|No| Successors["Generate 4-Connected Successors<br/>(Up, Down, Left, Right)<br/>*Strictly Reject Diagonals*"]
+    Successors --> EvalDist["Calculate Manhattan Distance<br/>d_M = |nx - gx| + |ny - gy|"]
+    EvalDist --> Filter["Filter Actions Strictly Reducing Distance<br/>d_next < d_curr"]
+    Filter --> Select["Select Best Orthogonal Action<br/>(Greedy Coordinate Reduction)"]
+    Select --> Step["Execute Action & Record Path<br/>Update Agent Position"]
+    Step --> Percept
+```
+
+#### Running the Goal-Based Agent Simulation
+
+1. **Default Sample Scenario** (Start: `(0, 0)`, Goal: `(3, 4)`):
+   ```bash
+   python scripts/run_goal_based_agent.py
+   ```
+   *Expected Output*:
+   ```text
+   Step  1: Pos (0, 0) -> Action: Down  -> Next: (1, 0) | Dist: 7 -> 6 (Decreased)
+   Step  2: Pos (1, 0) -> Action: Down  -> Next: (2, 0) | Dist: 6 -> 5 (Decreased)
+   Step  3: Pos (2, 0) -> Action: Down  -> Next: (3, 0) | Dist: 5 -> 4 (Decreased)
+   Step  4: Pos (3, 0) -> Action: Right -> Next: (3, 1) | Dist: 4 -> 3 (Decreased)
+   Step  5: Pos (3, 1) -> Action: Right -> Next: (3, 2) | Dist: 3 -> 2 (Decreased)
+   Step  6: Pos (3, 2) -> Action: Right -> Next: (3, 3) | Dist: 2 -> 1 (Decreased)
+   Step  7: Pos (3, 3) -> Action: Right -> Next: (3, 4) | Dist: 1 -> 0 (Decreased)
+
+   Path: [(0, 0), (1, 0), (2, 0), (3, 0), (3, 1), (3, 2), (3, 3), (3, 4)]
+   ```
+
+2. **Custom Start & Goal Coordinates**:
+   ```bash
+   python scripts/run_goal_based_agent.py --start 1 1 --goal 4 2
+   ```
+
+3. **Random Goal Placement (with Seed Reproducibility)**:
+   ```bash
+   python scripts/run_goal_based_agent.py --random-goal --seed 42
+   ```
+
+4. **Optional Challenge (Explicit Diagonal Movement Prevention)**:
+   ```bash
+   python scripts/run_goal_based_agent.py --challenge
+   ```
+
+5. **Distance Metric Comparison (Manhattan $L_1$ vs. Euclidean $L_2$)**:
+   ```bash
+   python scripts/run_goal_based_agent.py --compare-metrics
+   ```
+
+6. **Interactive Terminal Mode**:
+   ```bash
+   python scripts/run_goal_based_agent.py --interactive
+   ```
+
+7. **Display Viva Voce Reference & Theory Guide**:
+   ```bash
+   python scripts/run_goal_based_agent.py --viva
+   ```
+
+8. **Interactive Jupyter Notebook**:
+   Open [`notebooks/goal_based_navigation_agent.ipynb`](notebooks/goal_based_navigation_agent.ipynb) in Jupyter Lab or Antigravity IDE.
 
 
 ## Getting Started
