@@ -5,6 +5,7 @@ Allows running simulations directly via module syntax:
     python -m src randomized --seed 58
     python -m src model-based
     python -m src goal-based
+    python -m src utility-based
     python -m src smoke-test
 """
 
@@ -33,6 +34,9 @@ def main(argv: Optional[List[str]] = None) -> None:
     # Goal-based navigation agent runner
     subparsers.add_parser("goal-based", help="Run Question 4: Goal-Based Navigation Agent (5x5 Grid)")
 
+    # Utility-based agent runner
+    subparsers.add_parser("utility-based", help="Run Question 5: Utility-Based Agent Simulation")
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -40,7 +44,15 @@ def main(argv: Optional[List[str]] = None) -> None:
         argv = sys.argv[1:]
 
     # If first arg matches a subcommand, forward remaining args to that script
-    if argv and argv[0] in {"vacuum", "randomized", "model-based", "goal-based", "smoke-test"}:
+    allowed_subcommands = {
+        "vacuum",
+        "randomized",
+        "model-based",
+        "goal-based",
+        "utility-based",
+        "smoke-test",
+    }
+    if argv and argv[0] in allowed_subcommands:
         cmd = argv[0]
         remaining = argv[1:]
         if cmd == "vacuum":
@@ -59,6 +71,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_goal_based_agent import main as goal_main
             sys.argv = [sys.argv[0]] + remaining
             goal_main()
+        elif cmd == "utility-based":
+            from scripts.run_utility_based_agent import main as utility_main
+            sys.argv = [sys.argv[0]] + remaining
+            utility_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining

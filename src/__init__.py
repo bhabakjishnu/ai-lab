@@ -58,6 +58,20 @@ from src.goal_based_agent import (
     run_goal_based_simulation,
     validate_orthogonal_transition,
 )
+from src.utility_based_agent import (
+    DEFAULT_GRAPH,
+    DEFAULT_PREDEFINED_PATHS,
+    DEFAULT_TERRAIN_COSTS,
+    EdgeDetail,
+    PathEvaluation,
+    UtilityBasedAgent,
+    UtilitySimulationResult,
+    calculate_path_cost,
+    calculate_utility,
+    find_all_paths,
+    resolve_edge_cost,
+    run_utility_based_simulation,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -108,4 +122,17 @@ __all__ = [
     "ACTION_DOWN",
     "ORTHOGONAL_DELTAS",
     "DIAGONAL_DELTAS",
+    # Question 5: Utility-Based Agent
+    "UtilityBasedAgent",
+    "UtilitySimulationResult",
+    "PathEvaluation",
+    "EdgeDetail",
+    "calculate_path_cost",
+    "calculate_utility",
+    "run_utility_based_simulation",
+    "find_all_paths",
+    "resolve_edge_cost",
+    "DEFAULT_GRAPH",
+    "DEFAULT_PREDEFINED_PATHS",
+    "DEFAULT_TERRAIN_COSTS",
 ]

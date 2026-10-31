@@ -43,21 +43,24 @@ ai-lab/
 │   ├── model_based_reflex_agent.ipynb   # Question 3: Model-Based Reflex Agent simulation & Viva guide
 │   ├── randomized_reflex_agent.ipynb    # Question 2: Randomized Reflex Agent simulation & Viva guide
 │   ├── simple_reflex_vacuum_agent.ipynb # Question 1: Simple Reflex Vacuum Agent simulation & Viva guide
-│   └── starter_experiment.ipynb         # Interactive experimentation starter notebook
+│   ├── starter_experiment.ipynb         # Interactive experimentation starter notebook
+│   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
 │   ├── run_goal_based_agent.py          # CLI & interactive runner for Question 4 (5x5 Grid Simulation)
 │   ├── run_model_based_agent.py         # CLI & interactive runner for Question 3 (2x2 Grid Simulation)
 │   ├── run_randomized_agent.py          # CLI & interactive runner for Question 2 (1D Grid Simulation)
+│   ├── run_utility_based_agent.py       # CLI & interactive runner for Question 5 (Utility Optimization)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
 │   ├── randomized_agent.py              # Question 2: Randomized Reflex Agent & 1D Grid Environment
+│   ├── utility_based_agent.py           # Question 5: Utility-Based Agent & Terrain Graph Cost Optimization
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -66,6 +69,7 @@ ai-lab/
 │   ├── test_model_based_agent.py        # Unit tests for Question 3 model-based agent & 2x2 grid
 │   ├── test_randomized_agent.py         # Unit tests for Question 2 randomized agent & 1D grid
 │   ├── test_scripts.py                  # Unit tests for script runners & CLI dispatcher
+│   ├── test_utility_based_agent.py      # Unit tests for Question 5 utility-based agent & terrain costs
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -316,6 +320,97 @@ flowchart TD
 8. **Interactive Jupyter Notebook**:
    Open [`notebooks/goal_based_navigation_agent.ipynb`](notebooks/goal_based_navigation_agent.ipynb) in Jupyter Lab or Antigravity IDE.
 
+---
+
+### Question 5: Utility-Based Agent Simulation
+
+- **Syllabus Area**: Intelligent Agents
+- **Difficulty**: 🟠 Advanced
+- **Practical Type**: Optimization
+- **Core AI Concept**: Utility-Based Agent, Cost Minimization vs. Utility Maximization, Expected Utility Theory
+- **Complexity**: Time Complexity: $O(P \times L)$ | Space Complexity: $O(1)$ where $P$ is candidate paths and $L$ is path length
+
+#### Decision & Optimization Flow
+```mermaid
+flowchart TD
+    Input["Candidate Paths: [A-B-D, A-C-D, A-E-D]<br/>Environment Graph with Terrain Costs"] --> Cost["Path Cost Summation<br/>total_cost = sum(c(u, v))"]
+    Cost --> Util["Formulate Utility Function<br/>U(path) = -1 * total_cost"]
+    Util --> BatteryCheck{"Battery Constraint?<br/>cost <= battery_limit"}
+    BatteryCheck -->|No| Reject["Reject Path<br/>(Battery Depleted)"]
+    BatteryCheck -->|Yes| Feasible["Mark Path Feasible"]
+    Feasible --> Sort["Custom Lambda Sorting<br/>sorted(feasible, key=lambda ev: ev.utility, reverse=True)"]
+    Sort --> Maximize["Select Path with Highest Utility<br/>argmax_p U(p) == argmin_p Cost(p)"]
+    Maximize --> Output["Selected Path: A-C-D | Utility: -4.0"]
+```
+
+#### Running the Utility-Based Agent Simulation
+
+1. **Default Run (3 Predefined Paths on Sample Graph)**:
+   ```bash
+   python scripts/run_utility_based_agent.py
+   ```
+   *Expected Output*:
+   ```text
+   Candidate Path Evaluations:
+   ---------------------------------------------------------------------------
+   #   Path             Terrain Breakdown          Cost    Utility  Status
+   ---------------------------------------------------------------------------
+   1   A-B-D            G:1 + W:5                  6.0     -6.0     FEASIBLE
+   2   A-C-D            G:1 + M:3                  4.0     -4.0     SELECTED (Optimal)
+   3   A-E-D            M:3 + W:5                  8.0     -8.0     FEASIBLE
+   ---------------------------------------------------------------------------
+
+   Optimization Result:
+     Selected Path: A-C-D
+     Total Cost:    4.0
+     Utility:       -4.0
+   ```
+
+2. **Custom Paths via CLI**:
+   ```bash
+   python scripts/run_utility_based_agent.py --paths "A-B-D" "A-C-D"
+   ```
+
+3. **Optional Challenge (Battery Capacity Constraint)**:
+   ```bash
+   python scripts/run_utility_based_agent.py --challenge
+   ```
+   *Output*:
+   ```text
+   Battery Capacity Limit: 5.0 units
+   Rule: Reject any path with total_cost > battery_limit regardless of utility.
+
+   Challenge Analysis:
+     [REJECTED] Path A-B-D      Cost: 6.0 > 5.0 (Battery Depleted)
+     [ACCEPTED] Path A-C-D      Cost: 4.0 <= 5.0
+     [REJECTED] Path A-E-D      Cost: 8.0 > 5.0 (Battery Depleted)
+
+   Best Feasible Path: A-C-D (Cost: 4.0, Utility: -4.0)
+   ```
+
+4. **Auto-Discovery of All Directed Paths (DFS)**:
+   ```bash
+   python scripts/run_utility_based_agent.py --all-paths
+   ```
+
+5. **Top-Level Module Dispatcher**:
+   ```bash
+   python -m src utility-based
+   ```
+
+6. **Interactive Terminal Mode**:
+   ```bash
+   python scripts/run_utility_based_agent.py --interactive
+   ```
+
+7. **Display Viva Voce Reference & Theory Guide**:
+   ```bash
+   python scripts/run_utility_based_agent.py --viva
+   ```
+
+8. **Interactive Jupyter Notebook**:
+   Open [`notebooks/utility_based_agent.ipynb`](notebooks/utility_based_agent.ipynb) in Jupyter Lab or Antigravity IDE.
+
 
 ## Getting Started
 
@@ -337,7 +432,7 @@ python scripts/smoke_test.py
 
 ### 3. Run Automated Tests
 
-Execute the comprehensive test suite (including ExperimentRunner and Vacuum Agent tests):
+Execute the comprehensive test suite (including ExperimentRunner and Agent tests):
 
 ```bash
 python -m unittest discover -s tests
@@ -354,6 +449,6 @@ pytest
 Launch Jupyter to explore interactive experiments:
 
 ```bash
-jupyter lab notebooks/simple_reflex_vacuum_agent.ipynb
+jupyter lab notebooks/utility_based_agent.ipynb
 ```
 or open directly in your IDE (VS Code / Antigravity).

@@ -14,6 +14,7 @@ from scripts.run_vacuum_agent import main as vacuum_main
 from scripts.run_randomized_agent import main as randomized_main
 from scripts.run_model_based_agent import main as model_main
 from scripts.run_goal_based_agent import main as goal_main
+from scripts.run_utility_based_agent import main as utility_main
 from src.__main__ import main as cli_main
 
 
@@ -91,6 +92,39 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("DIFFERENCE BETWEEN GOAL-BASED AND REFLEX AGENTS", output)
         self.assertIn("MANHATTAN VS. EUCLIDEAN DISTANCE", output)
 
+    def test_utility_based_agent_script_default_run(self) -> None:
+        """Verify run_utility_based_agent script executes 3 predefined paths and outputs optimal path."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_utility_based_agent.py"]):
+            with patch("sys.stdout", stdout_trap):
+                utility_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("QUESTION 5: UTILITY-BASED AGENT SIMULATION", output)
+        self.assertIn("Selected Path: A-C-D", output)
+        self.assertIn("Utility:       -4.0", output)
+
+    def test_utility_based_agent_script_challenge_mode(self) -> None:
+        """Verify run_utility_based_agent script runs battery constraint challenge."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_utility_based_agent.py", "--challenge"]):
+            with patch("sys.stdout", stdout_trap):
+                utility_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE: BATTERY-CONSTRAINED UTILITY AGENT", output)
+        self.assertIn("Battery Capacity Limit: 5.0 units", output)
+        self.assertIn("Best Feasible Path: A-C-D", output)
+
+    def test_utility_based_agent_script_viva_notes(self) -> None:
+        """Verify run_utility_based_agent script displays viva reference notes."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_utility_based_agent.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                utility_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("Question 5: Utility-Based Agent Simulation", output)
+        self.assertIn("UTILITY VS. GOAL", output)
+        self.assertIn("EXPECTED UTILITY THEORY", output)
+
     def test_cli_dispatcher_help_and_subcommands(self) -> None:
         """Verify top-level module CLI dispatcher provides help and forwards commands."""
         # Help text
@@ -110,6 +144,12 @@ class TestScriptExecution(unittest.TestCase):
         with patch("sys.stdout", stdout_trap):
             cli_main(["goal-based"])
         self.assertIn("GOAL-BASED NAVIGATION AGENT SIMULATION", stdout_trap.getvalue())
+
+        # Subcommand forwarding for utility-based
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["utility-based"])
+        self.assertIn("QUESTION 5: UTILITY-BASED AGENT SIMULATION", stdout_trap.getvalue())
 
 
 if __name__ == "__main__":
