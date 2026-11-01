@@ -41,6 +41,7 @@ ai-lab/
 ├── notebooks/
 │   ├── goal_based_navigation_agent.ipynb# Question 4: Goal-Based Navigation Agent simulation & Viva guide
 │   ├── model_based_reflex_agent.ipynb   # Question 3: Model-Based Reflex Agent simulation & Viva guide
+│   ├── multi_agent_simulation.ipynb     # Question 6: Multi-Agent Environment Simulation (4x4 Grid)
 │   ├── randomized_reflex_agent.ipynb    # Question 2: Randomized Reflex Agent simulation & Viva guide
 │   ├── simple_reflex_vacuum_agent.ipynb # Question 1: Simple Reflex Vacuum Agent simulation & Viva guide
 │   ├── starter_experiment.ipynb         # Interactive experimentation starter notebook
@@ -49,16 +50,18 @@ ai-lab/
 │   ├── __init__.py                      # Scripts package marker
 │   ├── run_goal_based_agent.py          # CLI & interactive runner for Question 4 (5x5 Grid Simulation)
 │   ├── run_model_based_agent.py         # CLI & interactive runner for Question 3 (2x2 Grid Simulation)
+│   ├── run_multi_agent_simulation.py    # CLI & interactive runner for Question 6 (Builder vs Destroyer)
 │   ├── run_randomized_agent.py          # CLI & interactive runner for Question 2 (1D Grid Simulation)
 │   ├── run_utility_based_agent.py       # CLI & interactive runner for Question 5 (Utility Optimization)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
+│   ├── multi_agent_simulation.py        # Question 6: Multi-Agent Environment Simulation & Shared 4x4 Grid
 │   ├── randomized_agent.py              # Question 2: Randomized Reflex Agent & 1D Grid Environment
 │   ├── utility_based_agent.py           # Question 5: Utility-Based Agent & Terrain Graph Cost Optimization
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
@@ -67,6 +70,7 @@ ai-lab/
 │   ├── test_experiment.py               # Unit test suite for experiment runner
 │   ├── test_goal_based_agent.py         # Unit tests for Question 4 goal-based agent & 5x5 grid
 │   ├── test_model_based_agent.py        # Unit tests for Question 3 model-based agent & 2x2 grid
+│   ├── test_multi_agent_simulation.py   # Unit tests for Question 6 multi-agent simulation & rules
 │   ├── test_randomized_agent.py         # Unit tests for Question 2 randomized agent & 1D grid
 │   ├── test_scripts.py                  # Unit tests for script runners & CLI dispatcher
 │   ├── test_utility_based_agent.py      # Unit tests for Question 5 utility-based agent & terrain costs
@@ -411,6 +415,117 @@ flowchart TD
 8. **Interactive Jupyter Notebook**:
    Open [`notebooks/utility_based_agent.ipynb`](notebooks/utility_based_agent.ipynb) in Jupyter Lab or Antigravity IDE.
 
+---
+
+### Question 6: Multi-Agent Environment Simulation
+
+- **Syllabus Area**: Intelligent Agents
+- **Difficulty**: 🟠 Advanced
+- **Practical Type**: Simulation
+- **Core AI Concept**: Multi-Agent Systems, Competitive/Zero-Sum Environments, Sequential vs. Episodic, Dynamic vs. Static, Turn-Based Execution, Collision Avoidance
+- **Complexity**: Time Complexity: $O(S)$ where $S$ is steps | Space Complexity: $O(\text{Grid Size}) = O(16) = O(1)$
+
+#### Multi-Agent Architecture & Turn-Based Interaction Loop
+```mermaid
+flowchart TD
+    Init["Initialize Shared 4x4 Grid (all 0s)<br/>• Agent A (Builder) at (0, 0)<br/>• Agent B (Destroyer) at (3, 3)"] --> TurnA["Round t: Agent A Turn (Builder)"]
+    
+    TurnA --> PerceptA["Perceive Shared Cell & Peers<br/>Cell = grid[pos_A]"]
+    PerceptA --> RuleA{"Is Cell Empty (0)?"}
+    RuleA -->|Yes| Place["Action: PlaceBlock<br/>grid[pos_A] = 1"]
+    RuleA -->|No| MoveA["Action: Move to Safe Neighbor"]
+    Place --> MoveACompound["Compound Step: Move to Safe Neighbor"]
+    
+    MoveACompound --> TurnB["Round t: Agent B Turn (Destroyer)"]
+    MoveA --> TurnB
+    
+    TurnB --> PerceptB["Perceive Shared Cell & Peers<br/>Cell = grid[pos_B]"]
+    PerceptB --> RuleB{"Is Cell Block (1)?"}
+    RuleB -->|Yes| Destroy["Action: RemoveBlock<br/>grid[pos_B] = 0"]
+    RuleB -->|No| MoveB["Action: Move to Safe Neighbor"]
+    Destroy --> MoveBCompound["Compound Step: Move to Safe Neighbor"]
+    
+    MoveBCompound --> CheckStep{"Completed 10 Steps?"}
+    MoveB --> CheckStep
+    CheckStep -->|No| TurnA
+    CheckStep -->|Yes| Final["Output Final 4x4 Grid Matrix (NumPy Array)<br/>Display 1s (Blocks) and 0s (Empty)"]
+```
+
+#### Running the Multi-Agent Simulation
+
+1. **Default 10-Step Simulation** (4x4 Grid, Builder at `(0, 0)`, Destroyer at `(3, 3)`):
+   ```bash
+   python scripts/run_multi_agent_simulation.py --steps 10
+   ```
+   *Sample Output*:
+   ```text
+   Sample Output (NumPy Matrix displaying 1s and 0s):
+   [[1 1 0 0]
+    [1 1 1 0]
+    [0 1 1 0]
+    [0 0 0 0]]
+
+   ======================================================================
+                  MULTI-AGENT ENVIRONMENT SIMULATION SUMMARY             
+   ======================================================================
+   Execution Mode:             Compound Turns
+   Total Rounds (Steps):       10
+   Agent A:                    Agent_A (Builder) | Start: (0, 0) -> Final: (1, 3)
+   Agent B:                    Agent_B (Destroyer) | Start: (3, 3) -> Final: (2, 0)
+   Performance Metrics:        Builder placed 9 blocks | Destroyer removed 2 blocks | Net: +7
+   Final Block Count in Grid:  7 / 16
+   Collision Avoidance:        Disabled
+   Collisions Avoided:         0
+   Collisions Occurred:        1
+   ----------------------------------------------------------------------
+   Final Grid State Matrix (NumPy Array):
+   [[1 1 0 0]
+    [1 1 1 0]
+    [0 1 1 0]
+    [0 0 0 0]]
+   ======================================================================
+   ```
+
+2. **Optional Challenge (Active Collision Awareness & Avoidance)**:
+   ```bash
+   python scripts/run_multi_agent_simulation.py --challenge
+   ```
+   *Output Highlights*:
+   ```text
+   Collision Avoidance: ENABLED (Optional Challenge)
+   Collisions Avoided:  2
+   Collisions Occurred: 0
+   ```
+
+3. **Discrete Turn Mode (Act OR Move)**:
+   ```bash
+   python scripts/run_multi_agent_simulation.py --mode discrete --steps 10
+   ```
+
+4. **Greedy Heuristic Movement Strategy**:
+   ```bash
+   python scripts/run_multi_agent_simulation.py --strategy greedy --steps 10
+   ```
+
+5. **Top-Level Module Dispatcher**:
+   ```bash
+   python -m src multi-agent --steps 10
+   ```
+
+6. **Interactive Step-by-Step Walkthrough**:
+   ```bash
+   python scripts/run_multi_agent_simulation.py --interactive
+   ```
+
+7. **Display Viva Voce Reference & Theory Guide**:
+   ```bash
+   python scripts/run_multi_agent_simulation.py --viva
+   ```
+
+8. **Interactive Jupyter Notebook**:
+   Open [`notebooks/multi_agent_simulation.ipynb`](notebooks/multi_agent_simulation.ipynb) in Jupyter Lab or Antigravity IDE.
+
+---
 
 ## Getting Started
 
@@ -449,6 +564,6 @@ pytest
 Launch Jupyter to explore interactive experiments:
 
 ```bash
-jupyter lab notebooks/utility_based_agent.ipynb
+jupyter lab notebooks/multi_agent_simulation.ipynb
 ```
 or open directly in your IDE (VS Code / Antigravity).

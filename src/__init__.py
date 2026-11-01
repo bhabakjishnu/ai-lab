@@ -72,6 +72,26 @@ from src.utility_based_agent import (
     resolve_edge_cost,
     run_utility_based_simulation,
 )
+from src.multi_agent_simulation import (
+    ACTION_BUILD,
+    ACTION_DESTROY,
+    CELL_BLOCK,
+    CELL_EMPTY,
+    ROLE_BUILDER,
+    ROLE_DESTROYER,
+    STRATEGY_GREEDY,
+    STRATEGY_RANDOM,
+    TURN_MODE_COMPOUND,
+    TURN_MODE_DISCRETE,
+    AgentTurnRecord,
+    BaseAgent,
+    BuilderAgent,
+    DestroyerAgent,
+    MultiAgentGridEnvironment,
+    MultiAgentPercept,
+    MultiAgentSimulationResult,
+    run_multi_agent_simulation,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -135,4 +155,23 @@ __all__ = [
     "DEFAULT_GRAPH",
     "DEFAULT_PREDEFINED_PATHS",
     "DEFAULT_TERRAIN_COSTS",
+    # Question 6: Multi-Agent Environment Simulation
+    "BaseAgent",
+    "BuilderAgent",
+    "DestroyerAgent",
+    "MultiAgentGridEnvironment",
+    "MultiAgentPercept",
+    "AgentTurnRecord",
+    "MultiAgentSimulationResult",
+    "run_multi_agent_simulation",
+    "CELL_EMPTY",
+    "CELL_BLOCK",
+    "ROLE_BUILDER",
+    "ROLE_DESTROYER",
+    "ACTION_BUILD",
+    "ACTION_DESTROY",
+    "TURN_MODE_COMPOUND",
+    "TURN_MODE_DISCRETE",
+    "STRATEGY_RANDOM",
+    "STRATEGY_GREEDY",
 ]

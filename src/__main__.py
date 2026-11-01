@@ -6,6 +6,7 @@ Allows running simulations directly via module syntax:
     python -m src model-based
     python -m src goal-based
     python -m src utility-based
+    python -m src multi-agent --steps 10
     python -m src smoke-test
 """
 
@@ -37,6 +38,9 @@ def main(argv: Optional[List[str]] = None) -> None:
     # Utility-based agent runner
     subparsers.add_parser("utility-based", help="Run Question 5: Utility-Based Agent Simulation")
 
+    # Multi-agent simulation runner
+    subparsers.add_parser("multi-agent", help="Run Question 6: Multi-Agent Environment Simulation (4x4 Grid)")
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -50,6 +54,7 @@ def main(argv: Optional[List[str]] = None) -> None:
         "model-based",
         "goal-based",
         "utility-based",
+        "multi-agent",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -75,6 +80,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_utility_based_agent import main as utility_main
             sys.argv = [sys.argv[0]] + remaining
             utility_main()
+        elif cmd == "multi-agent":
+            from scripts.run_multi_agent_simulation import main as multi_agent_main
+            sys.argv = [sys.argv[0]] + remaining
+            multi_agent_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining

@@ -15,6 +15,7 @@ from scripts.run_randomized_agent import main as randomized_main
 from scripts.run_model_based_agent import main as model_main
 from scripts.run_goal_based_agent import main as goal_main
 from scripts.run_utility_based_agent import main as utility_main
+from scripts.run_multi_agent_simulation import main as multi_agent_main
 from src.__main__ import main as cli_main
 
 
@@ -125,6 +126,41 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("UTILITY VS. GOAL", output)
         self.assertIn("EXPECTED UTILITY THEORY", output)
 
+    def test_multi_agent_script_default_run(self) -> None:
+        """Verify run_multi_agent_simulation script executes 10-step simulation and displays matrix."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_multi_agent_simulation.py", "--steps", "10", "--seed", "42"]):
+            with patch("sys.stdout", stdout_trap):
+                multi_agent_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 6: MULTI-AGENT ENVIRONMENT SIMULATION", output)
+        self.assertIn("Sample Output (NumPy Matrix displaying 1s and 0s):", output)
+        self.assertIn("[[1 1 0 0]", output)
+        self.assertIn("MULTI-AGENT ENVIRONMENT SIMULATION SUMMARY", output)
+
+    def test_multi_agent_script_challenge_mode(self) -> None:
+        """Verify run_multi_agent_simulation script demonstrates collision avoidance challenge."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_multi_agent_simulation.py", "--challenge", "--seed", "42"]):
+            with patch("sys.stdout", stdout_trap):
+                multi_agent_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("Collision Avoidance: ENABLED", output)
+        self.assertIn("Collisions Occurred:        0", output)
+        self.assertIn("Collisions Avoided:         2", output)
+
+    def test_multi_agent_script_viva_notes(self) -> None:
+        """Verify run_multi_agent_simulation script displays viva notes."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_multi_agent_simulation.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                multi_agent_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("Question 6: Multi-Agent Environment Simulation", output)
+        self.assertIn("MULTI-AGENT COMPETITIVE ENVIRONMENTS", output)
+        self.assertIn("EPISODIC VS. SEQUENTIAL ENVIRONMENTS", output)
+        self.assertIn("STATIC VS. DYNAMIC ENVIRONMENTS", output)
+
     def test_cli_dispatcher_help_and_subcommands(self) -> None:
         """Verify top-level module CLI dispatcher provides help and forwards commands."""
         # Help text
@@ -150,6 +186,12 @@ class TestScriptExecution(unittest.TestCase):
         with patch("sys.stdout", stdout_trap):
             cli_main(["utility-based"])
         self.assertIn("QUESTION 5: UTILITY-BASED AGENT SIMULATION", stdout_trap.getvalue())
+
+        # Subcommand forwarding for multi-agent
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["multi-agent", "--steps", "10", "--seed", "42"])
+        self.assertIn("QUESTION NO. 6: MULTI-AGENT ENVIRONMENT SIMULATION", stdout_trap.getvalue())
 
 
 if __name__ == "__main__":
