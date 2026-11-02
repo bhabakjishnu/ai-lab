@@ -45,6 +45,7 @@ ai-lab/
 │   ├── randomized_reflex_agent.ipynb    # Question 2: Randomized Reflex Agent simulation & Viva guide
 │   ├── simple_reflex_vacuum_agent.ipynb # Question 1: Simple Reflex Vacuum Agent simulation & Viva guide
 │   ├── starter_experiment.ipynb         # Interactive experimentation starter notebook
+│   ├── stochastic_vacuum_agent.ipynb    # Question 7: Stochastic Vacuum Agent simulation & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -52,17 +53,19 @@ ai-lab/
 │   ├── run_model_based_agent.py         # CLI & interactive runner for Question 3 (2x2 Grid Simulation)
 │   ├── run_multi_agent_simulation.py    # CLI & interactive runner for Question 6 (Builder vs Destroyer)
 │   ├── run_randomized_agent.py          # CLI & interactive runner for Question 2 (1D Grid Simulation)
+│   ├── run_stochastic_vacuum_agent.py   # CLI & interactive runner for Question 7 (Monte Carlo Simulation)
 │   ├── run_utility_based_agent.py       # CLI & interactive runner for Question 5 (Utility Optimization)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
 │   ├── multi_agent_simulation.py        # Question 6: Multi-Agent Environment Simulation & Shared 4x4 Grid
 │   ├── randomized_agent.py              # Question 2: Randomized Reflex Agent & 1D Grid Environment
+│   ├── stochastic_vacuum_agent.py       # Question 7: Stochastic Vacuum Agent & Non-deterministic Environment
 │   ├── utility_based_agent.py           # Question 5: Utility-Based Agent & Terrain Graph Cost Optimization
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
@@ -73,6 +76,7 @@ ai-lab/
 │   ├── test_multi_agent_simulation.py   # Unit tests for Question 6 multi-agent simulation & rules
 │   ├── test_randomized_agent.py         # Unit tests for Question 2 randomized agent & 1D grid
 │   ├── test_scripts.py                  # Unit tests for script runners & CLI dispatcher
+│   ├── test_stochastic_vacuum_agent.py  # Unit tests for Question 7 stochastic transitions & Monte Carlo
 │   ├── test_utility_based_agent.py      # Unit tests for Question 5 utility-based agent & terrain costs
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
@@ -524,6 +528,80 @@ flowchart TD
 
 8. **Interactive Jupyter Notebook**:
    Open [`notebooks/multi_agent_simulation.ipynb`](notebooks/multi_agent_simulation.ipynb) in Jupyter Lab or Antigravity IDE.
+
+### Question 7: Stochastic Environment Vacuum Agent
+
+- **Syllabus Area**: Intelligent Agents
+- **Difficulty**: 🟠 Advanced
+- **Practical Type**: Simulation
+- **Core AI Concept**: Stochastic Environments, Non-deterministic Actions, Actuator Slippage, Monte Carlo Estimation
+- **Python Concepts Tested**: `random` module (`random.random()`), statistical averaging (`statistics`), loops, dataclasses
+- **Complexity**: Time Complexity: $O(\text{Runs} \times \text{Steps})$ | Space Complexity: $O(\text{Runs})$
+
+#### Probabilistic Actuator State Transition Model
+```mermaid
+stateDiagram-v2
+    [*] --> Room_0: Agent starts in Room 0 (Dirty)
+    Room_0 --> Room_0: Clean Room 0 (Deterministic, 100%)
+    Room_0 --> Room_1: Action Move Right (80% Success)
+    Room_0 --> Room_0: Action Move Right (20% Slip Stay)
+    
+    Room_1 --> Room_1: Clean Room 1 (Deterministic, 100%)
+    Room_1 --> Room_2: Action Move Right (80% Success)
+    Room_1 --> Room_1: Action Move Right (20% Slip Stay)
+    Room_1 --> Room_0: Action Move Right (Optional Challenge: Slip Back)
+    
+    Room_2 --> Room_2: Clean Room 2 (Deterministic, 100%)
+    Room_2 --> [*]: All 3 Rooms Clean (Task Goal Achieved)
+```
+
+#### Theoretical Expectation vs. Deterministic Baseline
+
+| Metric | Deterministic Baseline | Stochastic Environment ($p=0.8$) |
+| :--- | :--- | :--- |
+| **Cleaning Steps** | 3 steps ($1$ step per room) | 3 steps ($1$ step per room) |
+| **Room Transitions** | 2 steps ($1$ step per move) | $\mathbb{E}[\text{Moves}] = 2 \times \frac{1}{0.8} = 2.5$ steps |
+| **Total Expected Steps** | **5.0 steps** | **5.5 steps** |
+| **Performance Penalty** | Baseline (0.0 steps) | **+0.5 steps (+10.0% execution delay)** |
+
+#### Running the Stochastic Vacuum Agent Simulation
+
+1. **Standard Monte Carlo Batch (20 Runs)**:
+   ```bash
+   python scripts/run_stochastic_vacuum_agent.py --runs 20
+   ```
+   *Expected Output*:
+   ```text
+   Average steps to clean 3 rooms: 5.4 steps
+   ```
+
+2. **Reproducible Benchmark (Seed 28 reproduces sample output exactly)**:
+   ```bash
+   python scripts/run_stochastic_vacuum_agent.py --runs 20 --seed 28
+   ```
+
+3. **Detailed Step-by-Step Trajectory Trace**:
+   ```bash
+   python scripts/run_stochastic_vacuum_agent.py --runs 20 --seed 28 --trace
+   ```
+
+4. **Optional Challenge: Actuator 'Slip Back' Mechanics**:
+   ```bash
+   python scripts/run_stochastic_vacuum_agent.py --challenge --seed 42
+   ```
+
+5. **Display Viva Voce Theory & Reference Guide**:
+   ```bash
+   python scripts/run_stochastic_vacuum_agent.py --viva
+   ```
+
+6. **Top-Level Package Dispatcher**:
+   ```bash
+   python -m src stochastic --runs 20 --seed 28
+   ```
+
+7. **Interactive Jupyter Notebook**:
+   Open [`notebooks/stochastic_vacuum_agent.ipynb`](notebooks/stochastic_vacuum_agent.ipynb) in Jupyter Lab or Antigravity IDE.
 
 ---
 
