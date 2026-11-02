@@ -92,6 +92,22 @@ from src.multi_agent_simulation import (
     MultiAgentSimulationResult,
     run_multi_agent_simulation,
 )
+from src.stochastic_vacuum_agent import (
+    OUTCOME_BLOCKED,
+    OUTCOME_CLEANED,
+    OUTCOME_SLIP_BACK,
+    OUTCOME_SLIP_STAY,
+    OUTCOME_SUCCESS,
+    MonteCarloExperimentResult,
+    SingleRunResult,
+    StochasticStepRecord,
+    StochasticVacuumAgent,
+    StochasticVacuumEnvironment,
+    calculate_theoretical_expected_steps,
+    run_deterministic_simulation,
+    run_monte_carlo_stochastic_simulation,
+    run_single_stochastic_simulation,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -174,4 +190,19 @@ __all__ = [
     "TURN_MODE_DISCRETE",
     "STRATEGY_RANDOM",
     "STRATEGY_GREEDY",
+    # Question 7: Stochastic Environment Vacuum Agent
+    "StochasticVacuumAgent",
+    "StochasticVacuumEnvironment",
+    "StochasticStepRecord",
+    "SingleRunResult",
+    "MonteCarloExperimentResult",
+    "run_single_stochastic_simulation",
+    "run_deterministic_simulation",
+    "run_monte_carlo_stochastic_simulation",
+    "calculate_theoretical_expected_steps",
+    "OUTCOME_CLEANED",
+    "OUTCOME_SUCCESS",
+    "OUTCOME_SLIP_STAY",
+    "OUTCOME_SLIP_BACK",
+    "OUTCOME_BLOCKED",
 ]

@@ -16,6 +16,7 @@ from scripts.run_model_based_agent import main as model_main
 from scripts.run_goal_based_agent import main as goal_main
 from scripts.run_utility_based_agent import main as utility_main
 from scripts.run_multi_agent_simulation import main as multi_agent_main
+from scripts.run_stochastic_vacuum_agent import main as stochastic_main
 from src.__main__ import main as cli_main
 
 
@@ -161,6 +162,40 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("EPISODIC VS. SEQUENTIAL ENVIRONMENTS", output)
         self.assertIn("STATIC VS. DYNAMIC ENVIRONMENTS", output)
 
+    def test_stochastic_vacuum_script_reproducible_sample_output(self) -> None:
+        """Verify run_stochastic_vacuum_agent reproduces sample output of 5.4 steps with seed 28."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_stochastic_vacuum_agent.py", "--runs", "20", "--seed", "28"]):
+            with patch("sys.stdout", stdout_trap):
+                stochastic_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 7: STOCHASTIC ENVIRONMENT VACUUM AGENT", output)
+        self.assertIn("Average steps to clean 3 rooms: 5.4 steps", output)
+        self.assertIn("Deterministic Baseline      : 5 steps", output)
+        self.assertIn("Absolute Performance Penalty: +0.40 steps", output)
+
+    def test_stochastic_vacuum_script_challenge_mode(self) -> None:
+        """Verify run_stochastic_vacuum_agent script executes slip back challenge."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_stochastic_vacuum_agent.py", "--challenge", "--seed", "42"]):
+            with patch("sys.stdout", stdout_trap):
+                stochastic_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE ACTIVATED: Actuator 'Slip Back' Mechanics", output)
+        self.assertIn("Average steps to clean 3 rooms:", output)
+
+    def test_stochastic_vacuum_script_viva_notes(self) -> None:
+        """Verify run_stochastic_vacuum_agent script outputs viva guide."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_stochastic_vacuum_agent.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                stochastic_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("Question 7: Stochastic Environment Vacuum Agent", output)
+        self.assertIn("DETERMINISTIC VS. STOCHASTIC ENVIRONMENTS & ACTUATORS", output)
+        self.assertIn("EXPECTED PERFORMANCE & MONTE CARLO SIMULATION", output)
+        self.assertIn("ACTUATORS IN ARTIFICIAL INTELLIGENCE (PEAS FRAMEWORK)", output)
+
     def test_cli_dispatcher_help_and_subcommands(self) -> None:
         """Verify top-level module CLI dispatcher provides help and forwards commands."""
         # Help text
@@ -192,6 +227,12 @@ class TestScriptExecution(unittest.TestCase):
         with patch("sys.stdout", stdout_trap):
             cli_main(["multi-agent", "--steps", "10", "--seed", "42"])
         self.assertIn("QUESTION NO. 6: MULTI-AGENT ENVIRONMENT SIMULATION", stdout_trap.getvalue())
+
+        # Subcommand forwarding for stochastic
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["stochastic", "--runs", "20", "--seed", "28"])
+        self.assertIn("Average steps to clean 3 rooms: 5.4 steps", stdout_trap.getvalue())
 
 
 if __name__ == "__main__":
