@@ -17,6 +17,7 @@ from scripts.run_goal_based_agent import main as goal_main
 from scripts.run_utility_based_agent import main as utility_main
 from scripts.run_multi_agent_simulation import main as multi_agent_main
 from scripts.run_stochastic_vacuum_agent import main as stochastic_main
+from scripts.run_environment_classifier import main as env_classifier_main
 from src.__main__ import main as cli_main
 
 
@@ -196,6 +197,77 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("EXPECTED PERFORMANCE & MONTE CARLO SIMULATION", output)
         self.assertIn("ACTUATORS IN ARTIFICIAL INTELLIGENCE (PEAS FRAMEWORK)", output)
 
+    def test_environment_classifier_script_direct_input(self) -> None:
+        """Verify run_environment_classifier script with sample input (Backgammon)."""
+        stdout_trap = io.StringIO()
+        with patch.object(
+            sys,
+            "argv",
+            ["run_environment_classifier.py", "--input", "True,False,False,False,True"],
+        ):
+            with patch("sys.stdout", stdout_trap):
+                env_classifier_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("ENVIRONMENT TYPE CLASSIFIER REPORT", output)
+        self.assertIn("Environment Match: Backgammon", output)
+
+    def test_environment_classifier_script_individual_flags(self) -> None:
+        """Verify run_environment_classifier script with individual property flags."""
+        stdout_trap = io.StringIO()
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "run_environment_classifier.py",
+                "--observable",
+                "yes",
+                "--deterministic",
+                "yes",
+                "--episodic",
+                "no",
+                "--static",
+                "no",
+                "--discrete",
+                "yes",
+            ],
+        ):
+            with patch("sys.stdout", stdout_trap):
+                env_classifier_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("Environment Match: Chess (with clock)", output)
+
+    def test_environment_classifier_script_demo_mode(self) -> None:
+        """Verify run_environment_classifier script executes demo suite cleanly."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_environment_classifier.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                env_classifier_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("STANDARD AI TEXTBOOK ENVIRONMENTS DEMONSTRATION SUITE", output)
+        self.assertIn("Evaluating: Sample Case (Backgammon)", output)
+
+    def test_environment_classifier_script_challenge_mode(self) -> None:
+        """Verify run_environment_classifier script executes challenge distance metric."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_environment_classifier.py", "--challenge"]):
+            with patch("sys.stdout", stdout_trap):
+                env_classifier_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE: NEAREST-NEIGHBOR DISTANCE METRIC", output)
+        self.assertIn("Nearest Environment Matches", output)
+
+    def test_environment_classifier_script_viva(self) -> None:
+        """Verify run_environment_classifier script prints Question 8 viva guide."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_environment_classifier.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                env_classifier_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("Question 8: Environment Type Classifier", output)
+        self.assertIn("PEAS DESCRIPTION", output)
+        self.assertIn("PROPERTIES OF CHESS VS. POKER", output)
+        self.assertIn("CONTINUOUS VS. DISCRETE", output)
+
     def test_cli_dispatcher_help_and_subcommands(self) -> None:
         """Verify top-level module CLI dispatcher provides help and forwards commands."""
         # Help text
@@ -233,6 +305,12 @@ class TestScriptExecution(unittest.TestCase):
         with patch("sys.stdout", stdout_trap):
             cli_main(["stochastic", "--runs", "20", "--seed", "28"])
         self.assertIn("Average steps to clean 3 rooms: 5.4 steps", stdout_trap.getvalue())
+
+        # Subcommand forwarding for environment-classifier
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["environment-classifier", "--input", "True,False,False,False,True"])
+        self.assertIn("Environment Match: Backgammon", stdout_trap.getvalue())
 
 
 if __name__ == "__main__":

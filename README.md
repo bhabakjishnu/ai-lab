@@ -45,6 +45,7 @@ ai-lab/
 │   ├── randomized_reflex_agent.ipynb    # Question 2: Randomized Reflex Agent simulation & Viva guide
 │   ├── simple_reflex_vacuum_agent.ipynb # Question 1: Simple Reflex Vacuum Agent simulation & Viva guide
 │   ├── starter_experiment.ipynb         # Interactive experimentation starter notebook
+│   ├── environment_type_classifier.ipynb# Question 8: Environment Type Classifier & Knowledge Base
 │   ├── stochastic_vacuum_agent.ipynb    # Question 7: Stochastic Vacuum Agent simulation & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
@@ -55,17 +56,19 @@ ai-lab/
 │   ├── run_randomized_agent.py          # CLI & interactive runner for Question 2 (1D Grid Simulation)
 │   ├── run_stochastic_vacuum_agent.py   # CLI & interactive runner for Question 7 (Monte Carlo Simulation)
 │   ├── run_utility_based_agent.py       # CLI & interactive runner for Question 5 (Utility Optimization)
+│   ├── run_environment_classifier.py    # CLI & interactive runner for Question 8 (Environment Classifier)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
 │   ├── multi_agent_simulation.py        # Question 6: Multi-Agent Environment Simulation & Shared 4x4 Grid
 │   ├── randomized_agent.py              # Question 2: Randomized Reflex Agent & 1D Grid Environment
 │   ├── stochastic_vacuum_agent.py       # Question 7: Stochastic Vacuum Agent & Non-deterministic Environment
+│   ├── environment_classifier.py        # Question 8: Environment Type Classifier & Knowledge Base
 │   ├── utility_based_agent.py           # Question 5: Utility-Based Agent & Terrain Graph Cost Optimization
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
@@ -602,6 +605,96 @@ stateDiagram-v2
 
 7. **Interactive Jupyter Notebook**:
    Open [`notebooks/stochastic_vacuum_agent.ipynb`](notebooks/stochastic_vacuum_agent.ipynb) in Jupyter Lab or Antigravity IDE.
+
+---
+
+### Question 8: Environment Type Classifier
+
+- **Syllabus Area**: Intelligent Agents
+- **Difficulty**: 🟡 Intermediate
+- **Practical Type**: Knowledge Representation
+- **Core AI Concept**: Environment Properties (PEAS), Environmental Taxonomy, Knowledge Dictionary Representation
+- **Python Concepts Tested**: Tuples as dictionary keys, robust boolean input parsing, nearest-neighbor Hamming distance
+- **Complexity**: Time Complexity: (1)$ dictionary lookup | Space Complexity: (K)$ for knowledge base ( \le 32$)
+
+#### Knowledge Representation & Lookup Flowchart
+`mermaid
+flowchart TD
+    User([User Prompt / CLI Input]) --> Parse[Parse Flexible Booleans]
+    Parse --> Vector[5-Boolean Tuple Key: Obs, Det, Epi, Stat, Disc]
+    Vector --> Lookup{O 1 Hash Key in Knowledge Base?}
+    Lookup -->|Exact Key Found| Meta[Retrieve EnvironmentMetadata]
+    Meta --> Success([Display Exact Match & PEAS Breakdown])
+    Lookup -->|Unknown Combination| Challenge{Nearest-Neighbor Fallback?}
+    Challenge -->|Enabled| Metric[Compute Hamming Distance D_H to all K entries]
+    Metric --> Rank[Find Minimum Distance Tier]
+    Rank --> Nearest([Display Nearest Environment & Property Differences])
+    Challenge -->|Disabled| Graceful([Inform Unknown Combination Gracefully])
+`
+
+#### Canonical AI Environment Taxonomy (Russell & Norvig Table 2.1)
+
+| Environment | Observable | Deterministic | Episodic | Static | Discrete | Agent Type |
+| :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Backgammon (with clock)** *(Sample)* | **True** | **False** (Dice) | **False** (Seq) | **False** (Clock) | **True** | Multi-Agent (Competitive) |
+| **Backgammon (without clock)** | **True** | **False** (Dice) | **False** (Seq) | **True** | **True** | Multi-Agent (Competitive) |
+| **Chess (with clock)** | **True** | **True** | **False** (Seq) | **False** (Clock) | **True** | Multi-Agent (Competitive) |
+| **Chess (without clock) / Crossword** | **True** | **True** | **False** (Seq) | **True** | **True** | Multi / Single-Agent |
+| **Poker (with clock)** | **False** (Hidden) | **False** (Deck) | **False** (Seq) | **False** (Clock) | **True** | Multi-Agent (Imperfect Info) |
+| **Poker (without clock)** | **False** (Hidden) | **False** (Deck) | **False** (Seq) | **True** | **True** | Multi-Agent (Imperfect Info) |
+| **Medical Diagnosis / Taxi Driving** | **False** | **False** | **False** (Seq) | **False** (Dynamic) | **False** (Cont) | Single / Multi-Agent |
+| **Part-Picking Robot** | **False** | **False** | **True** (Episodic) | **False** (Belt) | **False** (Cont) | Single-Agent |
+| **Image Analysis (Discrete)** | **True** | **True** | **True** (Episodic) | **True** | **True** | Single-Agent |
+| **Battleship (Simplified)** | **False** | **True** | **False** (Seq) | **True** | **True** | Multi-Agent (Competitive) |
+
+#### Running the Environment Type Classifier
+
+1. **Interactive Prompt Mode** (Prompts user for 5 environmental properties):
+   `ash
+   python scripts/run_environment_classifier.py
+   `
+
+2. **Direct Tuple Input** (Sample execution matching Backgammon):
+   `ash
+   python scripts/run_environment_classifier.py --input True,False,False,False,True
+   `
+   *Expected Output*:
+   `	ext
+   Environment Match: Backgammon
+   `
+
+3. **Individual Environmental Dimension Flags**:
+   `ash
+   python scripts/run_environment_classifier.py --observable yes --deterministic yes --episodic no --static no --discrete yes
+   `
+   *Output*:
+   `	ext
+   Environment Match: Chess (with clock)
+   `
+
+4. **Standard Textbook Environments Demonstration Suite**:
+   `ash
+   python scripts/run_environment_classifier.py --demo
+   `
+
+5. **Optional Challenge: Nearest-Neighbor Distance Metric (Hamming Distance)**:
+   `ash
+   python scripts/run_environment_classifier.py --challenge
+   `
+
+6. **Display Viva Voce Theory & Reference Guide**:
+   `ash
+   python scripts/run_environment_classifier.py --viva
+   `
+
+7. **Top-Level Package Dispatcher**:
+   `ash
+   python -m src environment-classifier --input True,False,False,False,True
+   `
+
+8. **Interactive Jupyter Notebook**:
+   Open [
+otebooks/environment_type_classifier.ipynb](notebooks/environment_type_classifier.ipynb) in Jupyter Lab or Antigravity IDE.
 
 ---
 
