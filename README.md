@@ -47,6 +47,7 @@ ai-lab/
 │   ├── starter_experiment.ipynb         # Interactive experimentation starter notebook
 │   ├── environment_type_classifier.ipynb# Question 8: Environment Type Classifier & Knowledge Base
 │   ├── stochastic_vacuum_agent.ipynb    # Question 7: Stochastic Vacuum Agent simulation & Viva guide
+│   ├── agent_performance_evaluator.ipynb# Question 9: Agent Performance Measure Evaluator simulation & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -57,6 +58,7 @@ ai-lab/
 │   ├── run_stochastic_vacuum_agent.py   # CLI & interactive runner for Question 7 (Monte Carlo Simulation)
 │   ├── run_utility_based_agent.py       # CLI & interactive runner for Question 5 (Utility Optimization)
 │   ├── run_environment_classifier.py    # CLI & interactive runner for Question 8 (Environment Classifier)
+│   ├── run_agent_performance_evaluator.py# CLI & interactive runner for Question 9 (PEAS Performance Evaluator)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
@@ -70,6 +72,7 @@ ai-lab/
 │   ├── stochastic_vacuum_agent.py       # Question 7: Stochastic Vacuum Agent & Non-deterministic Environment
 │   ├── environment_classifier.py        # Question 8: Environment Type Classifier & Knowledge Base
 │   ├── utility_based_agent.py           # Question 5: Utility-Based Agent & Terrain Graph Cost Optimization
+│   ├── agent_performance_evaluator.py   # Question 9: Autonomous Delivery Drone PEAS Performance Evaluator
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -81,6 +84,7 @@ ai-lab/
 │   ├── test_scripts.py                  # Unit tests for script runners & CLI dispatcher
 │   ├── test_stochastic_vacuum_agent.py  # Unit tests for Question 7 stochastic transitions & Monte Carlo
 │   ├── test_utility_based_agent.py      # Unit tests for Question 5 utility-based agent & terrain costs
+│   ├── test_agent_performance_evaluator.py# Unit tests for Question 9 linear evaluation, PEAS metric & CSV
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -695,6 +699,92 @@ flowchart TD
 8. **Interactive Jupyter Notebook**:
    Open [
 otebooks/environment_type_classifier.ipynb](notebooks/environment_type_classifier.ipynb) in Jupyter Lab or Antigravity IDE.
+
+---
+
+### Question 9: Agent Performance Measure Evaluator
+
+- **Syllabus Area**: Intelligent Agents
+- **Difficulty**: 🟡 Intermediate
+- **Practical Type**: Algorithm Design
+- **Core AI Concept**: Performance Measure, Rationality, Omniscience vs. Rationality, PEAS Evaluation
+- **Python Concepts Tested**: List iteration, arithmetic updates, string matching, CSV stream processing
+- **Complexity**: Time Complexity: $O(N)$ log length | Space Complexity: $O(1)$ auxiliary space
+
+#### Autonomous Delivery Drone PEAS Specification
+
+| PEAS Dimension | Drone Specification | Impact on Agent Rationality |
+| :--- | :--- | :--- |
+| **Performance Measure (P)** | $+10$ / delivery, $-1$ / move, $-5$ / bump | Objective utility function balancing mission completion, latency, and flight safety |
+| **Environment (E)** | Urban airspace, buildings, power lines, wind, landing pads | Dynamic, partially observable, stochastic, continuous 3D world |
+| **Actuators (A)** | Quadcopter/hexacopter rotors, pitch/yaw motors, parcel winch/gripper | Translates movement actions into physical flight trajectory |
+| **Sensors (S)** | GPS receiver, 3D LiDAR scanner, ultrasonic sonars, downward camera, IMU | Supplies real-time percepts for obstacle detection and landing |
+
+#### Performance Score Evaluation Model
+
+```mermaid
+flowchart TD
+  Log["Simulated Action Event Stream: [move, move, bump, move, deliver]"] --> Seq[Linear Sequential Processing O(N)]
+  Seq --> Match{Action Type}
+  Match -->|move| Cost["Subtract Move Cost (-1 pt)"]
+  Match -->|bump| Penalty["Subtract Collision Penalty (-5 pts)"]
+  Match -->|deliver| Reward["Add Delivery Reward (+10 pts)"]
+  Cost --> Running["Update Running Score (O(1) Memory)"]
+  Penalty --> Running
+  Reward --> Running
+  Running --> Next{More Events?}
+  Next -->|Yes| Match
+  Next -->|No| Final["Output Final PEAS Performance Score: 2 (10 - 3 moves - 5 bump)"]
+```
+
+#### Running the Agent Performance Evaluator
+
+1. **Standard Sample Benchmark Run**:
+   ```bash
+   python scripts/run_agent_performance_evaluator.py
+   ```
+   *Expected Output*:
+   ```text
+   Performance Score: 2 (10 - 3 moves - 5 bump)
+   ```
+
+2. **Custom Inline Event Sequence**:
+   ```bash
+   python scripts/run_agent_performance_evaluator.py --events move,move,bump,move,deliver
+   ```
+
+3. **Detailed Step-by-Step Flight Audit Table**:
+   ```bash
+   python scripts/run_agent_performance_evaluator.py --detailed
+   ```
+
+4. **Optional Challenge: Read Action Log from External CSV File**:
+   ```bash
+   python scripts/run_agent_performance_evaluator.py --csv data/raw/drone_actions_sample.csv
+   ```
+
+5. **Automated Demonstration Benchmark Suite**:
+   ```bash
+   python scripts/run_agent_performance_evaluator.py --demo
+   ```
+
+6. **Interactive Step-by-Step Terminal Prompt**:
+   ```bash
+   python scripts/run_agent_performance_evaluator.py --interactive
+   ```
+
+7. **Display Viva Voce Theory & Reference Guide**:
+   ```bash
+   python scripts/run_agent_performance_evaluator.py --viva
+   ```
+
+8. **Top-Level Package Dispatcher**:
+   ```bash
+   python -m src agent-evaluator --events move,move,bump,move,deliver
+   ```
+
+9. **Interactive Jupyter Notebook**:
+   Open [`notebooks/agent_performance_evaluator.ipynb`](notebooks/agent_performance_evaluator.ipynb) in Jupyter Lab or Antigravity IDE.
 
 ---
 
