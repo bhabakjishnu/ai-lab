@@ -130,6 +130,19 @@ from src.environment_classifier import (
     parse_boolean,
     parse_environment_tuple,
 )
+from src.agent_performance_evaluator import (
+    EVENT_ALIASES,
+    EVENT_BUMP,
+    EVENT_DELIVER,
+    EVENT_MOVE,
+    DronePerformanceEvaluator,
+    EvaluationResult,
+    ScoringMetric,
+    StepEvaluation,
+    evaluate_drone_performance,
+    get_viva_reference as get_drone_viva_reference,
+    read_events_from_csv,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -248,4 +261,16 @@ __all__ = [
     "INDEX_EPISODIC",
     "INDEX_STATIC",
     "INDEX_DISCRETE",
+    # Question 9: Agent Performance Measure Evaluator
+    "EVENT_MOVE",
+    "EVENT_BUMP",
+    "EVENT_DELIVER",
+    "EVENT_ALIASES",
+    "ScoringMetric",
+    "StepEvaluation",
+    "EvaluationResult",
+    "DronePerformanceEvaluator",
+    "evaluate_drone_performance",
+    "read_events_from_csv",
+    "get_drone_viva_reference",
 ]

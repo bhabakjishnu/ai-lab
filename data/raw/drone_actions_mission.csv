@@ -1,0 +1,10 @@
+step,action,notes
+1,move,takeoff
+2,move,fly to sector A
+3,bump,clipped tree branch
+4,move,rerouted around obstacle
+5,deliver,parcel 1 delivered
+6,move,transit to sector B
+7,move,descending to courtyard
+8,deliver,parcel 2 delivered
+9,move,returning to base

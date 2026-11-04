@@ -18,6 +18,7 @@ from scripts.run_utility_based_agent import main as utility_main
 from scripts.run_multi_agent_simulation import main as multi_agent_main
 from scripts.run_stochastic_vacuum_agent import main as stochastic_main
 from scripts.run_environment_classifier import main as env_classifier_main
+from scripts.run_agent_performance_evaluator import main as agent_eval_main
 from src.__main__ import main as cli_main
 
 
@@ -268,6 +269,70 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("PROPERTIES OF CHESS VS. POKER", output)
         self.assertIn("CONTINUOUS VS. DISCRETE", output)
 
+    def test_agent_performance_evaluator_script_default(self) -> None:
+        """Verify run_agent_performance_evaluator script prints exact sample output."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_agent_performance_evaluator.py"]):
+            with patch("sys.stdout", stdout_trap):
+                agent_eval_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("Performance Score: 2 (10 - 3 moves - 5 bump)", output)
+
+    def test_agent_performance_evaluator_script_events(self) -> None:
+        """Verify run_agent_performance_evaluator script evaluates custom --events."""
+        stdout_trap = io.StringIO()
+        with patch.object(
+            sys, "argv", ["run_agent_performance_evaluator.py", "--events", "move,move,deliver"]
+        ):
+            with patch("sys.stdout", stdout_trap):
+                agent_eval_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("Performance Score: 8 (10 - 2 moves)", output)
+
+    def test_agent_performance_evaluator_script_detailed(self) -> None:
+        """Verify run_agent_performance_evaluator script outputs detailed table."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_agent_performance_evaluator.py", "--detailed"]):
+            with patch("sys.stdout", stdout_trap):
+                agent_eval_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("AUTONOMOUS DELIVERY DRONE PERFORMANCE AUDIT", output)
+        self.assertIn("Step-by-Step Flight Trace:", output)
+
+    def test_agent_performance_evaluator_script_csv(self) -> None:
+        """Verify run_agent_performance_evaluator script reads sample CSV."""
+        stdout_trap = io.StringIO()
+        with patch.object(
+            sys,
+            "argv",
+            ["run_agent_performance_evaluator.py", "--csv", "data/raw/drone_actions_sample.csv"],
+        ):
+            with patch("sys.stdout", stdout_trap):
+                agent_eval_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("Performance Score: 2 (10 - 3 moves - 5 bump)", output)
+
+    def test_agent_performance_evaluator_script_demo(self) -> None:
+        """Verify run_agent_performance_evaluator script executes demonstration suite."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_agent_performance_evaluator.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                agent_eval_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("AUTONOMOUS DRONE PERFORMANCE EVALUATION - BENCHMARK SUITE", output)
+        self.assertIn("Scenario 1: Standard Sample Benchmark", output)
+
+    def test_agent_performance_evaluator_script_viva(self) -> None:
+        """Verify run_agent_performance_evaluator script prints viva notes."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_agent_performance_evaluator.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                agent_eval_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("VIVA VOCE THEORY & REFERENCE GUIDE", output)
+        self.assertIn("DESIGNING PERFORMANCE MEASURES", output)
+        self.assertIn("RATIONALITY DEFINITION", output)
+
     def test_cli_dispatcher_help_and_subcommands(self) -> None:
         """Verify top-level module CLI dispatcher provides help and forwards commands."""
         # Help text
@@ -311,6 +376,12 @@ class TestScriptExecution(unittest.TestCase):
         with patch("sys.stdout", stdout_trap):
             cli_main(["environment-classifier", "--input", "True,False,False,False,True"])
         self.assertIn("Environment Match: Backgammon", stdout_trap.getvalue())
+
+        # Subcommand forwarding for agent-evaluator
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["agent-evaluator", "--events", "move,move,bump,move,deliver"])
+        self.assertIn("Performance Score: 2 (10 - 3 moves - 5 bump)", stdout_trap.getvalue())
 
 
 if __name__ == "__main__":

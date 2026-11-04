@@ -9,6 +9,7 @@ Allows running simulations directly via module syntax:
     python -m src multi-agent --steps 10
     python -m src stochastic --runs 20 --seed 28
     python -m src environment-classifier --input True,False,False,False,True
+    python -m src agent-evaluator --events move,move,bump,move,deliver
     python -m src smoke-test
 """
 
@@ -53,6 +54,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 8: Environment Type Classifier (PEAS & Knowledge Representation)",
     )
 
+    # Agent performance measure evaluator runner
+    subparsers.add_parser(
+        "agent-evaluator",
+        aliases=["drone-evaluator", "perf-evaluator"],
+        help="Run Question 9: Agent Performance Measure Evaluator (PEAS & Rationality)",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -70,6 +78,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         "stochastic",
         "environment-classifier",
         "env-classifier",
+        "agent-evaluator",
+        "drone-evaluator",
+        "perf-evaluator",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -107,6 +118,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_environment_classifier import main as env_main
             sys.argv = [sys.argv[0]] + remaining
             env_main()
+        elif cmd in ("agent-evaluator", "drone-evaluator", "perf-evaluator"):
+            from scripts.run_agent_performance_evaluator import main as agent_eval_main
+            sys.argv = [sys.argv[0]] + remaining
+            agent_eval_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
