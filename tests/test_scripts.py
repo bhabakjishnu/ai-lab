@@ -19,6 +19,7 @@ from scripts.run_multi_agent_simulation import main as multi_agent_main
 from scripts.run_stochastic_vacuum_agent import main as stochastic_main
 from scripts.run_environment_classifier import main as env_classifier_main
 from scripts.run_agent_performance_evaluator import main as agent_eval_main
+from scripts.run_state_space_visualizer import main as state_space_main
 from src.__main__ import main as cli_main
 
 
@@ -333,6 +334,57 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("DESIGNING PERFORMANCE MEASURES", output)
         self.assertIn("RATIONALITY DEFINITION", output)
 
+    def test_state_space_visualizer_script_table(self) -> None:
+        """Verify run_state_space_visualizer script prints 8-state transition table."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_state_space_visualizer.py", "--table"]):
+            with patch("sys.stdout", stdout_trap):
+                state_space_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("STATE-SPACE TRANSITION TABLE: 2-ROOM REFLEX VACUUM AGENT", output)
+        self.assertIn("Total States: 8", output)
+        self.assertIn("Self-Loop Cycles (↺): 12", output)
+
+    def test_state_space_visualizer_script_cycles(self) -> None:
+        """Verify run_state_space_visualizer script prints cycle and self-loop audit."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_state_space_visualizer.py", "--cycles"]):
+            with patch("sys.stdout", stdout_trap):
+                state_space_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("CYCLIC TRANSITIONS & SELF-LOOP AUDIT", output)
+        self.assertIn("Self-Loop Cycles Result(s, a) == s: 12", output)
+        self.assertIn("Action 'Left ': 4 self-loops", output)
+
+    def test_state_space_visualizer_script_matrix(self) -> None:
+        """Verify run_state_space_visualizer script prints adjacency matrix."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_state_space_visualizer.py", "--matrix"]):
+            with patch("sys.stdout", stdout_trap):
+                state_space_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("8x8 ADJACENCY MATRIX OF STATE-SPACE GRAPH", output)
+
+    def test_state_space_visualizer_script_search(self) -> None:
+        """Verify run_state_space_visualizer script computes shortest paths."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_state_space_visualizer.py", "--search"]):
+            with patch("sys.stdout", stdout_trap):
+                state_space_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("SHORTEST OPTIMAL ACTION PATHS TO GOAL", output)
+        self.assertIn("Suck -> Right -> Suck", output)
+
+    def test_state_space_visualizer_script_viva(self) -> None:
+        """Verify run_state_space_visualizer script outputs viva guide."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_state_space_visualizer.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                state_space_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("VIVA VOCE REFERENCE GUIDE: STATE-SPACE FORMULATION", output)
+        self.assertIn("STATE SPACE SIZE CALCULATION", output)
+
     def test_cli_dispatcher_help_and_subcommands(self) -> None:
         """Verify top-level module CLI dispatcher provides help and forwards commands."""
         # Help text
@@ -382,6 +434,12 @@ class TestScriptExecution(unittest.TestCase):
         with patch("sys.stdout", stdout_trap):
             cli_main(["agent-evaluator", "--events", "move,move,bump,move,deliver"])
         self.assertIn("Performance Score: 2 (10 - 3 moves - 5 bump)", stdout_trap.getvalue())
+
+        # Subcommand forwarding for state-space
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["state-space", "--table"])
+        self.assertIn("STATE-SPACE TRANSITION TABLE: 2-ROOM REFLEX VACUUM AGENT", stdout_trap.getvalue())
 
 
 if __name__ == "__main__":
