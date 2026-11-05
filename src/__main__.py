@@ -61,6 +61,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 9: Agent Performance Measure Evaluator (PEAS & Rationality)",
     )
 
+    # State-space visualizer runner
+    subparsers.add_parser(
+        "state-space",
+        aliases=["state-visualizer", "state-space-visualizer"],
+        help="Run Question 10: State-Space Visualizer for Reflex Agent (Graph & Cycles)",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -81,6 +88,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         "agent-evaluator",
         "drone-evaluator",
         "perf-evaluator",
+        "state-space",
+        "state-visualizer",
+        "state-space-visualizer",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -122,6 +132,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_agent_performance_evaluator import main as agent_eval_main
             sys.argv = [sys.argv[0]] + remaining
             agent_eval_main()
+        elif cmd in ("state-space", "state-visualizer", "state-space-visualizer"):
+            from scripts.run_state_space_visualizer import main as state_space_main
+            sys.argv = [sys.argv[0]] + remaining
+            state_space_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining

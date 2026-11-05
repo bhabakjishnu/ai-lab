@@ -48,6 +48,7 @@ ai-lab/
 │   ├── environment_type_classifier.ipynb# Question 8: Environment Type Classifier & Knowledge Base
 │   ├── stochastic_vacuum_agent.ipynb    # Question 7: Stochastic Vacuum Agent simulation & Viva guide
 │   ├── agent_performance_evaluator.ipynb# Question 9: Agent Performance Measure Evaluator simulation & Viva guide
+│   ├── state_space_visualizer.ipynb     # Question 10: State-Space Visualizer for Reflex Agent & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -59,11 +60,12 @@ ai-lab/
 │   ├── run_utility_based_agent.py       # CLI & interactive runner for Question 5 (Utility Optimization)
 │   ├── run_environment_classifier.py    # CLI & interactive runner for Question 8 (Environment Classifier)
 │   ├── run_agent_performance_evaluator.py# CLI & interactive runner for Question 9 (PEAS Performance Evaluator)
+│   ├── run_state_space_visualizer.py    # CLI & interactive runner for Question 10 (State-Space Graph Visualizer)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -73,6 +75,7 @@ ai-lab/
 │   ├── environment_classifier.py        # Question 8: Environment Type Classifier & Knowledge Base
 │   ├── utility_based_agent.py           # Question 5: Utility-Based Agent & Terrain Graph Cost Optimization
 │   ├── agent_performance_evaluator.py   # Question 9: Autonomous Delivery Drone PEAS Performance Evaluator
+│   ├── state_space_visualizer.py        # Question 10: State-Space Visualizer, Combinatorial Model & Graph Renderer
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -85,6 +88,7 @@ ai-lab/
 │   ├── test_stochastic_vacuum_agent.py  # Unit tests for Question 7 stochastic transitions & Monte Carlo
 │   ├── test_utility_based_agent.py      # Unit tests for Question 5 utility-based agent & terrain costs
 │   ├── test_agent_performance_evaluator.py# Unit tests for Question 9 linear evaluation, PEAS metric & CSV
+│   ├── test_state_space_visualizer.py   # Unit tests for Question 10 combinatorial states, transitions & graph
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -785,6 +789,154 @@ flowchart TD
 
 9. **Interactive Jupyter Notebook**:
    Open [`notebooks/agent_performance_evaluator.ipynb`](notebooks/agent_performance_evaluator.ipynb) in Jupyter Lab or Antigravity IDE.
+
+---
+
+### Question 10: State-Space Visualizer for Reflex Agent
+
+- **Syllabus Area**: Intelligent Agents
+- **Difficulty**: 🟠 Advanced
+- **Practical Type**: Visualization & State-Space Formulation
+- **Core AI Concept**: State-Space Formulation, Transition Model, Goal States, Cyclic Transitions
+- **Python Concepts Tested**: Combinatorial state generation (`itertools`), NetworkX directed graphs (`DiGraph` & `MultiDiGraph`), Matplotlib publication-grade plotting
+- **Complexity**: Time Complexity: $O(|S|^2)$ | Space Complexity: $O(|S|^2)$
+- **Optional Challenge**: Highlight the goal states (both rooms clean) in emerald green.
+
+#### State Space Size Formula & Combinatorial Model
+
+For an environment with $n$ locations and $k$ cleanliness status levels:
+$$|S| = n \times k^n$$
+
+For the standard 2-room vacuum cleaner environment ($n = 2, k = 2$):
+$$|S| = 2 \times 2^2 = 8 \text{ discrete states}$$
+
+#### The 8 Canonical States (Russell & Norvig AIMA Convention)
+
+| State ID | Agent Location | Room A Status | Room B Status | Goal State? |
+| :--- | :--- | :--- | :--- | :--- |
+| **S1** | A | Dirty | Dirty | No |
+| **S2** | B | Dirty | Dirty | No |
+| **S3** | A | Clean | Dirty | No |
+| **S4** | B | Clean | Dirty | No |
+| **S5** | A | Dirty | Clean | No |
+| **S6** | B | Dirty | Clean | No |
+| **S7** | A | Clean | Clean | **YES (Emerald Green Goal State)** |
+| **S8** | B | Clean | Clean | **YES (Emerald Green Goal State)** |
+
+#### Action Transitions & Cyclic Self-Loop Dynamics
+
+Valid actions are $A = \{\text{Left}, \text{Right}, \text{Suck}\}$. Total transitions across the state space:
+$$8 \text{ states} \times 3 \text{ actions} = 24 \text{ directed transitions}$$
+
+- **Cyclic Transitions (Self-Loops)**: Exactly 12 out of 24 transitions (50%) produce $\text{Result}(s, a) = s$:
+  - 4 `Left` self-loops: Occur whenever agent is in Room A (States 1, 3, 5, 7).
+  - 4 `Right` self-loops: Occur whenever agent is in Room B (States 2, 4, 6, 8).
+  - 4 `Suck` self-loops: Occur whenever agent sucks in an already clean room (States 3, 6, 7, 8).
+- **State-Changing Transitions**: Exactly 12 out of 24 transitions (50%) transition to a different state.
+
+#### State Space Graph Architecture
+
+```mermaid
+flowchart TD
+  subgraph Both_Dirty["Both Rooms Dirty (Row 3)"]
+    S1["S1: (A, Dirty, Dirty)"]
+    S2["S2: (B, Dirty, Dirty)"]
+  end
+
+  subgraph A_Clean["Room A Clean, Room B Dirty (Row 2)"]
+    S3["S3: (A, Clean, Dirty)"]
+    S4["S4: (B, Clean, Dirty)"]
+  end
+
+  subgraph B_Clean["Room A Dirty, Room B Clean (Row 1)"]
+    S5["S5: (A, Dirty, Clean)"]
+    S6["S6: (B, Dirty, Clean)"]
+  end
+
+  subgraph Both_Clean["Goal States: Both Rooms Clean (Row 0)"]
+    S7["S7: (A, Clean, Clean) - GOAL"]
+    S8["S8: (B, Clean, Clean) - GOAL"]
+  end
+
+  S1 -->|Right| S2
+  S1 -->|Suck| S3
+  S2 -->|Left| S1
+  S2 -->|Suck| S6
+
+  S3 -->|Right| S4
+  S4 -->|Left| S3
+  S4 -->|Suck| S8
+
+  S5 -->|Right| S6
+  S5 -->|Suck| S7
+  S6 -->|Left| S5
+
+  S7 -->|Right| S8
+  S8 -->|Left| S7
+
+  style S7 fill:#2ecc71,stroke:#196f3d,stroke-width:3px,color:#fff
+  style S8 fill:#2ecc71,stroke:#196f3d,stroke-width:3px,color:#fff
+```
+
+#### Running the State-Space Visualizer
+
+1. **Default Run (ASCII Table & Graph Generation)**:
+   ```bash
+   python scripts/run_state_space_visualizer.py
+   ```
+
+2. **Display Interactive Matplotlib Graph Window**:
+   ```bash
+   python scripts/run_state_space_visualizer.py --show
+   ```
+
+3. **Save High-Resolution Graph Image**:
+   ```bash
+   python scripts/run_state_space_visualizer.py --save reports/state_space_graph.png
+   ```
+
+4. **Alternative Graph Topologies (Circular, Spring)**:
+   ```bash
+   python scripts/run_state_space_visualizer.py --layout circular --save reports/state_space_circular.png
+   ```
+
+5. **Display Detailed 8-State Transition Table**:
+   ```bash
+   python scripts/run_state_space_visualizer.py --table
+   ```
+
+6. **Display 8x8 Adjacency Matrix ($O(|S|^2)$)**:
+   ```bash
+   python scripts/run_state_space_visualizer.py --matrix
+   ```
+
+7. **Cyclic Transitions & Self-Loop Audit**:
+   ```bash
+   python scripts/run_state_space_visualizer.py --cycles
+   ```
+
+8. **Optimal Shortest Paths to Goal (BFS Search)**:
+   ```bash
+   python scripts/run_state_space_visualizer.py --search
+   ```
+
+9. **Run Complete Demonstration Suite**:
+   ```bash
+   python scripts/run_state_space_visualizer.py --demo
+   ```
+
+10. **Display Viva Voce Theory & Reference Guide**:
+    ```bash
+    python scripts/run_state_space_visualizer.py --viva
+    ```
+
+11. **Top-Level Package Dispatcher**:
+    ```bash
+    python -m src state-space --table
+    ```
+
+12. **Interactive Jupyter Notebook**:
+    Open [`notebooks/state_space_visualizer.ipynb`](notebooks/state_space_visualizer.ipynb) in Jupyter Lab or Antigravity IDE.
 
 ---
 

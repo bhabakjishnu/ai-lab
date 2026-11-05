@@ -143,6 +143,21 @@ from src.agent_performance_evaluator import (
     get_viva_reference as get_drone_viva_reference,
     read_events_from_csv,
 )
+from src.state_space_visualizer import (
+    ACTION_LEFT as STATE_ACTION_LEFT,
+    ACTION_RIGHT as STATE_ACTION_RIGHT,
+    ACTION_SUCK as STATE_ACTION_SUCK,
+    COLOR_GOAL,
+    COLOR_NON_GOAL,
+    VALID_ACTIONS as STATE_VALID_ACTIONS,
+    VALID_LOCATIONS as STATE_VALID_LOCATIONS,
+    VALID_STATUSES as STATE_VALID_STATUSES,
+    StateSpace,
+    StateSpaceVisualizer,
+    TransitionRecord,
+    VacuumState,
+    get_viva_reference as get_state_space_viva_reference,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -273,4 +288,18 @@ __all__ = [
     "evaluate_drone_performance",
     "read_events_from_csv",
     "get_drone_viva_reference",
+    # Question 10: State-Space Visualizer
+    "StateSpace",
+    "StateSpaceVisualizer",
+    "VacuumState",
+    "TransitionRecord",
+    "COLOR_GOAL",
+    "COLOR_NON_GOAL",
+    "STATE_ACTION_LEFT",
+    "STATE_ACTION_RIGHT",
+    "STATE_ACTION_SUCK",
+    "STATE_VALID_ACTIONS",
+    "STATE_VALID_LOCATIONS",
+    "STATE_VALID_STATUSES",
+    "get_state_space_viva_reference",
 ]
