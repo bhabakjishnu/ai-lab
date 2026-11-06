@@ -10,6 +10,8 @@ Allows running simulations directly via module syntax:
     python -m src stochastic --runs 20 --seed 28
     python -m src environment-classifier --input True,False,False,False,True
     python -m src agent-evaluator --events move,move,bump,move,deliver
+    python -m src state-space --table
+    python -m src bfs --start A
     python -m src smoke-test
 """
 
@@ -68,6 +70,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 10: State-Space Visualizer for Reflex Agent (Graph & Cycles)",
     )
 
+    # Breadth-first search runner
+    subparsers.add_parser(
+        "bfs",
+        aliases=["breadth-first-search", "bfs-search"],
+        help="Run Question 11: Breadth-First Search (BFS) on User-Defined Graph",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -91,6 +100,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         "state-space",
         "state-visualizer",
         "state-space-visualizer",
+        "bfs",
+        "breadth-first-search",
+        "bfs-search",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -136,6 +148,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_state_space_visualizer import main as state_space_main
             sys.argv = [sys.argv[0]] + remaining
             state_space_main()
+        elif cmd in ("bfs", "breadth-first-search", "bfs-search"):
+            from scripts.run_breadth_first_search import main as bfs_main
+            sys.argv = [sys.argv[0]] + remaining
+            bfs_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining

@@ -158,6 +158,20 @@ from src.state_space_visualizer import (
     VacuumState,
     get_viva_reference as get_state_space_viva_reference,
 )
+from src.breadth_first_search import (
+    BINARY_TREE_GRAPH,
+    CYCLIC_BENCHMARK_GRAPH,
+    DEFAULT_SAMPLE_GRAPH as BFS_DEFAULT_SAMPLE_GRAPH,
+    DISCONNECTED_GRAPH,
+    BFSResult,
+    BFSStepRecord,
+    BreadthFirstSearch,
+    breadth_first_search,
+    get_viva_reference as get_bfs_viva_reference,
+    normalize_graph,
+    parse_graph_input,
+    visualize_bfs,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -302,4 +316,17 @@ __all__ = [
     "STATE_VALID_LOCATIONS",
     "STATE_VALID_STATUSES",
     "get_state_space_viva_reference",
+    # Question 11: Breadth-First Search
+    "BFSStepRecord",
+    "BFSResult",
+    "BreadthFirstSearch",
+    "breadth_first_search",
+    "parse_graph_input",
+    "normalize_graph",
+    "visualize_bfs",
+    "BFS_DEFAULT_SAMPLE_GRAPH",
+    "CYCLIC_BENCHMARK_GRAPH",
+    "BINARY_TREE_GRAPH",
+    "DISCONNECTED_GRAPH",
+    "get_bfs_viva_reference",
 ]

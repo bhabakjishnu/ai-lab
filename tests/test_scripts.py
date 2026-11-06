@@ -20,6 +20,7 @@ from scripts.run_stochastic_vacuum_agent import main as stochastic_main
 from scripts.run_environment_classifier import main as env_classifier_main
 from scripts.run_agent_performance_evaluator import main as agent_eval_main
 from scripts.run_state_space_visualizer import main as state_space_main
+from scripts.run_breadth_first_search import main as bfs_main
 from src.__main__ import main as cli_main
 
 
@@ -385,6 +386,60 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("VIVA VOCE REFERENCE GUIDE: STATE-SPACE FORMULATION", output)
         self.assertIn("STATE SPACE SIZE CALCULATION", output)
 
+    def test_breadth_first_search_script_default_run(self) -> None:
+        """Verify run_breadth_first_search script runs Question 11 default sample graph."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_breadth_first_search.py"]):
+            with patch("sys.stdout", stdout_trap):
+                bfs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("BFS TRAVERSAL EXECUTION (START NODE: 'A')", output)
+        self.assertIn("BFS Traversal  : A, B, C, D", output)
+        self.assertIn("Total Levels   : 3 level(s)", output)
+
+    def test_breadth_first_search_script_custom_graph(self) -> None:
+        """Verify run_breadth_first_search script parses custom graph via CLI."""
+        stdout_trap = io.StringIO()
+        with patch.object(
+            sys,
+            "argv",
+            ["run_breadth_first_search.py", "--graph", "A: B, C; B: D; C:; D:", "--start", "A"],
+        ):
+            with patch("sys.stdout", stdout_trap):
+                bfs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("BFS Traversal  : A, B, C, D", output)
+
+    def test_breadth_first_search_script_challenge(self) -> None:
+        """Verify run_breadth_first_search script executes optional challenge level breakdown."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_breadth_first_search.py", "--challenge"]):
+            with patch("sys.stdout", stdout_trap):
+                bfs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE: GRAPH LEVELS & TREE DEPTH COMPUTATION", output)
+        self.assertIn("Level 0 (hops = 0): ['A']", output)
+
+    def test_breadth_first_search_script_demo(self) -> None:
+        """Verify run_breadth_first_search script executes benchmarks in demo mode."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_breadth_first_search.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                bfs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("DEMO: BREADTH-FIRST SEARCH ON BENCHMARK GRAPHS", output)
+        self.assertIn("Cyclic Directed Graph", output)
+
+    def test_breadth_first_search_script_viva(self) -> None:
+        """Verify run_breadth_first_search script outputs viva voce study guide."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_breadth_first_search.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                bfs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("QUESTION 11: BREADTH-FIRST SEARCH (BFS) VIVA VOCE STUDY GUIDE", output)
+        self.assertIn("FIFO Queue Mechanism", output)
+
     def test_cli_dispatcher_help_and_subcommands(self) -> None:
         """Verify top-level module CLI dispatcher provides help and forwards commands."""
         # Help text
@@ -440,6 +495,12 @@ class TestScriptExecution(unittest.TestCase):
         with patch("sys.stdout", stdout_trap):
             cli_main(["state-space", "--table"])
         self.assertIn("STATE-SPACE TRANSITION TABLE: 2-ROOM REFLEX VACUUM AGENT", stdout_trap.getvalue())
+
+        # Subcommand forwarding for bfs
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["bfs", "--start", "A"])
+        self.assertIn("BFS Traversal  : A, B, C, D", stdout_trap.getvalue())
 
 
 if __name__ == "__main__":

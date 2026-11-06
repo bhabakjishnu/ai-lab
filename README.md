@@ -49,6 +49,7 @@ ai-lab/
 │   ├── stochastic_vacuum_agent.ipynb    # Question 7: Stochastic Vacuum Agent simulation & Viva guide
 │   ├── agent_performance_evaluator.ipynb# Question 9: Agent Performance Measure Evaluator simulation & Viva guide
 │   ├── state_space_visualizer.ipynb     # Question 10: State-Space Visualizer for Reflex Agent & Viva guide
+│   ├── breadth_first_search.ipynb       # Question 11: Breadth-First Search (BFS) on User-Defined Graph & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -61,11 +62,12 @@ ai-lab/
 │   ├── run_environment_classifier.py    # CLI & interactive runner for Question 8 (Environment Classifier)
 │   ├── run_agent_performance_evaluator.py# CLI & interactive runner for Question 9 (PEAS Performance Evaluator)
 │   ├── run_state_space_visualizer.py    # CLI & interactive runner for Question 10 (State-Space Graph Visualizer)
+│   ├── run_breadth_first_search.py      # CLI & interactive runner for Question 11 (Level-Order BFS & Graph Depth)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -76,6 +78,7 @@ ai-lab/
 │   ├── utility_based_agent.py           # Question 5: Utility-Based Agent & Terrain Graph Cost Optimization
 │   ├── agent_performance_evaluator.py   # Question 9: Autonomous Delivery Drone PEAS Performance Evaluator
 │   ├── state_space_visualizer.py        # Question 10: State-Space Visualizer, Combinatorial Model & Graph Renderer
+│   ├── breadth_first_search.py          # Question 11: Breadth-First Search, FIFO Frontier, Cycle Avoidance & Levels
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -89,6 +92,7 @@ ai-lab/
 │   ├── test_utility_based_agent.py      # Unit tests for Question 5 utility-based agent & terrain costs
 │   ├── test_agent_performance_evaluator.py# Unit tests for Question 9 linear evaluation, PEAS metric & CSV
 │   ├── test_state_space_visualizer.py   # Unit tests for Question 10 combinatorial states, transitions & graph
+│   ├── test_breadth_first_search.py     # Unit tests for Question 11 BFS traversal, tie-breaking, cycles & levels
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -937,6 +941,171 @@ flowchart TD
 
 12. **Interactive Jupyter Notebook**:
     Open [`notebooks/state_space_visualizer.ipynb`](notebooks/state_space_visualizer.ipynb) in Jupyter Lab or Antigravity IDE.
+
+---
+
+### Question 11: Breadth-First Search (BFS) on User-Defined Graph
+
+- **Syllabus Area**: Uninformed Search Techniques
+- **Difficulty**: 🟢 Beginner
+- **Practical Type**: Implementation & Level-Order Traversal
+- **Core AI Concept**: Breadth-First Search (BFS), FIFO Frontier Queue, Visited / Explored Set
+- **Python Concepts Tested**: Dictionaries (`Dict` adjacency list), `collections.deque`, `while` loops, path reconstruction
+- **Expected Algorithm / Technique**: Level-order graph traversal (FIFO queue)
+- **Complexity Expectation**: Time Complexity: $O(V + E)$ | Space Complexity: $O(V)$
+- **Constraints / Conditions**: Nodes must be visited in alphabetical order if tied.
+- **University Practical Importance**: Very High
+- **Optional Challenge**: Modify to return the number of levels (depth) of the graph.
+
+#### Problem Statement & Task Requirements
+
+Write a Python program to implement Breadth-First Search (BFS) on a directed graph. The program must traverse the graph starting from a user-defined source node, maintain a visited set to avoid cycles, and print the nodes in the exact order they are expanded.
+
+1. **Graph Representation**: Represent the directed graph using a Python dictionary (adjacency list).
+2. **FIFO Frontier Queue**: Use `collections.deque` for the search frontier open list.
+3. **Visited Set**: Maintain a `set` to track discovered nodes and avoid infinite loops on cycles.
+4. **Deterministic Tie-Breaking**: When multiple successor nodes are tied at the same parent, expand them in alphabetical order.
+5. **Output**: Print the nodes in the exact order they are expanded.
+6. **Optional Challenge**: Return the total number of depth levels and the maximum depth of the graph.
+
+#### Sample Input & Output Verification
+
+- **Sample Graph**: `{'A': ['B', 'C'], 'B': ['D'], 'C': [], 'D': []}`
+- **Start Node**: `'A'`
+- **Expected Traversal**: `BFS Traversal: A, B, C, D`
+- **Optional Challenge Levels**:
+  - Level 0 (depth 0): `['A']`
+  - Level 1 (depth 1): `['B', 'C']`
+  - Level 2 (depth 2): `['D']`
+  - Total Levels Count: `3` | Maximum Depth: `2`
+
+#### Algorithm Walkthrough & Architectural Diagram
+
+```mermaid
+flowchart TD
+    Start([Start Node: 'A']) --> QInit["Frontier Queue: deque(['A'])<br/>Visited Set: {'A'}<br/>Levels: {'A': 0}"]
+    QInit --> Loop{"Is Frontier Queue Empty?"}
+    Loop -- No --> Dequeue["popleft() Node u from Frontier<br/>Append u to Traversal Order"]
+    Dequeue --> Sort["Retrieve Neighbors Adj[u]<br/>Sort Alphabetically (Tie-Breaking)"]
+    Sort --> ForEach["For each neighbor v in sorted Adj[u]"]
+    ForEach --> VisCheck{"Is v in Visited Set?"}
+    VisCheck -- No (Unvisited) --> Enqueue["Visited.add(v)<br/>Frontier.append(v)<br/>Levels[v] = Levels[u] + 1<br/>Parents[v] = u"]
+    VisCheck -- Yes (Cycle / Re-visit) --> Skip["Skip neighbor v (Cycle Prevented)"]
+    Enqueue --> ForEach
+    Skip --> ForEach
+    ForEach -- Finished all neighbors --> Loop
+    Loop -- Yes (Frontier Empty) --> Finish([Return BFSResult & Traversal Order])
+```
+
+#### Chronological FIFO Frontier Trace Table (Sample Graph)
+
+| Step | Node Expanded | Depth Level | Parent | Discovered & Enqueued | FIFO Frontier Queue Snapshot | Visited Set Snapshot |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **1** | **A** | 0 | `ROOT` | `['B', 'C']` | `['B', 'C']` | `{'A', 'B', 'C'}` |
+| **2** | **B** | 1 | `A` | `['D']` | `['C', 'D']` | `{'A', 'B', 'C', 'D'}` |
+| **3** | **C** | 1 | `A` | `[]` (None) | `['D']` | `{'A', 'B', 'C', 'D'}` |
+| **4** | **D** | 2 | `B` | `[]` (None) | `[]` (Empty) | `{'A', 'B', 'C', 'D'}` |
+
+#### Performance & Asymptotic Complexity Analysis
+
+- **Time Complexity: $O(V + E)$**
+  - **Vertex Processing**: Every vertex $v \in V$ reachable from the start node is enqueued once and dequeued once from the `collections.deque` frontier. Because `deque.append()` and `deque.popleft()` operate in $O(1)$ amortized time, all queue manipulations take $O(V)$ time.
+  - **Edge Processing**: When node $u$ is expanded, each of its outgoing directed edges $(u, v) \in E$ is scanned exactly once. Across the entire traversal, the sum of outgoing degrees is $\sum_{u \in V} \text{deg}^+(u) = O(E)$.
+  - **Total Time**: $O(V + E)$ for adjacency list representation.
+- **Space Complexity: $O(V)$**
+  - **Visited Set**: Stores at most $V$ node identifiers, requiring $O(V)$ memory.
+  - **Frontier Queue**: At any moment, the frontier contains vertices from at most two consecutive depth layers. In the worst case (e.g., a star graph or dense level), it stores $O(V)$ vertices.
+  - **Parents & Levels Mappings**: Each maps at most $V$ vertices, requiring $O(V)$ memory.
+
+#### Complete Execution Guide
+
+1. **Default Run (Sample Graph from Question 11)**:
+   ```bash
+   python scripts/run_breadth_first_search.py
+   ```
+
+2. **Custom Graph via Command Line**:
+   ```bash
+   # Python dictionary literal
+   python scripts/run_breadth_first_search.py --graph "{'A': ['B', 'C'], 'B': ['D'], 'C': [], 'D': []}" --start A
+
+   # Compact adjacency format
+   python scripts/run_breadth_first_search.py --graph "A: B, C; B: D; C:; D:" --start A
+
+   # Directed edge-list format
+   python scripts/run_breadth_first_search.py --graph "A->B, A->C, B->D" --start A
+   ```
+
+3. **Interactive Console Wizard**:
+   ```bash
+   python scripts/run_breadth_first_search.py --interactive
+   ```
+
+4. **Run Optional Challenge (Levels and Graph Depth Analysis)**:
+   ```bash
+   python scripts/run_breadth_first_search.py --challenge
+   ```
+
+5. **Run Benchmark Demonstration Suite (Cycles, Trees, Disconnected Graphs)**:
+   ```bash
+   python scripts/run_breadth_first_search.py --demo
+   ```
+
+6. **Generate and Save Graphical Visualization**:
+   ```bash
+   python scripts/run_breadth_first_search.py --save reports/bfs_traversal.png
+   ```
+
+7. **Display Viva Voce Theory & Reference Guide**:
+   ```bash
+   python scripts/run_breadth_first_search.py --viva
+   ```
+
+8. **Top-Level Package Dispatcher**:
+   ```bash
+   python -m src bfs --start A
+   ```
+
+9. **Interactive Jupyter Notebook**:
+   Open [`notebooks/breadth_first_search.ipynb`](notebooks/breadth_first_search.ipynb) in Jupyter Lab or Antigravity IDE.
+
+#### Viva Voce Questions & Authoritative Answers
+
+##### 1. FIFO Queue Mechanism & `collections.deque` vs. `list`
+- **Question**: Why does BFS require a FIFO queue, and why must `collections.deque` be used instead of a standard Python `list`?
+- **Answer**:
+  - BFS must explore states in exact order of their distance (depth) from the root. A First-In, First-Out (FIFO) queue guarantees that all nodes at level $k$ are dequeued and expanded before any node at level $k+1$ is expanded.
+  - In CPython, `collections.deque` is implemented as a doubly-linked list of fixed-size contiguous memory blocks (chunks of 64 elements). Appending (`append()`) and popping from the left (`popleft()`) both execute in **$O(1)$ amortized time**.
+  - In contrast, a Python `list` is a contiguous dynamic array of object references. While `list.append()` is $O(1)$ amortized, `list.pop(0)` is strictly **$O(N)$** because all remaining $N-1$ element pointers must be shifted in memory. Using `list.pop(0)` in BFS degrades overall search complexity from $O(V + E)$ to $O(V^2 + E)$.
+
+##### 2. Completeness and Optimality of BFS
+- **Question**: Is Breadth-First Search complete and optimal? Under what conditions?
+- **Answer**:
+  - **Completeness**: BFS is complete provided the branching factor $b$ is finite ($b < \infty$). In graph search with a `visited` set, it is guaranteed to terminate on finite graphs even if cyclic.
+  - **Optimality**: BFS is optimal **if and only if all step costs are identical/uniform** (e.g., unit edge cost $c = 1$). Under uniform step costs, the shallowest goal state is guaranteed to be the least-cost path.
+  - If step costs are non-uniform or arbitrary (e.g., varying road distances or terrain weights), BFS is **not optimal** because a deeper path with smaller weights might have lower total cost than a shallow path with heavy weights. In that case, **Uniform-Cost Search (UCS / Dijkstra's Algorithm)** must be used.
+
+##### 3. Time Complexity Derivation
+- **Question**: Derive the time complexity of BFS on both graph search and tree search formulations.
+- **Answer**:
+  - **Graph Search**: On a graph with $V$ vertices and $E$ edges using an adjacency list:
+    $$\mathcal{O}(V + E)$$
+    Each reachable vertex is pushed to the FIFO queue and visited set once ($O(V)$), and its outgoing adjacency list is traversed once during expansion ($\sum \text{deg}^+(u) = O(E)$).
+  - **Tree Search (Branching Factor $b$, Goal Depth $d$)**:
+    At depth 0: $1$ node.
+    At depth 1: $b$ nodes.
+    At depth 2: $b^2$ nodes.
+    At depth $d$: $b^d$ nodes.
+    Sum of geometric progression:
+    $$T(b, d) = 1 + b + b^2 + \dots + b^d = \frac{b^{d+1} - 1}{b - 1} = \mathcal{O}(b^d)$$
+    If the goal test is applied when a node is expanded rather than when generated, the algorithm explores nodes at level $d+1$, yielding $\mathcal{O}(b^{d+1})$.
+
+##### 4. Space Complexity Bottleneck
+- **Question**: Why is space complexity the primary practical limitation of BFS compared to DFS?
+- **Answer**:
+  - BFS has a space complexity of $\mathcal{O}(b^d)$ because every generated node must remain in memory (either in the frontier queue or the visited table). The frontier alone at level $d$ holds up to $b^d$ nodes.
+  - In contrast, Depth-First Search (DFS) only needs to store the current active path from the root to the leaf plus unexpanded siblings, requiring only $\mathcal{O}(b \cdot d)$ linear memory.
+  - For example, with branching factor $b = 10$ and depth $d = 8$, BFS must store $10^8$ nodes in memory ($\approx 10$ to $100\text{ GB}$ of RAM), exhausting system memory within minutes, whereas DFS requires storing only $10 \times 8 = 80$ nodes.
 
 ---
 
