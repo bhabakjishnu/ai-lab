@@ -21,6 +21,7 @@ from scripts.run_environment_classifier import main as env_classifier_main
 from scripts.run_agent_performance_evaluator import main as agent_eval_main
 from scripts.run_state_space_visualizer import main as state_space_main
 from scripts.run_breadth_first_search import main as bfs_main
+from scripts.run_depth_first_search import main as dfs_main
 from src.__main__ import main as cli_main
 
 
@@ -440,6 +441,49 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("QUESTION 11: BREADTH-FIRST SEARCH (BFS) VIVA VOCE STUDY GUIDE", output)
         self.assertIn("FIFO Queue Mechanism", output)
 
+    def test_depth_first_search_script_default_run(self) -> None:
+        """Verify run_depth_first_search script executes default sample run matching Question 12 output."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_depth_first_search.py"]):
+            with patch("sys.stdout", stdout_trap):
+                dfs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("DEPTH-FIRST SEARCH TRAVERSAL (QUESTION 12)", output)
+        self.assertIn("DFS Traversal            : 1, 3, 2, 4", output)
+        self.assertIn("Step-by-Step Execution Trace Table", output)
+
+    def test_depth_first_search_script_challenge(self) -> None:
+        """Verify run_depth_first_search script executes Optional Challenge comparison."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_depth_first_search.py", "--challenge"]):
+            with patch("sys.stdout", stdout_trap):
+                dfs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE: ITERATIVE VS. RECURSIVE DFS COMPARISON", output)
+        self.assertIn("1. Iterative (Standard Forward-Push)", output)
+        self.assertIn("2. Recursive (Standard Forward-Call)", output)
+
+    def test_depth_first_search_script_demo(self) -> None:
+        """Verify run_depth_first_search script executes benchmarks in demo mode."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_depth_first_search.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                dfs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("DEPTH-FIRST SEARCH AUTOMATED BENCHMARK SUITE", output)
+        self.assertIn("Cyclic Benchmark Graph", output)
+
+    def test_depth_first_search_script_viva(self) -> None:
+        """Verify run_depth_first_search script outputs viva voce theory guide."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_depth_first_search.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                dfs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("DEPTH-FIRST SEARCH (DFS) VIVA VOCE REFERENCE & THEORY GUIDE", output)
+        self.assertIn("STACK VS QUEUE", output)
+        self.assertIn("WHY DFS IS NOT OPTIMAL", output)
+
     def test_cli_dispatcher_help_and_subcommands(self) -> None:
         """Verify top-level module CLI dispatcher provides help and forwards commands."""
         # Help text
@@ -501,6 +545,12 @@ class TestScriptExecution(unittest.TestCase):
         with patch("sys.stdout", stdout_trap):
             cli_main(["bfs", "--start", "A"])
         self.assertIn("BFS Traversal  : A, B, C, D", stdout_trap.getvalue())
+
+        # Subcommand forwarding for dfs
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["dfs", "--start", "1"])
+        self.assertIn("DFS Traversal            : 1, 3, 2, 4", stdout_trap.getvalue())
 
 
 if __name__ == "__main__":

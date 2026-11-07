@@ -172,6 +172,19 @@ from src.breadth_first_search import (
     parse_graph_input,
     visualize_bfs,
 )
+from src.depth_first_search import (
+    DAG_GRAPH,
+    DEFAULT_SAMPLE_GRAPH as DFS_DEFAULT_SAMPLE_GRAPH,
+    DFSResult,
+    DFSStepRecord,
+    DepthFirstSearch,
+    compare_dfs_modes,
+    depth_first_search,
+    dfs_iterative,
+    dfs_recursive,
+    get_dfs_viva_reference,
+    visualize_dfs,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -329,4 +342,16 @@ __all__ = [
     "BINARY_TREE_GRAPH",
     "DISCONNECTED_GRAPH",
     "get_bfs_viva_reference",
+    # Question 12: Depth-First Search
+    "DFSStepRecord",
+    "DFSResult",
+    "DepthFirstSearch",
+    "depth_first_search",
+    "dfs_iterative",
+    "dfs_recursive",
+    "compare_dfs_modes",
+    "visualize_dfs",
+    "DFS_DEFAULT_SAMPLE_GRAPH",
+    "DAG_GRAPH",
+    "get_dfs_viva_reference",
 ]
