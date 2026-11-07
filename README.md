@@ -50,6 +50,7 @@ ai-lab/
 │   ├── agent_performance_evaluator.ipynb# Question 9: Agent Performance Measure Evaluator simulation & Viva guide
 │   ├── state_space_visualizer.ipynb     # Question 10: State-Space Visualizer for Reflex Agent & Viva guide
 │   ├── breadth_first_search.ipynb       # Question 11: Breadth-First Search (BFS) on User-Defined Graph & Viva guide
+│   ├── depth_first_search.ipynb         # Question 12: Depth-First Search (DFS) for Graph Traversal & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -63,11 +64,12 @@ ai-lab/
 │   ├── run_agent_performance_evaluator.py# CLI & interactive runner for Question 9 (PEAS Performance Evaluator)
 │   ├── run_state_space_visualizer.py    # CLI & interactive runner for Question 10 (State-Space Graph Visualizer)
 │   ├── run_breadth_first_search.py      # CLI & interactive runner for Question 11 (Level-Order BFS & Graph Depth)
+│   ├── run_depth_first_search.py        # CLI & interactive runner for Question 12 (LIFO DFS & Recursive Comparison)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -79,6 +81,7 @@ ai-lab/
 │   ├── agent_performance_evaluator.py   # Question 9: Autonomous Delivery Drone PEAS Performance Evaluator
 │   ├── state_space_visualizer.py        # Question 10: State-Space Visualizer, Combinatorial Model & Graph Renderer
 │   ├── breadth_first_search.py          # Question 11: Breadth-First Search, FIFO Frontier, Cycle Avoidance & Levels
+│   ├── depth_first_search.py            # Question 12: Depth-First Search, LIFO Stack, Recursion, Cycles & Back-Edges
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -93,6 +96,7 @@ ai-lab/
 │   ├── test_agent_performance_evaluator.py# Unit tests for Question 9 linear evaluation, PEAS metric & CSV
 │   ├── test_state_space_visualizer.py   # Unit tests for Question 10 combinatorial states, transitions & graph
 │   ├── test_breadth_first_search.py     # Unit tests for Question 11 BFS traversal, tie-breaking, cycles & levels
+│   ├── test_depth_first_search.py       # Unit tests for Question 12 DFS traversal, cycles, edge types & challenge
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -1106,6 +1110,191 @@ flowchart TD
   - BFS has a space complexity of $\mathcal{O}(b^d)$ because every generated node must remain in memory (either in the frontier queue or the visited table). The frontier alone at level $d$ holds up to $b^d$ nodes.
   - In contrast, Depth-First Search (DFS) only needs to store the current active path from the root to the leaf plus unexpanded siblings, requiring only $\mathcal{O}(b \cdot d)$ linear memory.
   - For example, with branching factor $b = 10$ and depth $d = 8$, BFS must store $10^8$ nodes in memory ($\approx 10$ to $100\text{ GB}$ of RAM), exhausting system memory within minutes, whereas DFS requires storing only $10 \times 8 = 80$ nodes.
+
+---
+
+### Question 12: Depth-First Search (DFS) for Graph Traversal
+
+- **Syllabus Area**: Uninformed Search Techniques
+- **Difficulty**: 🟢 Beginner
+- **Practical Type**: Implementation & Deep State-Space Exploration
+- **Core AI Concept**: Depth-First Search (DFS), LIFO Frontier Stack, Backtracking, Visited Set, Cycle Prevention
+- **Python Concepts Tested**: Recursion, explicit `list` stack manipulation (`append()` and `pop()`), dictionary adjacency lists
+- **Expected Algorithm / Technique**: Depth-first traversal (LIFO frontier)
+- **Complexity Expectation**: Time Complexity: $\mathcal{O}(V + E)$ | Space Complexity: $\mathcal{O}(V)$
+- **Constraints / Conditions**: Graph may contain cycles (must prevent infinite loops).
+- **University Practical Importance**: Very High
+- **Optional Challenge**: Implement both iterative and recursive versions and compare output.
+
+#### Problem Statement & Task Requirements
+
+Implement Depth-First Search (DFS) in Python to traverse an unweighted graph. The program must explore as far as possible along each branch before backtracking. Output the exploration path.
+
+1. **Stack or Recursion**: Implement DFS using an explicit stack (`list`) OR recursion.
+2. **Cycle Avoidance**: Track explored nodes to prevent infinite loops in cyclic graphs.
+3. **Neighbor Processing**: Process neighbor nodes systematically.
+4. **Input Requirements**: Graph dictionary, Start node.
+5. **Expected Output**: List of nodes in DFS traversal order.
+6. **Optional Challenge**: Implement both iterative and recursive versions and compare output.
+
+#### Sample Input & Output Verification
+
+- **Sample Graph**: `{'1': ['2', '3'], '2': ['4'], '3': [], '4': []}`
+- **Start Node**: `'1'`
+- **Expected Traversal**: `DFS Traversal: 1, 3, 2, 4`
+
+#### Traversal Order Nuance: Forward-Push Stack vs. Standard Recursion
+
+A classic and insightful property of Depth-First Search is how successor node ordering impacts the visited sequence:
+
+1. **Iterative DFS with Standard Forward-Push (Sample Output Match)**:
+   - When node `'1'` expands its neighbors `['2', '3']` and pushes them onto the LIFO stack in order (`stack.append('2')`, then `stack.append('3')`), node `'3'` sits at the **top** of the stack.
+   - The subsequent `stack.pop()` extracts `'3'` first, resulting in the exploration order:
+     $$\mathbf{1 \to 3 \to 2 \to 4}$$
+   - This matches the university problem statement's exact sample output!
+2. **Standard Recursive DFS (Left-to-Right)**:
+   - In standard recursive DFS, a loop `for neighbor in graph[node]` visits `'2'` before `'3'`. It explores deeply down `'2'` to `'4'`, backtracks to `'1'`, and then visits `'3'`:
+     $$\mathbf{1 \to 2 \to 4 \to 3}$$
+3. **Order-Preserving Iterative DFS (Reverse-Push)**:
+   - If the iterative algorithm pushes neighbors in reversed order (`for neighbor in reversed(graph[node]): stack.append(neighbor)`), node `'2'` remains on top of the stack and is popped first, producing the identical sequence to standard recursion:
+     $$\mathbf{1 \to 2 \to 4 \to 3}$$
+
+Both ordering models are supported and compared side-by-side in this laboratory implementation.
+
+#### Algorithm Walkthrough & Architectural Diagram
+
+```mermaid
+flowchart TD
+    Start([Start Node: '1']) --> Init["Init LIFO Stack: [('1', None, 0)]<br/>Visited Set: set()<br/>Parents: {'1': None}"]
+    Init --> Loop{"Is Stack Empty?"}
+    Loop -- No --> Pop["pop() (curr_node, parent, depth)<br/>from LIFO Stack Top"]
+    Pop --> CheckVis{"Is curr_node in Visited Set?"}
+    CheckVis -- Yes --> Loop
+    CheckVis -- No --> MarkVis["Visited.add(curr_node)<br/>Append curr_node to Traversal Order<br/>Record Discovery Timestamp d[u]"]
+    MarkVis --> EvalNeighbors["Inspect Neighbors in Adj[curr_node]<br/>Identify Ancestors (Back-Edges / Cycles)"]
+    EvalNeighbors --> PushLoop["For each unvisited neighbor v in Adj[curr_node]"]
+    PushLoop --> PushStack["stack.append((v, curr_node, depth + 1))<br/>Parents[v] = curr_node"]
+    PushStack --> PushLoop
+    PushLoop -- All Neighbors Processed --> Loop
+    Loop -- Yes (Stack Empty) --> Done([Return DFSResult & Complete Exploration Path])
+```
+
+#### Chronological LIFO Frontier Trace Table (Sample Graph)
+
+| Step | Node Popped | Action | Depth | Parent | Unvisited Pushed to Stack | LIFO Stack Snapshot (Top on Right) | Visited Nodes Sequence |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **1** | **1** | `EXPAND` | 0 | `ROOT` | `['2', '3']` | `['2', '3']` (Top: 3) | `['1']` |
+| **2** | **3** | `EXPAND` | 1 | `1` | `[]` (None) | `['2']` (Top: 2) | `['1', '3']` |
+| **3** | **2** | `EXPAND` | 1 | `1` | `['4']` | `['4']` (Top: 4) | `['1', '3', '2']` |
+| **4** | **4** | `EXPAND` | 2 | `2` | `[]` (None) | `[]` (Empty) | `['1', '3', '2', '4']` |
+
+#### Optional Challenge: Side-by-Side Comparison of Iterative vs. Recursive DFS
+
+| Implementation Variant | Traversal Order | Step Count | Frontier Mechanism | Order Preserved? |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Iterative (Standard Forward-Push)** | `1, 3, 2, 4` | 4 | Explicit `list` stack (`pop()`) | No (LIFO reverses order) |
+| **2. Recursive (Standard Forward-Call)** | `1, 2, 4, 3` | 8 | Implicit runtime call stack | Yes (Left-to-right) |
+| **3. Iterative (Order-Preserving Reverse-Push)** | `1, 2, 4, 3` | 4 | Explicit `list` stack (`pop()`) | Yes (Matches standard recursion) |
+| **4. Recursive (Reversed-Call)** | `1, 3, 2, 4` | 8 | Implicit runtime call stack | No (Matches forward-push stack) |
+
+#### Performance & Asymptotic Complexity Analysis
+
+- **Time Complexity: $\mathcal{O}(V + E)$**
+  - **Vertex Processing**: Every vertex $v \in V$ reachable from the start node is pushed and popped from the stack at most once. Visited set operations (`add`, `in`) execute in $\mathcal{O}(1)$ average time. Total vertex time is $\mathcal{O}(V)$.
+  - **Edge Processing**: When node $u$ is expanded, each of its outgoing directed edges $(u, v) \in E$ is evaluated once to check whether $v$ is an ancestor (back edge), unvisited neighbor (tree edge), or cross edge. The sum across all vertices is $\sum_{u \in V} \text{deg}^+(u) = \mathcal{O}(E)$.
+  - **Total Time**: $\mathcal{O}(V + E)$ for adjacency list graph representation.
+- **Space Complexity: $\mathcal{O}(V)$ (Graph Search) / $\mathcal{O}(b \cdot m)$ (Tree Search)**
+  - **Graph Search**: The `visited` set and LIFO stack store at most $V$ node labels, yielding $\mathcal{O}(V)$ auxiliary memory.
+  - **Tree Search Advantage**: Unlike BFS which must maintain the entire exponential frontier width $\mathcal{O}(b^d)$, DFS needs to retain only the single current branch from root to leaf, plus unexpanded sibling choices at each level, requiring strictly linear memory $\mathcal{O}(b \cdot m)$ where $b$ is the branching factor and $m$ is the maximum tree depth.
+
+#### Complete Execution Guide
+
+1. **Default Run (Sample Graph from Question 12: Output `1, 3, 2, 4`)**:
+   ```bash
+   python scripts/run_depth_first_search.py
+   ```
+
+2. **Custom Graph via Command Line**:
+   ```bash
+   # Python dictionary literal
+   python scripts/run_depth_first_search.py --graph "{'1': ['2', '3'], '2': ['4'], '3': [], '4': []}" --start 1
+
+   # Compact adjacency format
+   python scripts/run_depth_first_search.py --graph "1: 2, 3; 2: 4; 3:; 4:" --start 1
+
+   # Directed edge-list format
+   python scripts/run_depth_first_search.py --graph "1->2, 1->3, 2->4" --start 1
+   ```
+
+3. **Optional Challenge (Iterative vs. Recursive Comparison)**:
+   ```bash
+   python scripts/run_depth_first_search.py --challenge
+   ```
+
+4. **Interactive Console Wizard**:
+   ```bash
+   python scripts/run_depth_first_search.py --interactive
+   ```
+
+5. **Run Benchmark Demonstration Suite (Cycles, Trees, Disconnected Graphs, DAGs)**:
+   ```bash
+   python scripts/run_depth_first_search.py --demo
+   ```
+
+6. **Generate and Save Graphical Visualization**:
+   ```bash
+   python scripts/run_depth_first_search.py --save reports/dfs_traversal.png
+   ```
+
+7. **Display Viva Voce Theory & Reference Guide**:
+   ```bash
+   python scripts/run_depth_first_search.py --viva
+   ```
+
+8. **Top-Level Package Dispatcher**:
+   ```bash
+   python -m src dfs --start 1
+   ```
+
+9. **Interactive Jupyter Notebook**:
+   Open [`notebooks/depth_first_search.ipynb`](notebooks/depth_first_search.ipynb) in Jupyter Lab or Antigravity IDE.
+
+#### Viva Voce Questions & Authoritative Answers
+
+##### 1. Stack vs. Queue (LIFO vs. FIFO)
+- **Question**: What is the fundamental difference between the frontier data structures of DFS and BFS, and how are they implemented in Python?
+- **Answer**:
+  - DFS uses a **Last-In, First-Out (LIFO) Stack**, whereas BFS uses a **First-In, First-Out (FIFO) Queue**.
+  - In DFS, the most recently generated successor is expanded first, forcing search deep along a single branch before backtracking. In BFS, nodes are expanded in chronological discovery order, enforcing level-by-level exploration.
+  - In Python, an iterative DFS stack is implemented directly using a built-in `list` with amortized $\mathcal{O}(1)$ `append()` and $\mathcal{O}(1)$ `pop()`. In contrast, BFS requires `collections.deque` because `list.pop(0)` is $\mathcal{O}(N)$ due to dynamic memory element shifting.
+
+##### 2. Why DFS is Not Optimal
+- **Question**: Why is Depth-First Search considered non-optimal, even when step costs are uniform?
+- **Answer**:
+  - An algorithm is optimal if it guarantees returning the lowest-cost solution path.
+  - DFS is **not optimal** because it commits deeply down the first branch it encounters. If a goal node exists at depth 1 along branch B, but branch A plunges down 1,000 edges to another goal, DFS will explore all 1,000 edges along branch A and return that path without ever checking branch B.
+  - Even under uniform unit edge costs ($c = 1$), BFS is optimal because it guarantees finding the shallowest goal, whereas DFS finds an arbitrary path dictated strictly by neighbor expansion order.
+
+##### 3. Space Complexity Advantage of DFS over BFS
+- **Question**: Why does DFS possess a decisive space complexity advantage over BFS in practical AI problems?
+- **Answer**:
+  - Space complexity is the primary practical bottleneck of BFS, and the greatest asset of DFS.
+  - In a state space with branching factor $b = 10$ and goal depth $d = 8$:
+    - **BFS** must store the entire current frontier layer: $\mathcal{O}(b^d) = 10^8$ nodes ($\approx 10\text{ to }100\text{ GB}$ of RAM), exhausting system memory within minutes.
+    - **DFS** only retains the single active branch path plus unexpanded siblings at each level: $\mathcal{O}(b \cdot m) = 10 \times 8 = 80$ nodes, requiring mere kilobytes of memory.
+
+##### 4. Completeness of DFS
+- **Question**: Under what conditions is DFS complete or incomplete?
+- **Answer**:
+  - **Graph Search DFS (with a visited set)**: Complete on finite state spaces because the visited set prevents revisiting expanded vertices, guaranteeing termination even in cyclic graphs.
+  - **Tree Search DFS (without a visited set)**: Incomplete on cyclic graphs (it gets trapped in infinite loops) and incomplete on infinite state spaces (it can plunge endlessly down infinite branches).
+  - **Iterative Deepening Search (IDS)**: Solves this dilemma by pairing the $\mathcal{O}(b \cdot d)$ linear memory advantage of DFS with the completeness and optimality of BFS via progressive depth limits.
+
+##### 5. Cycle Detection via Back-Edges (CLRS Classification)
+- **Question**: How does Depth-First Search detect cycles in directed graphs?
+- **Answer**:
+  - In CLRS DFS edge classification, an edge $(u, v)$ is a **Back Edge** if vertex $v$ is an ancestor of vertex $u$ in the active DFS search tree (i.e., $v$ is currently on the active recursion stack / un-finished).
+  - **Theorem**: A directed graph $G$ contains a directed cycle **if and only if** a DFS traversal of $G$ encounters at least one back edge.
 
 ---
 

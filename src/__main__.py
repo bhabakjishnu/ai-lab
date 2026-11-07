@@ -77,6 +77,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 11: Breadth-First Search (BFS) on User-Defined Graph",
     )
 
+    # Depth-first search runner
+    subparsers.add_parser(
+        "dfs",
+        aliases=["depth-first-search", "dfs-search"],
+        help="Run Question 12: Depth-First Search (DFS) for Graph Traversal",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -103,6 +110,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         "bfs",
         "breadth-first-search",
         "bfs-search",
+        "dfs",
+        "depth-first-search",
+        "dfs-search",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -152,6 +162,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_breadth_first_search import main as bfs_main
             sys.argv = [sys.argv[0]] + remaining
             bfs_main()
+        elif cmd in ("dfs", "depth-first-search", "dfs-search"):
+            from scripts.run_depth_first_search import main as dfs_main
+            sys.argv = [sys.argv[0]] + remaining
+            dfs_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
