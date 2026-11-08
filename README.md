@@ -51,6 +51,7 @@ ai-lab/
 │   ├── state_space_visualizer.ipynb     # Question 10: State-Space Visualizer for Reflex Agent & Viva guide
 │   ├── breadth_first_search.ipynb       # Question 11: Breadth-First Search (BFS) on User-Defined Graph & Viva guide
 │   ├── depth_first_search.ipynb         # Question 12: Depth-First Search (DFS) for Graph Traversal & Viva guide
+│   ├── bfs_shortest_path.ipynb          # Question 13: BFS Shortest Path Constructor & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -65,11 +66,12 @@ ai-lab/
 │   ├── run_state_space_visualizer.py    # CLI & interactive runner for Question 10 (State-Space Graph Visualizer)
 │   ├── run_breadth_first_search.py      # CLI & interactive runner for Question 11 (Level-Order BFS & Graph Depth)
 │   ├── run_depth_first_search.py        # CLI & interactive runner for Question 12 (LIFO DFS & Recursive Comparison)
+│   ├── run_bfs_shortest_path.py         # CLI & interactive runner for Question 13 (Shortest Path & Goal Testing)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,bfs-shortest-path,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -82,6 +84,7 @@ ai-lab/
 │   ├── state_space_visualizer.py        # Question 10: State-Space Visualizer, Combinatorial Model & Graph Renderer
 │   ├── breadth_first_search.py          # Question 11: Breadth-First Search, FIFO Frontier, Cycle Avoidance & Levels
 │   ├── depth_first_search.py            # Question 12: Depth-First Search, LIFO Stack, Recursion, Cycles & Back-Edges
+│   ├── bfs_shortest_path.py             # Question 13: BFS Shortest Path Constructor, Parent Dict & Early Goal Testing
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -97,6 +100,7 @@ ai-lab/
 │   ├── test_state_space_visualizer.py   # Unit tests for Question 10 combinatorial states, transitions & graph
 │   ├── test_breadth_first_search.py     # Unit tests for Question 11 BFS traversal, tie-breaking, cycles & levels
 │   ├── test_depth_first_search.py       # Unit tests for Question 12 DFS traversal, cycles, edge types & challenge
+│   ├── test_bfs_shortest_path.py        # Unit tests for Question 13 shortest path, reconstruction & all-paths
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -1295,6 +1299,216 @@ flowchart TD
 - **Answer**:
   - In CLRS DFS edge classification, an edge $(u, v)$ is a **Back Edge** if vertex $v$ is an ancestor of vertex $u$ in the active DFS search tree (i.e., $v$ is currently on the active recursion stack / un-finished).
   - **Theorem**: A directed graph $G$ contains a directed cycle **if and only if** a DFS traversal of $G$ encounters at least one back edge.
+
+---
+
+### Question 13: BFS Shortest Path Constructor
+
+- **Syllabus Area**: Uninformed Search Techniques
+- **Difficulty**: 🟡 Intermediate
+- **Practical Type**: Algorithm Design
+- **Core AI Concept**: Path Reconstruction, Early Goal Testing vs Late Goal Testing, BFS Optimality
+- **Python Concepts Tested**: Path tracking, dictionary parent mapping, `collections.deque`
+- **Expected Algorithm / Technique**: Breadth-First Search (BFS) with path tracking
+- **Complexity Expectation**: Time Complexity: $\mathcal{O}(V + E)$ (or $\mathcal{O}(b^d)$ with early goal test) | Space Complexity: $\mathcal{O}(V)$
+- **Constraints / Conditions**: Graph is unweighted.
+- **Sample Input**: Start: A, Goal: F
+- **Sample Output**: Shortest Path: `['A', 'C', 'F']`
+- **University Practical Importance**: Very High
+- **Optional Challenge**: Print all possible shortest paths if multiple exist.
+
+#### Problem Statement & Task Requirements
+
+Extend the standard BFS algorithm to not just traverse a graph, but to find and return the exact shortest path (in terms of number of edges) between a given source and destination vertex. The program must reconstruct the path from the goal back to the start.
+
+1. **Path Tracking**: The FIFO queue must store paths (lists of nodes) or maintain a parent dictionary.
+2. **Immediate Termination**: Stop and return the path immediately when the goal is tested (Early Goal Testing at node generation).
+3. **Robust Edge Handling**: Handle cases where no path exists (unreachable goal or disconnected components), start equals goal ($0$ edges), and graphs with cycles.
+4. **Exact Shortest Path**: Guarantee the minimal edge count on unweighted graphs.
+5. **Optional Challenge**: Discover and print all possible shortest paths if multiple minimal paths exist.
+
+#### Theoretical Foundations
+
+```mermaid
+flowchart TD
+  subgraph BFS_Shortest_Path_Workflow["BFS Shortest Path Constructor Workflow"]
+    StartNode["Start Node v0"] --> Init["Initialize FIFO Queue with (start, 0)<br/>Initialize parents[start] = None<br/>Mark start visited"]
+    Init --> QueueLoop{"Frontier Queue<br/>Empty?"}
+    QueueLoop -->|Yes| NoPath["Goal Unreachable<br/>Return None / cost = -1"]
+    QueueLoop -->|No| Pop["Dequeue current from Frontier"]
+    Pop --> Expand["Expand unvisited neighbors in graph[current]"]
+    Expand --> NeighborLoop{"For each neighbor"}
+    NeighborLoop --> IsVisited{"Already<br/>Visited?"}
+    IsVisited -->|Yes| Skip["Skip (Avoid Cycles)"]
+    IsVisited -->|No| MarkVisited["Mark Visited<br/>parents[neighbor] = current"]
+    MarkVisited --> EarlyGoalTest{"Early Goal Test:<br/>neighbor == Goal?"}
+    EarlyGoalTest -->|Yes (Match)| ImmediateReturn["IMMEDIATE TERMINATION<br/>Reconstruct path: Goal back to Start<br/>Reverse list -> Return ['A', 'C', 'F']"]
+    EarlyGoalTest -->|No| Enqueue["Enqueue (neighbor, depth + 1)"]
+    Enqueue --> NeighborLoop
+  end
+```
+
+##### 1. Path vs Traversal
+- **Graph Traversal**: Systematically visits all reachable vertices in a graph to explore topology or enumerate nodes. It terminates only when the frontier becomes completely empty.
+- **Path Construction**: Goal-directed navigation searching for a valid sequence of state transitions (edges) $P = \langle v_0, v_1, \dots, v_k \rangle$ connecting a specific start vertex $v_0$ to destination vertex $v_k$. Terminates immediately once the goal condition is satisfied.
+
+##### 2. Early Goal Testing vs Late Goal Testing
+- **Early Goal Testing (Node Generation Time)**: The goal test is applied immediately when a neighbor vertex is *generated* by expanding its parent, before placing it into the FIFO queue.
+  - In unweighted graphs with uniform edge costs, the first time the goal node is generated is guaranteed to be at minimal depth $d^*$.
+  - Immediate termination skips expanding all remaining nodes at depth $d^*$ and prevents enqueuing their children, saving up to $\mathcal{O}(b^{d+1})$ operations (an asymptotic factor of $b$ in time and memory!).
+- **Late Goal Testing (Node Expansion Time)**: The goal test is deferred until the node is dequeued from the front of the frontier.
+  - Necessary for non-uniform cost search (Dijkstra, Uniform-Cost Search, $A^*$) because generating a node does not guarantee the cheapest path.
+  - In uniform BFS, late goal testing is strictly redundant and generates an entire extra level of vertices.
+
+##### 3. Why BFS Finds the Shortest Path in Unweighted Graphs
+- In unweighted graphs, every edge has uniform unit cost ($c = 1$). Path cost is strictly identical to path depth (number of edges).
+- The FIFO queue guarantees monotonic non-decreasing exploration: all vertices at depth $d$ are expanded before any vertex at depth $d + 1$.
+- **Inductive Optimality Proof**: Let $d^*$ be the length of the shortest path from start to goal. BFS explores all vertices at depth $< d^*$ before any vertex at depth $d^*$. Therefore, no path of length $< d^*$ exists (or goal would have been found earlier), and no path of length $> d^*$ can ever be returned first. Thus, the first discovered path to the goal is guaranteed to be optimal.
+
+##### 4. Path Reconstruction: Parent Dictionary vs Queue-Stored Paths
+| Dimension | Parent Dictionary Backtracking (Recommended) | Storing Full Paths in Queue |
+| --- | --- | --- |
+| **Data Structure** | `parents: Dict[str, Optional[str]]` mapping child $\to$ parent | `frontier: deque[List[str]]` storing full lists |
+| **Auxiliary Memory** | $\mathcal{O}(V)$ strictly linear space | $\mathcal{O}(d \cdot b^d)$ due to path list replication |
+| **Reconstruction Process** | Walk backward from goal to start: $v \leftarrow \text{parents}[v]$, then reverse list | Path is already stored in the dequeued item |
+| **Academic / Industrial Standard** | Standard AIMA & CLRS graph search design | Educational demonstration / prototype shortcut |
+
+#### Step-by-Step FIFO Frontier Execution Trace (Sample Input)
+
+Graph: `{'A': ['B', 'C'], 'B': ['D', 'E'], 'C': ['F'], 'D': ['E'], 'E': ['F'], 'F': []}`  
+Start Node: `A` | Goal Node: `F`
+
+| Step | Action | Node | Depth | Candidate Neighbor | Goal Test | Frontier Queue Snapshot | Explanation |
+| :---: | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+| **1** | `START` | `A` | 0 | - | - | `[A]` | Initialized FIFO frontier with start node `A` |
+| **2** | `EXPAND` | `A` | 0 | - | - | `[]` | Popped `A` from frontier; evaluating outgoing edges |
+| **3** | `ENQUEUE` | `A` | 1 | `B` | `TEST` | `[B]` | Generated unvisited neighbor `B`; goal test False; enqueued |
+| **4** | `ENQUEUE` | `A` | 1 | `C` | `TEST` | `[B, C]` | Generated unvisited neighbor `C`; goal test False; enqueued |
+| **5** | `EXPAND` | `B` | 1 | - | - | `[C]` | Popped `B` from frontier; evaluating outgoing edges |
+| **6** | `ENQUEUE` | `B` | 2 | `D` | `TEST` | `[C, D]` | Generated neighbor `D`; goal test False; enqueued |
+| **7** | `ENQUEUE` | `B` | 2 | `E` | `TEST` | `[C, D, E]` | Generated neighbor `E`; goal test False; enqueued |
+| **8** | `EXPAND` | `C` | 1 | - | - | `[D, E]` | Popped `C` from frontier; evaluating outgoing edges |
+| **9** | `EARLY_GOAL_FOUND` | `C` | 2 | `F` | **`MATCH`** | `[D, E, F]` | Generated neighbor `F`; goal test **MATCH**! Immediate termination! |
+
+**Backward Path Reconstruction**:  
+- Start at Goal `F` $\to$ `parents['F'] = 'C'` $\to$ `parents['C'] = 'A'` $\to$ `parents['A'] = None (Start)`.  
+- Backward sequence: `['F', 'C', 'A']`.  
+- Reversed output: **`['A', 'C', 'F']`** (Cost: 2 edges).
+
+#### Early Goal Testing vs Late Goal Testing Comparison
+
+Running both strategies on the sample graph demonstrates the concrete efficiency advantage of Early Goal Testing:
+
+| Metric | Early Goal Testing (Generation Time) | Late Goal Testing (Expansion Time) | Efficiency Savings |
+| --- | :---: | :---: | :---: |
+| **Shortest Path Discovered** | `['A', 'C', 'F']` | `['A', 'C', 'F']` | Exact same optimal path |
+| **Path Cost (Edges)** | $2$ edges | $2$ edges | Guaranteed minimal hops |
+| **Nodes Expanded** | **$3$ nodes** (`A`, `B`, `C`) | **$6$ nodes** (`A`, `B`, `C`, `D`, `E`, `F`) | **50% fewer expansions!** |
+| **Total Step Records** | $9$ steps | $17$ steps | Terminated 8 steps earlier |
+
+#### Optional Challenge: Discovering All Possible Shortest Paths
+
+In symmetric graphs or multi-route topologies, multiple distinct paths share the identical minimum edge count.
+- **Diamond Graph** (`A -> B -> D`, `A -> C -> D`):
+  - Path #1: `A -> B -> D` (Length: 2 edges)
+  - Path #2: `A -> C -> D` (Length: 2 edges)
+- **Grid Graph** (`A -> B/C -> D/E/F -> G`):
+  - Discovers all paths sharing minimal 3-edge length using multi-parent mapping.
+
+#### Complete Execution Guide
+
+1. **Default Run (Sample Graph from Question 13: Output `['A', 'C', 'F']`)**:
+   ```bash
+   python scripts/run_bfs_shortest_path.py
+   ```
+
+2. **Custom Start and Goal via CLI**:
+   ```bash
+   python scripts/run_bfs_shortest_path.py --start A --goal F
+   ```
+
+3. **Custom Graph via Command Line**:
+   ```bash
+   # Python dictionary literal
+   python scripts/run_bfs_shortest_path.py --graph "{'A': ['B', 'C'], 'B': ['D'], 'C': ['F'], 'D': [], 'F': []}" --start A --goal F
+
+   # Compact adjacency format
+   python scripts/run_bfs_shortest_path.py --graph "A: B, C; B: D; C: F; D:; F:" --start A --goal F
+   ```
+
+4. **Run Optional Challenge (All Possible Shortest Paths)**:
+   ```bash
+   python scripts/run_bfs_shortest_path.py --all-paths
+   ```
+
+5. **Compare Early vs Late Goal Testing**:
+   ```bash
+   python scripts/run_bfs_shortest_path.py --compare-goals
+   ```
+
+6. **Compare Parent Dictionary vs Queue Paths Tracking**:
+   ```bash
+   python scripts/run_bfs_shortest_path.py --compare-modes
+   ```
+
+7. **Run Standard AI Benchmark Battery**:
+   ```bash
+   python scripts/run_bfs_shortest_path.py --demo
+   ```
+
+8. **Save Graphical Path Visualization**:
+   ```bash
+   python scripts/run_bfs_shortest_path.py --save reports/bfs_shortest_path.png
+   ```
+
+9. **Interactive Console Mode**:
+   ```bash
+   python scripts/run_bfs_shortest_path.py --interactive
+   ```
+
+10. **Module Dispatcher Syntax**:
+    ```bash
+    python -m src bfs-shortest-path --start A --goal F
+    ```
+
+11. **Display Viva Voce Theory Guide**:
+    ```bash
+    python scripts/run_bfs_shortest_path.py --viva
+    ```
+
+#### University Practical Viva Voce Preparation Guide
+
+##### 1. Path vs Traversal
+- **Question**: What is the key difference between a Graph Traversal and a Shortest Path Constructor?
+- **Answer**:
+  - A **Graph Traversal** (e.g. standard BFS or DFS) systematically explores all reachable vertices in an entire connected component to enumerate nodes or inspect topology. It terminates only when the frontier queue is empty.
+  - A **Shortest Path Constructor** is a goal-directed search designed to find a specific sequence of edges connecting a designated start node $v_0$ to a destination goal $v_k$ with minimal step cost. It terminates immediately once the goal is tested.
+
+##### 2. Early Goal Testing vs Late Goal Testing
+- **Question**: What is the difference between Early Goal Testing and Late Goal Testing, and why does BFS use early testing?
+- **Answer**:
+  - **Early Goal Testing**: The goal condition is tested as soon as a successor node is generated by expanding its parent (before inserting into the FIFO queue). Because all edges in an unweighted graph have uniform cost ($c = 1$), the first time the goal is generated, it is guaranteed to be at minimal depth. Immediate termination prevents generating up to $b^{d+1}$ children and avoids expanding remaining nodes at depth $d$, achieving a $b$-factor reduction in time and space.
+  - **Late Goal Testing**: The goal condition is tested only when the node is popped from the front of the queue. This is required in algorithms with non-uniform edge weights (Dijkstra / Uniform-Cost Search / $A^*$), but is wasteful in unweighted BFS.
+
+##### 3. Why BFS Finds the Shortest Path in Unweighted Graphs
+- **Question**: Why is BFS guaranteed to find the shortest path in an unweighted graph?
+- **Answer**:
+  - In an unweighted graph, all edge weights are equal ($c = 1$), so path cost equals edge count (depth $d$).
+  - A FIFO queue guarantees that vertices are expanded in non-decreasing order of their distance from the start node: depth 0, then depth 1, then depth 2, ..., depth $d$.
+  - By mathematical induction, BFS explores every vertex at depth $< d^*$ before any vertex at depth $d^*$. Therefore, the first path constructed to the goal must have minimal edge count.
+
+##### 4. Path Reconstruction Mechanics
+- **Question**: Compare Parent Dictionary Backtracking with Storing Full Paths in the Queue.
+- **Answer**:
+  - **Parent Dictionary Backtracking**: Maintains `parents[child] = parent`. Each node stores one pointer, requiring strictly $\mathcal{O}(V)$ auxiliary memory. When the goal is reached, the path is reconstructed by walking backward from goal to start in $\mathcal{O}(d)$ time.
+  - **Queue-Stored Paths**: The queue stores full path lists (`[['A'], ['A', 'B'], ['A', 'C']]`). Intuitive, but duplicates path prefixes, consuming $\mathcal{O}(d \cdot b^d)$ memory.
+
+##### 5. Handling Unreachable Goals
+- **Question**: How does the algorithm detect and handle cases where no path exists?
+- **Answer**:
+  - If all reachable vertices in the start node's component are explored and the FIFO queue becomes empty without satisfying the goal test, the algorithm returns `None` with `goal_found=False` and `cost_edges=-1`.
+
+---
 
 ---
 

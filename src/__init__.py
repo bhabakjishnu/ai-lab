@@ -185,6 +185,22 @@ from src.depth_first_search import (
     get_dfs_viva_reference,
     visualize_dfs,
 )
+from src.bfs_shortest_path import (
+    DEFAULT_SHORTEST_PATH_GRAPH,
+    DISCONNECTED_SHORTEST_PATH_GRAPH,
+    MULTI_PATH_DIAMOND_GRAPH,
+    MULTI_PATH_GRID_GRAPH,
+    BFSShortestPathConstructor,
+    PathStepRecord,
+    ShortestPathResult,
+    bfs_shortest_path,
+    compare_goal_testing_strategies,
+    compare_tracking_mechanisms,
+    find_all_shortest_paths,
+    get_viva_reference as get_bfs_shortest_path_viva_reference,
+    reconstruct_path_from_parents,
+    visualize_shortest_path,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -354,4 +370,19 @@ __all__ = [
     "DFS_DEFAULT_SAMPLE_GRAPH",
     "DAG_GRAPH",
     "get_dfs_viva_reference",
+    # Question 13: BFS Shortest Path Constructor
+    "PathStepRecord",
+    "ShortestPathResult",
+    "BFSShortestPathConstructor",
+    "bfs_shortest_path",
+    "find_all_shortest_paths",
+    "reconstruct_path_from_parents",
+    "compare_goal_testing_strategies",
+    "compare_tracking_mechanisms",
+    "visualize_shortest_path",
+    "DEFAULT_SHORTEST_PATH_GRAPH",
+    "DISCONNECTED_SHORTEST_PATH_GRAPH",
+    "MULTI_PATH_DIAMOND_GRAPH",
+    "MULTI_PATH_GRID_GRAPH",
+    "get_bfs_shortest_path_viva_reference",
 ]

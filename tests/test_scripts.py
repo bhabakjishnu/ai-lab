@@ -22,6 +22,7 @@ from scripts.run_agent_performance_evaluator import main as agent_eval_main
 from scripts.run_state_space_visualizer import main as state_space_main
 from scripts.run_breadth_first_search import main as bfs_main
 from scripts.run_depth_first_search import main as dfs_main
+from scripts.run_bfs_shortest_path import main as bfs_shortest_path_main
 from src.__main__ import main as cli_main
 
 
@@ -484,6 +485,39 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("STACK VS QUEUE", output)
         self.assertIn("WHY DFS IS NOT OPTIMAL", output)
 
+    def test_bfs_shortest_path_script_default_run(self) -> None:
+        """Verify run_bfs_shortest_path script executes sample run (A -> F: ['A', 'C', 'F'])."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bfs_shortest_path.py"]):
+            with patch("sys.stdout", stdout_trap):
+                bfs_shortest_path_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("BFS SHORTEST PATH CONSTRUCTOR (START: 'A' -> GOAL: 'F')", output)
+        self.assertIn("Shortest Path (List) : ['A', 'C', 'F']", output)
+        self.assertIn("Path Cost (Edges)    : 2", output)
+
+    def test_bfs_shortest_path_script_demo(self) -> None:
+        """Verify run_bfs_shortest_path script executes benchmark battery."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bfs_shortest_path.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                bfs_shortest_path_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("BATTERY OF STANDARD AI GRAPH BENCHMARKS", output)
+        self.assertIn("Cyclic Graph with Loops", output)
+        self.assertIn("Multi-Path Diamond Graph", output)
+
+    def test_bfs_shortest_path_script_viva(self) -> None:
+        """Verify run_bfs_shortest_path script outputs viva voce guide."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bfs_shortest_path.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                bfs_shortest_path_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("VIVA VOCE REFERENCE & THEORY GUIDE: BFS SHORTEST PATH CONSTRUCTOR", output)
+        self.assertIn("What is the key difference between a Graph Traversal and a Shortest Path Constructor?", output)
+        self.assertIn("What is the difference between Early Goal Testing and Late Goal Testing", output)
+
     def test_cli_dispatcher_help_and_subcommands(self) -> None:
         """Verify top-level module CLI dispatcher provides help and forwards commands."""
         # Help text
@@ -551,6 +585,12 @@ class TestScriptExecution(unittest.TestCase):
         with patch("sys.stdout", stdout_trap):
             cli_main(["dfs", "--start", "1"])
         self.assertIn("DFS Traversal            : 1, 3, 2, 4", stdout_trap.getvalue())
+
+        # Subcommand forwarding for bfs-shortest-path
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["bfs-shortest-path", "--start", "A", "--goal", "F"])
+        self.assertIn("Shortest Path (List) : ['A', 'C', 'F']", stdout_trap.getvalue())
 
 
 if __name__ == "__main__":

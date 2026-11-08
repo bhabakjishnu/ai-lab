@@ -84,6 +84,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 12: Depth-First Search (DFS) for Graph Traversal",
     )
 
+    # BFS shortest path constructor runner
+    subparsers.add_parser(
+        "bfs-shortest-path",
+        aliases=["bfs-path", "shortest-path"],
+        help="Run Question 13: BFS Shortest Path Constructor (Path Reconstruction & Early Goal Testing)",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -113,6 +120,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         "dfs",
         "depth-first-search",
         "dfs-search",
+        "bfs-shortest-path",
+        "bfs-path",
+        "shortest-path",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -166,6 +176,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_depth_first_search import main as dfs_main
             sys.argv = [sys.argv[0]] + remaining
             dfs_main()
+        elif cmd in ("bfs-shortest-path", "bfs-path", "shortest-path"):
+            from scripts.run_bfs_shortest_path import main as bfs_path_main
+            sys.argv = [sys.argv[0]] + remaining
+            bfs_path_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
