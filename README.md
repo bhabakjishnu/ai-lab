@@ -51,6 +51,7 @@ ai-lab/
 │   ├── state_space_visualizer.ipynb     # Question 10: State-Space Visualizer for Reflex Agent & Viva guide
 │   ├── breadth_first_search.ipynb       # Question 11: Breadth-First Search (BFS) on User-Defined Graph & Viva guide
 │   ├── depth_first_search.ipynb         # Question 12: Depth-First Search (DFS) for Graph Traversal & Viva guide
+│   ├── uniform_cost_search.ipynb        # Question 14: Uniform Cost Search (UCS) Implementation & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -65,11 +66,12 @@ ai-lab/
 │   ├── run_state_space_visualizer.py    # CLI & interactive runner for Question 10 (State-Space Graph Visualizer)
 │   ├── run_breadth_first_search.py      # CLI & interactive runner for Question 11 (Level-Order BFS & Graph Depth)
 │   ├── run_depth_first_search.py        # CLI & interactive runner for Question 12 (LIFO DFS & Recursive Comparison)
+│   ├── run_uniform_cost_search.py       # CLI & interactive runner for Question 14 (Priority Queue UCS & Cycle Detection)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -82,6 +84,7 @@ ai-lab/
 │   ├── state_space_visualizer.py        # Question 10: State-Space Visualizer, Combinatorial Model & Graph Renderer
 │   ├── breadth_first_search.py          # Question 11: Breadth-First Search, FIFO Frontier, Cycle Avoidance & Levels
 │   ├── depth_first_search.py            # Question 12: Depth-First Search, LIFO Stack, Recursion, Cycles & Back-Edges
+│   ├── uniform_cost_search.py          # Question 14: Uniform Cost Search (UCS), Min-Heap Frontier, Cumulative Cost & Cycles
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -97,6 +100,7 @@ ai-lab/
 │   ├── test_state_space_visualizer.py   # Unit tests for Question 10 combinatorial states, transitions & graph
 │   ├── test_breadth_first_search.py     # Unit tests for Question 11 BFS traversal, tie-breaking, cycles & levels
 │   ├── test_depth_first_search.py       # Unit tests for Question 12 DFS traversal, cycles, edge types & challenge
+│   ├── test_uniform_cost_search.py      # Unit tests for Question 14 UCS optimality, priority queue & negative cycles
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -1295,6 +1299,162 @@ flowchart TD
 - **Answer**:
   - In CLRS DFS edge classification, an edge $(u, v)$ is a **Back Edge** if vertex $v$ is an ancestor of vertex $u$ in the active DFS search tree (i.e., $v$ is currently on the active recursion stack / un-finished).
   - **Theorem**: A directed graph $G$ contains a directed cycle **if and only if** a DFS traversal of $G$ encounters at least one back edge.
+
+---
+
+### Question 14: Uniform Cost Search (UCS) Implementation
+
+- **Syllabus Area**: Uninformed Search Techniques
+- **Difficulty**: 🟡 Intermediate
+- **Practical Type**: Implementation
+- **Core AI Concepts**: Uniform Cost Search (UCS), Priority Queue, Optimal Cost Search, Dijkstra's Algorithm Variant
+- **Python Concepts Tested**: `heapq` module, min-heap invariant, tuple sorting, lazy deletion
+- **Complexity Expectation**: Time: $\mathcal{O}(E \log V)$, Space: $\mathcal{O}(V)$
+- **Sample Input**: `A->B:1, B->C:2, A->C:4. Start:A, Goal:C`
+- **Sample Output**: `Path: A->B->C, Total Cost: 3`
+- **University Practical Importance**: High
+
+#### Problem Statement
+
+Write a Python program to implement **Uniform Cost Search (UCS)** on a weighted directed graph to find the minimum cost path between a source and a destination. The algorithm must use a priority queue to always expand the lowest-cost node.
+
+#### Task Requirements & Architecture
+
+1. **Weighted Graph Representation**: Graph represented with explicit directed edge costs $c(u, v) > 0$. Supports arrow syntax (`A->B:1, B->C:2, A->C:4`), adjacency lists, JSON mappings, and edge tuples.
+2. **Priority Queue Frontier**: Utilizes Python's standard `heapq` module maintaining a binary min-heap where the minimum element is accessible at index 0.
+3. **Cumulative Cost Tracking $g(n)$**: Tracks the exact path cost $g(n)$ from the origin start state to current state $n$.
+4. **Path & Cost Return**: Reconstructs the optimal sequence of vertices and reports the minimum total cost.
+5. **Goal Test Placement**: Enforces the foundational AI requirement that the goal test is executed **upon expansion** (popping from the queue), NOT upon generation.
+6. **Optional Challenge**: Detects non-positive edge weights and implements a Bellman-Ford cycle detection engine that identifies and isolates reachable negative cycles.
+
+#### Theoretical Background & Key Mechanisms
+
+1. **Uninformed Optimal Path Search**:
+   - Uniform Cost Search is an uninformed (blind) search technique that generalizes Breadth-First Search to state spaces with non-uniform step costs.
+   - It operates without a heuristic estimate ($h(n) = 0$), guiding exploration solely by cumulative cost $g(n)$.
+   - While BFS finds the path with the minimum number of edges, UCS finds the path with the minimum cumulative edge cost.
+
+2. **Priority Queue & Python Tuple Sorting**:
+   - In Python, `heapq` operates on lists in-place.
+   - Queue elements are structured as tuples: `(cost, tie_breaker, node_id, path)`.
+   - Python compares tuple elements lexicographically: `(cost_a, tie_a, ...) < (cost_b, tie_b, ...)`.
+   - The cumulative cost is always the primary sorting key. If costs match, a deterministic tie-breaker (alphabetical by node label, monotonic sequence counter for FIFO, or hop count) resolves priority, preventing `TypeError` on non-comparable payloads.
+
+3. **Goal Test Timing (Expansion vs. Generation)**:
+   - In BFS, testing for goal upon generation is valid because all step costs are equal ($c = 1$).
+   - In UCS, a goal generated early via a direct high-cost edge (e.g. $A \to C: 4$) must **not** cause termination; an indirect cheaper path (e.g. $A \to B: 1 \to C: 2$, cost 3) might still exist in the frontier.
+   - Terminating only when the goal is **popped from the min-heap** guarantees that no cheaper path remains anywhere in the search space.
+
+4. **Lazy Deletion of Stale Entries**:
+   - Standard binary heaps do not support efficient $\mathcal{O}(\log N)$ `decrease_key`.
+   - When a cheaper path to an unexpanded node is discovered, the new tuple is pushed to the heap.
+   - When popped, if `current_cost > best_cost[node]`, the entry is discarded in $\mathcal{O}(1)$ time as a superseded state.
+
+#### Sample Execution Trace (Question 14 Default)
+
+- **Input Graph**: `A->B:1, B->C:2, A->C:4`
+- **Start**: `A`, **Goal**: `C`
+
+```text
+Step  | Node   | g(n)  | Action         | Parent | Enqueued         | Frontier Priority Queue 
+----------------------------------------------------------------------------------------------
+1     | A      | 0     | EXPAND         | START  | [B:1, C:4]       | [B:1, C:4]
+2     | B      | 1     | EXPAND         | A      | [C:3]            | [C:3, C:4]
+3     | C      | 3     | GOAL_REACHED   | B      | -                | [C:4]
+```
+
+**Output**:
+```text
+Path: A->B->C, Total Cost: 3
+```
+
+#### Running Question 14 Implementations
+
+1. **Default Run (Sample Input from Question 14)**:
+   ```bash
+   python scripts/run_uniform_cost_search.py
+   ```
+
+2. **Custom Graph, Start, and Goal**:
+   ```bash
+   python scripts/run_uniform_cost_search.py --graph "A->B:1, B->C:2, A->C:4" --start A --goal C
+   ```
+
+3. **Interactive Console Mode**:
+   ```bash
+   python scripts/run_uniform_cost_search.py --interactive
+   ```
+
+4. **Optional Challenge (Negative Edges & Bellman-Ford Negative Cycle Detection)**:
+   ```bash
+   python scripts/run_uniform_cost_search.py --challenge
+   ```
+
+5. **Automated Benchmark Suite (Diamond, Cyclic, Romania Map, Disconnected)**:
+   ```bash
+   python scripts/run_uniform_cost_search.py --demo
+   ```
+
+6. **Generate Graphical Visual Diagram**:
+   ```bash
+   python scripts/run_uniform_cost_search.py --save reports/ucs_optimal_path.png
+   ```
+
+7. **Display Viva Voce Theory Guide**:
+   ```bash
+   python scripts/run_uniform_cost_search.py --viva
+   ```
+
+8. **Top-Level Package Dispatcher**:
+   ```bash
+   python -m src ucs --start A --goal C
+   ```
+
+9. **Interactive Jupyter Notebook**:
+   Open [`notebooks/uniform_cost_search.ipynb`](notebooks/uniform_cost_search.ipynb) in Jupyter Lab or Antigravity IDE.
+
+#### Viva Voce Questions & Authoritative Answers
+
+##### 1. UCS vs. BFS
+- **Question**: What is the key difference between Uniform Cost Search (UCS) and Breadth-First Search (BFS)?
+- **Answer**:
+  - **Step Costs**: BFS assumes uniform step costs ($c = 1$ per hop) and explores level by level based on edge count. UCS accommodates arbitrary non-negative costs ($c(u, v) \ge \epsilon > 0$) and explores based on cumulative path cost $g(n)$.
+  - **Frontier Data Structure**: BFS uses a First-In, First-Out (FIFO) queue (`collections.deque` with $\mathcal{O}(1)$ push/pop), whereas UCS uses a Priority Queue (`heapq` min-heap with $\mathcal{O}(\log N)$ push/pop).
+  - **Optimality**: BFS is optimal only when step costs are equal. When costs vary, BFS may choose a path with fewer hops but much higher cost. UCS is guaranteed to find the minimal cost path for non-negative weights.
+  - **Equivalence**: When all edge weights in a graph are identical positive constants, UCS expands nodes in identical order to BFS (up to tie-breaking).
+
+##### 2. Priority Queue Mechanisms & Python `heapq`
+- **Question**: How does Python's `heapq` manage the frontier, and how does tuple sorting prevent comparison errors?
+- **Answer**:
+  - `heapq` maintains a binary min-heap on top of a standard Python `list` where element 0 is always the minimum. Children of index $i$ reside at $2i + 1$ and $2i + 2$.
+  - When pushing tuples `(cost, tie_breaker, node_id, path)`, Python compares tuple items sequentially from left to right.
+  - By inserting a deterministic secondary key (node label for alphabetical order or a monotonic integer counter for FIFO order), Python never evaluates the path list or non-comparable objects on equal costs, guaranteeing strict reproducibility and zero `TypeError` exceptions.
+  - Because Python heaps lack an $\mathcal{O}(\log N)$ `decrease_key` method, UCS uses **lazy deletion**: newly discovered cheaper paths are pushed into the heap; stale entries popped later with `cost > best_cost[node]` are discarded in $\mathcal{O}(1)$ time.
+
+##### 3. Effect of Negative Edge Weights on UCS
+- **Question**: What happens when a graph contains negative edge weights or negative cycles in UCS?
+- **Answer**:
+  - **Greedy Invariant Violation**: UCS relies on the invariant that path cost $g(n)$ is monotonically non-decreasing along any path ($g(v) \ge g(u)$ because $c(u, v) \ge 0$). Once a node is popped and added to `explored`, its cost is assumed final. A negative edge breaks this guarantee because an explored node could later receive a cheaper path.
+  - **Suboptimality**: UCS with a closed/explored set will produce suboptimal paths because it refuses to reopen closed vertices.
+  - **Negative Cycles**: If a cycle has a net negative sum, looping through it reduces path cost toward $-\infty$. An uninformed search without cycle detection will either loop infinitely or produce undefined behavior.
+  - **Proper Alternative**: Graphs with negative edges require the **Bellman-Ford algorithm** ($\mathcal{O}(V \cdot E)$), which successfully relaxes edges $|V|-1$ times and detects negative cycles on the $|V|$-th pass.
+
+##### 4. Goal Test Placement: Expansion vs. Generation
+- **Question**: Why MUST the goal test in Uniform Cost Search be performed upon expansion rather than generation?
+- **Answer**:
+  - In BFS, testing upon generation is sound because the first time a goal node is generated, it is guaranteed to be at the shallowest depth level.
+  - In UCS, the first path generated to a goal node might have a high cost (e.g. $A \to \text{Goal}: 10$). A multi-hop path through an unexpanded frontier node might be vastly cheaper (e.g. $A \to B: 1 \to \text{Goal}: 2$, total 3).
+  - If UCS stopped upon generation of Goal at cost 10, it would fail to find the optimal path. Testing only upon extraction (expansion) from the min-heap guarantees that all nodes with cost $< g(\text{Goal})$ have already been expanded, proving optimality.
+
+##### 5. Search Algorithm Comparison Matrix
+
+| Algorithm | Frontier Data Structure | Optimal? | Complete? | Time Complexity | Space Complexity |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **BFS** | FIFO Queue (`deque`) | Yes (if uniform costs) | Yes (finite $b$) | $\mathcal{O}(b^d) / \mathcal{O}(V + E)$ | $\mathcal{O}(b^d) / \mathcal{O}(V)$ |
+| **DFS** | LIFO Stack (`list` / recursion) | No | No (infinite paths) | $\mathcal{O}(b^m) / \mathcal{O}(V + E)$ | $\mathcal{O}(b \cdot m) / \mathcal{O}(V)$ |
+| **UCS** | Priority Queue (`heapq` min-heap) | Yes ($c \ge \epsilon > 0$) | Yes ($c \ge \epsilon > 0$) | $\mathcal{O}(E \log V)$ | $\mathcal{O}(V)$ |
+| **Greedy Best-First** | Priority Queue (by $h(n)$) | No | No (loops possible) | $\mathcal{O}(b^m)$ | $\mathcal{O}(b^m)$ |
+| **A\* Search** | Priority Queue (by $f = g + h$) | Yes (admissible $h$) | Yes ($c \ge \epsilon > 0$) | $\mathcal{O}(b^d) \text{ to } \mathcal{O}(E \log V)$ | $\mathcal{O}(b^d) / \mathcal{O}(V)$ |
 
 ---
 

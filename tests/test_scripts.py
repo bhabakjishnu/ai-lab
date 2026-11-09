@@ -22,6 +22,7 @@ from scripts.run_agent_performance_evaluator import main as agent_eval_main
 from scripts.run_state_space_visualizer import main as state_space_main
 from scripts.run_breadth_first_search import main as bfs_main
 from scripts.run_depth_first_search import main as dfs_main
+from scripts.run_uniform_cost_search import main as ucs_main
 from src.__main__ import main as cli_main
 
 
@@ -484,6 +485,64 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("STACK VS QUEUE", output)
         self.assertIn("WHY DFS IS NOT OPTIMAL", output)
 
+    def test_uniform_cost_search_script_default_run(self) -> None:
+        """Verify run_uniform_cost_search executes default sample scenario."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_uniform_cost_search.py"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("UNIFORM COST SEARCH: A -> C", output)
+        self.assertIn("Path: A->B->C, Total Cost: 3", output)
+        self.assertIn("Step-by-Step Priority Queue Trace Table", output)
+
+    def test_uniform_cost_search_script_custom_args(self) -> None:
+        """Verify run_uniform_cost_search accepts custom graph, start, and goal arguments."""
+        stdout_trap = io.StringIO()
+        with patch.object(
+            sys,
+            "argv",
+            ["run_uniform_cost_search.py", "--graph", "X->Y:5, Y->Z:10, X->Z:20", "--start", "X", "--goal", "Z"],
+        ):
+            with patch("sys.stdout", stdout_trap):
+                ucs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("UNIFORM COST SEARCH: X -> Z", output)
+        self.assertIn("Path: X->Y->Z, Total Cost: 15", output)
+
+    def test_uniform_cost_search_script_challenge(self) -> None:
+        """Verify run_uniform_cost_search script executes challenge mode demonstration."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_uniform_cost_search.py", "--challenge"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE: NEGATIVE EDGE WEIGHTS & NEGATIVE CYCLES IN UCS", output)
+        self.assertIn("Reachable Negative Weight Cycle Detection via Bellman-Ford", output)
+        self.assertIn("Negative Cycle Path", output)
+
+    def test_uniform_cost_search_script_demo(self) -> None:
+        """Verify run_uniform_cost_search script executes demo mode benchmarks."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_uniform_cost_search.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("AUTOMATED BENCHMARKS: UNIFORM COST SEARCH TOPOLOGIES", output)
+        self.assertIn("Diamond Graph", output)
+        self.assertIn("Romania Map", output)
+
+    def test_uniform_cost_search_script_viva(self) -> None:
+        """Verify run_uniform_cost_search script outputs viva voce theory guide."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_uniform_cost_search.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("UNIFORM COST SEARCH (UCS) VIVA VOCE REFERENCE & THEORY GUIDE", output)
+        self.assertIn("UCS VS BFS", output)
+        self.assertIn("PRIORITY QUEUE MECHANISMS & PYTHON HEAPQ", output)
+
     def test_cli_dispatcher_help_and_subcommands(self) -> None:
         """Verify top-level module CLI dispatcher provides help and forwards commands."""
         # Help text
@@ -551,6 +610,12 @@ class TestScriptExecution(unittest.TestCase):
         with patch("sys.stdout", stdout_trap):
             cli_main(["dfs", "--start", "1"])
         self.assertIn("DFS Traversal            : 1, 3, 2, 4", stdout_trap.getvalue())
+
+        # Subcommand forwarding for ucs
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["ucs", "--start", "A", "--goal", "C"])
+        self.assertIn("Path: A->B->C, Total Cost: 3", stdout_trap.getvalue())
 
 
 if __name__ == "__main__":
