@@ -84,6 +84,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 12: Depth-First Search (DFS) for Graph Traversal",
     )
 
+    # Uniform cost search runner
+    subparsers.add_parser(
+        "ucs",
+        aliases=["uniform-cost-search", "ucs-search"],
+        help="Run Question 14: Uniform Cost Search (UCS) on Weighted Directed Graph",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -113,6 +120,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         "dfs",
         "depth-first-search",
         "dfs-search",
+        "ucs",
+        "uniform-cost-search",
+        "ucs-search",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -166,6 +176,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_depth_first_search import main as dfs_main
             sys.argv = [sys.argv[0]] + remaining
             dfs_main()
+        elif cmd in ("ucs", "uniform-cost-search", "ucs-search"):
+            from scripts.run_uniform_cost_search import main as ucs_main
+            sys.argv = [sys.argv[0]] + remaining
+            ucs_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
