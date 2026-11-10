@@ -52,6 +52,7 @@ ai-lab/
 │   ├── breadth_first_search.ipynb       # Question 11: Breadth-First Search (BFS) on User-Defined Graph & Viva guide
 │   ├── depth_first_search.ipynb         # Question 12: Depth-First Search (DFS) for Graph Traversal & Viva guide
 │   ├── uniform_cost_search.ipynb        # Question 14: Uniform Cost Search (UCS) Implementation & Viva guide
+│   ├── bfs_2d_maze_solver.ipynb         # Question 15: BFS 2D Maze Solver (Implicit Graph Search) & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -67,11 +68,12 @@ ai-lab/
 │   ├── run_breadth_first_search.py      # CLI & interactive runner for Question 11 (Level-Order BFS & Graph Depth)
 │   ├── run_depth_first_search.py        # CLI & interactive runner for Question 12 (LIFO DFS & Recursive Comparison)
 │   ├── run_uniform_cost_search.py       # CLI & interactive runner for Question 14 (Priority Queue UCS & Cycle Detection)
+│   ├── run_bfs_maze_solver.py           # CLI & interactive runner for Question 15 (Implicit BFS Maze Solver & Moves)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -85,6 +87,7 @@ ai-lab/
 │   ├── breadth_first_search.py          # Question 11: Breadth-First Search, FIFO Frontier, Cycle Avoidance & Levels
 │   ├── depth_first_search.py            # Question 12: Depth-First Search, LIFO Stack, Recursion, Cycles & Back-Edges
 │   ├── uniform_cost_search.py          # Question 14: Uniform Cost Search (UCS), Min-Heap Frontier, Cumulative Cost & Cycles
+│   ├── bfs_maze_solver.py               # Question 15: BFS 2D Grid Maze Solver, Dynamic Successors & Move Strings
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -101,6 +104,7 @@ ai-lab/
 │   ├── test_breadth_first_search.py     # Unit tests for Question 11 BFS traversal, tie-breaking, cycles & levels
 │   ├── test_depth_first_search.py       # Unit tests for Question 12 DFS traversal, cycles, edge types & challenge
 │   ├── test_uniform_cost_search.py      # Unit tests for Question 14 UCS optimality, priority queue & negative cycles
+│   ├── test_bfs_maze_solver.py          # Unit tests for Question 15 BFS 2D maze solver, successors, moves & bounds
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -1455,6 +1459,157 @@ Path: A->B->C, Total Cost: 3
 | **UCS** | Priority Queue (`heapq` min-heap) | Yes ($c \ge \epsilon > 0$) | Yes ($c \ge \epsilon > 0$) | $\mathcal{O}(E \log V)$ | $\mathcal{O}(V)$ |
 | **Greedy Best-First** | Priority Queue (by $h(n)$) | No | No (loops possible) | $\mathcal{O}(b^m)$ | $\mathcal{O}(b^m)$ |
 | **A\* Search** | Priority Queue (by $f = g + h$) | Yes (admissible $h$) | Yes ($c \ge \epsilon > 0$) | $\mathcal{O}(b^d) \text{ to } \mathcal{O}(E \log V)$ | $\mathcal{O}(b^d) / \mathcal{O}(V)$ |
+
+---
+
+### Question 15: BFS 2D Maze Solver (Implicit Graph Search)
+
+- **Syllabus Area**: Uninformed Search Techniques
+- **Difficulty**: 🟡 Intermediate
+- **Practical Type**: Problem Solving
+- **Core AI Concepts**: Grid Search, Successor Function, Implicit Graph Exploration
+- **Python Concepts Tested**: 2D array indexing, coordinate tuples, `collections.deque`, set hashing
+- **Expected Algorithm / Technique**: Breadth-First Search (BFS) on implicit graphs
+- **Recommended Python Libraries**: `collections`
+- **Complexity Expectation**: Time: $\mathcal{O}(N \times M)$, Space: $\mathcal{O}(N \times M)$
+- **Constraints / Conditions**: Grid can be non-square ($N \ne M$)
+- **Sample Input**: `[[0, 1, 0], [0, 0, 0], [1, 1, 0]]`
+- **Sample Output**: `Shortest steps: 4`
+- **Optional Challenge**: Output a string of moves: `"D, R, R, D"`
+- **University Practical Importance**: High
+
+#### Problem Statement
+
+Design a Python program that uses **Breadth-First Search (BFS)** to solve a 2D grid maze. The maze is represented as a 2D list where `0` is an open path and `1` is a wall. The agent can move **Up**, **Down**, **Left**, and **Right** (orthogonal transitions). Find the shortest path from the top-left corner `(0, 0)` to the bottom-right corner `(N-1, M-1)`.
+
+#### Task Requirements & Architecture
+
+1. **2D Grid Parsing & Normalization**: Supports native 2D Python lists, JSON strings (`"[[0,1,0],[0,0,0],[1,1,0]]"`), multiline space/comma separated matrices, and ASCII character grids (`.` for open, `#` for wall). Handles non-square dimensions ($N \ne M$) seamlessly.
+2. **Dynamic Successor Function**: Computes valid next coordinates on demand without pre-building an explicit graph. Evaluates:
+   - **Boundary Safety**: $0 \le \text{next\_r} < N$ and $0 \le \text{next\_c} < M$.
+   - **Obstacle Checking**: $\text{grid}[\text{next\_r}][\text{next\_c}] == 0$.
+3. **Visited Coordinate Tracking**: Employs a Python `set` of coordinate tuples `(r, c)`. Marks nodes visited upon **enqueueing** (generation time) to prevent duplicate insertions into the queue and eliminate exponential branch explosion.
+4. **Shortest Path Length Guarantee**: Returns the integer number of shortest steps to reach the destination ($4$ for sample input, $-1$ if unreachable).
+5. **Optional Challenge (Directional Moves String)**: Tracks predecessor parent pointers `(parent_coord, action)` and reconstructs the chronological action string (e.g. `"D, R, R, D"`).
+
+#### Theoretical Background & Key Mechanisms
+
+1. **Implicit vs. Explicit Graphs**:
+   - In an *explicit graph*, all nodes and connections are pre-stored in memory as an adjacency list or matrix.
+   - In an *implicit graph* (such as a 2D grid maze or chess board), states and edges are generated dynamically using an initial state and a successor function $S(s) \to \{(a, s')\}$. This avoids allocating $N \times M$ nodes and up to $4NM$ edges upfront.
+
+2. **FIFO Frontier & `collections.deque`**:
+   - BFS requires First-In, First-Out (FIFO) queue ordering to explore states level by level.
+   - In Python, `collections.deque` provides $\mathcal{O}(1)$ amortized `append()` and `popleft()`.
+   - Using standard Python `list.pop(0)` incurs an $\mathcal{O}(K)$ memory-shift penalty on every dequeue, degrading overall time complexity from $\mathcal{O}(NM)$ to an unacceptable $\mathcal{O}((NM)^2)$.
+
+3. **Manhattan Distance Relation (Admissible Heuristic)**:
+   - For orthogonal grid movement, Manhattan distance $D_{\text{Manhattan}} = |r_{\text{start}} - r_{\text{goal}}| + |c_{\text{start}} - c_{\text{goal}}|$ represents the strict theoretical minimum path length.
+   - In an **obstacle-free grid**, the BFS shortest path length is strictly equal to the Manhattan distance.
+   - In a grid with walls, detours are required, so $\text{BFS Steps} \ge D_{\text{Manhattan}}$. Therefore, Manhattan distance serves as an admissible heuristic for informed algorithms like A*.
+
+4. **Enqueue-Time vs. Expansion-Time Visited Marking**:
+   - In unweighted BFS, states must be marked as visited as soon as they are **enqueued**.
+   - If visited marking was deferred until expansion (dequeueing), multiple paths discovered on the same level would enqueue duplicate copies of the same cell, leading to combinatorial memory explosion.
+
+#### Sample Execution Trace (Question 15 Default)
+
+- **Input Grid**: `[[0, 1, 0], [0, 0, 0], [1, 1, 0]]`
+- **Start**: `(0, 0)`, **Goal**: `(2, 2)`
+
+```text
+=== ASCII SOLUTION GRID ===
+S # .
+* * *
+# # G
+
+=== STEP-BY-STEP FIFO FRONTIER TRACE ===
+Step  | Popped (r,c)   | Action   | Dist | Frontier (FIFO Queue)  | Generated Successors
+------+----------------+----------+------+------------------------+---------------------
+1     | (0, 0)         | START    | 0    | (1, 0)                 | D:(1, 0)
+2     | (1, 0)         | D        | 1    | (1, 1)                 | R:(1, 1)
+3     | (1, 1)         | R        | 2    | (1, 2)                 | R:(1, 2)
+4     | (1, 2)         | R        | 3    | (0, 2), (2, 2)         | U:(0, 2), D:(2, 2)
+5     | (0, 2)         | U        | 4    | (2, 2)                 | 
+6     | (2, 2)         | D        | 4    |                        | 
+```
+
+**Output**:
+```text
+Shortest steps: 4
+Moves: "D, R, R, D"
+Path: [(0, 0), (1, 0), (1, 1), (1, 2), (2, 2)]
+```
+
+#### Running Question 15 Implementations
+
+1. **Default Run (Sample Input from Question 15)**:
+   ```bash
+   python scripts/run_bfs_maze_solver.py
+   ```
+
+2. **Custom Grid via CLI (JSON or ASCII string)**:
+   ```bash
+   python scripts/run_bfs_maze_solver.py --grid "[[0,1,0],[0,0,0],[1,1,0]]"
+   ```
+
+3. **Custom Start and Goal Coordinates**:
+   ```bash
+   python scripts/run_bfs_maze_solver.py --grid "[[0,0,0],[1,1,0],[0,0,0]]" --start 0,0 --goal 2,0
+   ```
+
+4. **Optional Challenge (String of Moves: `"D, R, R, D"`)**:
+   ```bash
+   python scripts/run_bfs_maze_solver.py --challenge
+   ```
+
+5. **Automated Benchmark Suite (Non-Square, Serpentine, Blocked, Single-Cell)**:
+   ```bash
+   python scripts/run_bfs_maze_solver.py --demo
+   ```
+
+6. **Interactive Console Input**:
+   ```bash
+   python scripts/run_bfs_maze_solver.py --interactive
+   ```
+
+7. **Generate and Save Graphical Diagram**:
+   ```bash
+   python scripts/run_bfs_maze_solver.py --save reports/bfs_maze_solution.png
+   ```
+
+8. **Display Viva Voce Theory Guide**:
+   ```bash
+   python scripts/run_bfs_maze_solver.py --viva
+   ```
+
+9. **Top-Level Package Dispatcher**:
+   ```bash
+   python -m src maze
+   ```
+
+10. **Interactive Jupyter Notebook**:
+    Open [`notebooks/bfs_2d_maze_solver.ipynb`](notebooks/bfs_2d_maze_solver.ipynb) in Jupyter Lab or Antigravity IDE.
+
+#### Viva Voce Questions & Authoritative Answers
+
+##### 1. Implicit vs. Explicit Graphs
+- **Question**: Why is a 2D grid maze modeled as an implicit graph rather than an explicit graph?
+- **Answer**: In an explicit graph, all vertices, edges, and connections are pre-allocated in memory (e.g. adjacency lists). In an implicit graph, states (coordinates) and edges (valid moves) are generated dynamically on demand using an initial state and a successor function $S(s)$. For an $N \times M$ grid, dynamic successor generation uses $O(1)$ memory per step rather than pre-allocating thousands of edge objects in memory.
+
+##### 2. Dynamic Successor Function & Action Safety
+- **Question**: How does the successor function ensure the agent never crashes or causes errors?
+- **Answer**: For each cardinal displacement (Up, Down, Left, Right), the successor function enforces two mandatory checks:
+  1. **Boundary check**: $0 \le r < N$ and $0 \le c < M$, preventing `IndexError`.
+  2. **Obstacle check**: $\text{grid}[r][c] == 0$, guaranteeing the agent cannot enter walls (`1`).
+
+##### 3. Manhattan Distance as an Admissible Lower Bound
+- **Question**: What is the relationship between Manhattan distance and the BFS shortest path length on a grid?
+- **Answer**: Because movement is strictly orthogonal (4-connected), Manhattan distance $L_1 = |r_1 - r_2| + |c_1 - c_2|$ is the absolute minimum number of steps required to reach the destination in the absence of obstacles. In an open grid, BFS steps equal Manhattan distance. When walls are present, detours increase the path length ($\text{BFS Steps} \ge D_{\text{Manhattan}}$). Manhattan distance never overestimates true distance, making it an admissible heuristic.
+
+##### 4. Frontier Queue Mechanics: `collections.deque` vs. Python `list`
+- **Question**: Why is `collections.deque` strictly required over Python's built-in `list` for BFS?
+- **Answer**: Python lists are contiguous arrays; `list.pop(0)` requires shifting all $K-1$ remaining pointers left in memory, taking $\mathcal{O}(K)$ time. `collections.deque` is a doubly-linked list of blocks in C, giving $\mathcal{O}(1)$ amortized `popleft()` and `append()`. Using `list.pop(0)` degrades overall BFS runtime from $\mathcal{O}(NM)$ to $\mathcal{O}((NM)^2)$.
 
 ---
 
