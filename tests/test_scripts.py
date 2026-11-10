@@ -23,6 +23,7 @@ from scripts.run_state_space_visualizer import main as state_space_main
 from scripts.run_breadth_first_search import main as bfs_main
 from scripts.run_depth_first_search import main as dfs_main
 from scripts.run_uniform_cost_search import main as ucs_main
+from scripts.run_bfs_maze_solver import main as maze_main
 from src.__main__ import main as cli_main
 
 
@@ -543,6 +544,69 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("UCS VS BFS", output)
         self.assertIn("PRIORITY QUEUE MECHANISMS & PYTHON HEAPQ", output)
 
+    def test_bfs_maze_solver_script_default_run(self) -> None:
+        """Verify run_bfs_maze_solver script executes with default sample grid and produces shortest steps 4."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bfs_maze_solver.py"]):
+            with patch("sys.stdout", stdout_trap):
+                maze_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("QUESTION 15: BFS 2D GRID MAZE SOLVER", output)
+        self.assertIn("Shortest steps: 4", output)
+        self.assertIn('Moves: "D, R, R, D"', output)
+        self.assertIn("Step-by-Step FIFO Frontier & Dynamic Successor Trace", output)
+
+    def test_bfs_maze_solver_script_custom_grid(self) -> None:
+        """Verify run_bfs_maze_solver accepts custom grid string from CLI."""
+        stdout_trap = io.StringIO()
+        with patch.object(
+            sys,
+            "argv",
+            ["run_bfs_maze_solver.py", "--grid", "[[0,0],[1,0]]", "--no-trace"],
+        ):
+            with patch("sys.stdout", stdout_trap):
+                maze_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("Shortest steps: 2", output)
+        self.assertIn('Moves: "R, D"', output)
+
+    def test_bfs_maze_solver_script_challenge(self) -> None:
+        """Verify run_bfs_maze_solver script executes challenge mode demonstration."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bfs_maze_solver.py", "--challenge"]):
+            with patch("sys.stdout", stdout_trap):
+                maze_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE: DIRECTIONAL MOVE STRING ('D, R, R, D')", output)
+        self.assertIn("Actual Computed Shortest Steps: 4", output)
+        self.assertIn('Actual Computed Moves Sequence   : "D, R, R, D"', output)
+        self.assertIn("Challenge passed with 100% precision", output)
+
+    def test_bfs_maze_solver_script_demo(self) -> None:
+        """Verify run_bfs_maze_solver script executes demo benchmarks across topologies."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bfs_maze_solver.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                maze_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("AUTOMATED BENCHMARKS: BFS 2D MAZE TOPOLOGIES", output)
+        self.assertIn("Default Sample Maze", output)
+        self.assertIn("Non-Square Rectangular Maze", output)
+        self.assertIn("Winding Serpentine Corridor Maze", output)
+        self.assertIn("Single-Cell Maze", output)
+
+    def test_bfs_maze_solver_script_viva(self) -> None:
+        """Verify run_bfs_maze_solver script outputs viva voce theory guide."""
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bfs_maze_solver.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                maze_main()
+        output = stdout_trap.getvalue()
+        self.assertIn("QUESTION 15: BFS 2D MAZE SOLVER - VIVA VOCE & THEORY GUIDE", output)
+        self.assertIn("Implicit vs. Explicit Graphs", output)
+        self.assertIn("Valid Action Generation", output)
+        self.assertIn("Manhattan Distance Relation", output)
+
     def test_cli_dispatcher_help_and_subcommands(self) -> None:
         """Verify top-level module CLI dispatcher provides help and forwards commands."""
         # Help text
@@ -616,6 +680,13 @@ class TestScriptExecution(unittest.TestCase):
         with patch("sys.stdout", stdout_trap):
             cli_main(["ucs", "--start", "A", "--goal", "C"])
         self.assertIn("Path: A->B->C, Total Cost: 3", stdout_trap.getvalue())
+
+        # Subcommand forwarding for maze
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["maze", "--no-trace"])
+        self.assertIn("Shortest steps: 4", stdout_trap.getvalue())
+        self.assertIn('Moves: "D, R, R, D"', stdout_trap.getvalue())
 
 
 if __name__ == "__main__":

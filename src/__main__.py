@@ -12,6 +12,8 @@ Allows running simulations directly via module syntax:
     python -m src agent-evaluator --events move,move,bump,move,deliver
     python -m src state-space --table
     python -m src bfs --start A
+    python -m src ucs --start A --goal C
+    python -m src maze
     python -m src smoke-test
 """
 
@@ -91,6 +93,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 14: Uniform Cost Search (UCS) on Weighted Directed Graph",
     )
 
+    # BFS 2D Maze Solver runner
+    subparsers.add_parser(
+        "maze",
+        aliases=["bfs-maze", "maze-solver", "bfs-maze-solver"],
+        help="Run Question 15: Breadth-First Search (BFS) 2D Grid Maze Solver",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -123,6 +132,10 @@ def main(argv: Optional[List[str]] = None) -> None:
         "ucs",
         "uniform-cost-search",
         "ucs-search",
+        "maze",
+        "bfs-maze",
+        "maze-solver",
+        "bfs-maze-solver",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -180,6 +193,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_uniform_cost_search import main as ucs_main
             sys.argv = [sys.argv[0]] + remaining
             ucs_main()
+        elif cmd in ("maze", "bfs-maze", "maze-solver", "bfs-maze-solver"):
+            from scripts.run_bfs_maze_solver import main as maze_main
+            sys.argv = [sys.argv[0]] + remaining
+            maze_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
