@@ -24,6 +24,7 @@ from scripts.run_breadth_first_search import main as bfs_main
 from scripts.run_depth_first_search import main as dfs_main
 from scripts.run_uniform_cost_search import main as ucs_main
 from scripts.run_bfs_maze_solver import main as maze_main
+from scripts.run_depth_limited_search import main as dls_script_main
 from src.__main__ import main as cli_main
 
 
@@ -687,6 +688,56 @@ class TestScriptExecution(unittest.TestCase):
             cli_main(["maze", "--no-trace"])
         self.assertIn("Shortest steps: 4", stdout_trap.getvalue())
         self.assertIn('Moves: "D, R, R, D"', stdout_trap.getvalue())
+
+        # Subcommand forwarding for dls
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["dls", "--start", "1", "--goal", "6", "--limit", "2"])
+        self.assertIn("Official Practical Output: Result: Cutoff", stdout_trap.getvalue())
+        self.assertIn("Deepest Node Reached     : 4", stdout_trap.getvalue())
+
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["dls", "--start", "1", "--goal", "6", "--limit", "3"])
+        self.assertIn("Official Practical Output: Result: Path: ['1', '2', '4', '6']", stdout_trap.getvalue())
+
+    def test_dls_script_default_and_flags(self) -> None:
+        """Verify run_depth_limited_search script executes sample, challenge, demo, and viva modes."""
+        # 1. Default run
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_depth_limited_search.py"]):
+            with patch("sys.stdout", stdout_trap):
+                dls_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("DEPTH-LIMITED SEARCH (DLS) EXECUTION RESULT", out)
+        self.assertIn("Official Practical Output: Result: Cutoff", out)
+        self.assertIn("Deepest Node Reached     : 4", out)
+
+        # 2. Challenge mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_depth_limited_search.py", "--challenge"]):
+            with patch("sys.stdout", stdout_trap):
+                dls_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE: TRACKING DEEPEST NODE BEFORE CUTOFF", out)
+
+        # 3. Demo mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_depth_limited_search.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                dls_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("DEPTH-LIMITED SEARCH (DLS) COMPREHENSIVE BENCHMARK SUITE", out)
+
+        # 4. Viva mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_depth_limited_search.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                dls_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("VIVA VOCE REFERENCE & THEORY GUIDE", out)
+        self.assertIn("Infinite State Spaces:", out)
+        self.assertIn("Cutoff vs Failure:", out)
 
 
 if __name__ == "__main__":

@@ -53,6 +53,7 @@ ai-lab/
 │   ├── depth_first_search.ipynb         # Question 12: Depth-First Search (DFS) for Graph Traversal & Viva guide
 │   ├── uniform_cost_search.ipynb        # Question 14: Uniform Cost Search (UCS) Implementation & Viva guide
 │   ├── bfs_2d_maze_solver.ipynb         # Question 15: BFS 2D Maze Solver (Implicit Graph Search) & Viva guide
+│   ├── depth_limited_search.ipynb       # Question 16: Depth-Limited Search (DLS), Tri-State Outcomes & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -69,11 +70,12 @@ ai-lab/
 │   ├── run_depth_first_search.py        # CLI & interactive runner for Question 12 (LIFO DFS & Recursive Comparison)
 │   ├── run_uniform_cost_search.py       # CLI & interactive runner for Question 14 (Priority Queue UCS & Cycle Detection)
 │   ├── run_bfs_maze_solver.py           # CLI & interactive runner for Question 15 (Implicit BFS Maze Solver & Moves)
+│   ├── run_depth_limited_search.py      # CLI & interactive runner for Question 16 (DLS Bounded Search & Deepest Node)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -88,6 +90,7 @@ ai-lab/
 │   ├── depth_first_search.py            # Question 12: Depth-First Search, LIFO Stack, Recursion, Cycles & Back-Edges
 │   ├── uniform_cost_search.py          # Question 14: Uniform Cost Search (UCS), Min-Heap Frontier, Cumulative Cost & Cycles
 │   ├── bfs_maze_solver.py               # Question 15: BFS 2D Grid Maze Solver, Dynamic Successors & Move Strings
+│   ├── depth_limited_search.py          # Question 16: Depth-Limited Search (DLS), Bounded Recursion & Tri-State Outcomes
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -105,6 +108,7 @@ ai-lab/
 │   ├── test_depth_first_search.py       # Unit tests for Question 12 DFS traversal, cycles, edge types & challenge
 │   ├── test_uniform_cost_search.py      # Unit tests for Question 14 UCS optimality, priority queue & negative cycles
 │   ├── test_bfs_maze_solver.py          # Unit tests for Question 15 BFS 2D maze solver, successors, moves & bounds
+│   ├── test_depth_limited_search.py     # Unit tests for Question 16 DLS tri-states, limit budget & deepest node
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -1610,6 +1614,133 @@ Path: [(0, 0), (1, 0), (1, 1), (1, 2), (2, 2)]
 ##### 4. Frontier Queue Mechanics: `collections.deque` vs. Python `list`
 - **Question**: Why is `collections.deque` strictly required over Python's built-in `list` for BFS?
 - **Answer**: Python lists are contiguous arrays; `list.pop(0)` requires shifting all $K-1$ remaining pointers left in memory, taking $\mathcal{O}(K)$ time. `collections.deque` is a doubly-linked list of blocks in C, giving $\mathcal{O}(1)$ amortized `popleft()` and `append()`. Using `list.pop(0)` degrades overall BFS runtime from $\mathcal{O}(NM)$ to $\mathcal{O}((NM)^2)$.
+
+---
+
+### Question 16: Depth-Limited Search (DLS)
+
+- **Syllabus Area**: Uninformed Search Techniques
+- **Difficulty**: 🟠 Advanced
+- **Practical Type**: Algorithm Design
+- **Core AI Concept**: Depth-Limited Search (DLS), Incompleteness Mitigation, Tri-State Search Cutoffs
+- **Python Concepts Tested**: Recursion, multi-state returns, parameter decrementing, branch backtracking
+- **Expected Algorithm / Technique**: Bounded Depth-First Search (`recursive_dls`)
+- **Recommended Python Libraries**: Standard Library Only (no external dependencies required)
+- **Complexity Expectation**:
+  - **Time Complexity**: $\mathcal{O}(b^l)$, where $b$ is the branching factor and $l$ is the depth limit.
+  - **Space Complexity**: $\mathcal{O}(b \cdot l)$, linear space proportional to maximum recursion stack depth.
+- **Constraints / Conditions**: Depth limit is non-negative ($l \ge 0$).
+- **Sample Input**: Limit: 2, Goal is at depth 3.
+- **Sample Output**: `Result: Cutoff`
+- **Optional Challenge**: Keep track of the deepest node reached before cutoff.
+- **University Practical Importance**: Viva Important.
+
+#### Theoretical Foundations & Algorithmic Design
+
+##### 1. The Infinite State-Space Problem & DFS Failure Mode
+Standard Depth-First Search (DFS) explores unguided down the first available branch. In infinite state spaces (e.g. arithmetic progression $n \to 2n, n+1$, unbounded theorem proving, or continuous motion) or finite state spaces with cycles, standard DFS can plunge forever down an infinite path ($m = \infty$). It will never backtrack, thus failing to find a goal even if one exists at depth 1 on an adjacent branch.
+
+##### 2. Bounded Recursion & Parameter Decrementing
+Depth-Limited Search (DLS) resolves this failure mode by supplying a maximum depth bound $l$. The search operates recursively:
+$$\text{recursive\_dls}(u, \text{goal}, \text{limit}, \text{path})$$
+- On each recursive step to a child vertex $v \in \text{Adj}[u]$, the remaining limit is strictly decremented:
+  $$\text{limit}_{\text{child}} = \text{limit}_{\text{current}} - 1$$
+- When $\text{limit} == 0$, further downward expansion is blocked.
+
+##### 3. The Tri-State Return Model
+Unlike binary search algorithms (Found / Not Found), DLS produces three semantic states:
+1. **Success**: The goal node is discovered at depth $d \le l$. Returns the reconstructed path $\langle \text{start}, \dots, \text{goal} \rangle$.
+2. **Cutoff**: The goal was not found within depth $l$, but at least one branch was truncated because the depth budget was exhausted ($\text{limit} == 0$). Indicates incompleteness at limit $l$; the goal might still exist at depth $d > l$.
+3. **Failure**: The entire reachable search space was completely explored to natural dead ends without hitting any depth cutoffs. We have proved with certainty that the goal does **not** exist in this connected component.
+
+```mermaid
+flowchart TD
+    Root["Node '1' (Depth 0, Limit 2)"] --> N2["Node '2' (Depth 1, Limit 1)"]
+    Root --> N3["Node '3' (Depth 1, Limit 1)"]
+    
+    N2 --> N4["Node '4' (Depth 2, Limit 0)"]
+    N3 --> N5["Node '5' (Depth 2, Limit 0)"]
+    
+    N4 -.->|"Cutoff Hit! (Limit 0)"| Goal["Node '6' (Depth 3, Unreached Goal)"]
+    
+    style Root fill:#3498DB,stroke:#1B4F72,stroke-width:2px,color:#fff
+    style N2 fill:#AED6F1,stroke:#2874A6,stroke-width:2px
+    style N3 fill:#AED6F1,stroke:#2874A6,stroke-width:2px
+    style N4 fill:#E74C3C,stroke:#922B21,stroke-width:2px,color:#fff
+    style N5 fill:#E74C3C,stroke:#922B21,stroke-width:2px,color:#fff
+    style Goal fill:#F39C12,stroke:#B9770E,stroke-width:2px,color:#fff
+```
+
+#### Execution Commands & Usage Examples
+
+1. **Default Syllabus Sample Run** (Limit: 2, Goal at depth 3 -> `Result: Cutoff`):
+   ```bash
+   python scripts/run_depth_limited_search.py
+   ```
+
+2. **Success State Run** (Limit increased to 3 -> `Result: Path: ['1', '2', '4', '6']`):
+   ```bash
+   python scripts/run_depth_limited_search.py --start 1 --goal 6 --limit 3
+   ```
+
+3. **Optional Challenge Demonstration** (Deepest node tracking before cutoff):
+   ```bash
+   python scripts/run_depth_limited_search.py --challenge
+   ```
+
+4. **Comprehensive Benchmark Suite** (Cutoff, Success, Failure, Cyclic graphs):
+   ```bash
+   python scripts/run_depth_limited_search.py --demo
+   ```
+
+5. **Display Step-by-Step Execution Trace Table**:
+   ```bash
+   python scripts/run_depth_limited_search.py --table
+   ```
+
+6. **Generate Graphical Visualizations**:
+   ```bash
+   python scripts/run_depth_limited_search.py --save reports/dls_search.png
+   ```
+
+7. **Display Viva Voce Theory Guide**:
+   ```bash
+   python scripts/run_depth_limited_search.py --viva
+   ```
+
+8. **Top-Level Package Dispatcher**:
+   ```bash
+   python -m src dls --start 1 --goal 6 --limit 2
+   ```
+
+9. **Interactive Jupyter Notebook**:
+   Open [`notebooks/depth_limited_search.ipynb`](notebooks/depth_limited_search.ipynb) in Jupyter Lab or Antigravity IDE.
+
+#### Viva Voce Questions & Authoritative Answers
+
+##### 1. Infinite State Spaces & DFS Failure Mode
+- **Question**: Why does standard DFS fail in infinite state spaces, and how does DLS resolve this?
+- **Answer**: In an infinite state space (or continuous navigation, or unbounded recursive rules), DFS ventures down an infinite branch ($m = \infty$) without ever backtracking. Even if a goal exists at depth 1 on a neighboring branch, DFS will never discover it. DLS enforces a strict depth limit bound $l$. Once depth $l$ is reached, the search halts and backtracks, transforming an unbounded infinite exploration into a strictly finite search.
+
+##### 2. Drawbacks of Standard DFS
+- **Question**: What are the key drawbacks of standard Depth-First Search?
+- **Answer**:
+  1. **Incompleteness**: Gets trapped in infinite paths or cycles without visited sets.
+  2. **Non-Optimality**: Returns the first path found along its deepest branch, which may be significantly longer or more expensive than a shallow alternative.
+  3. **Stack Overflow**: Risk of exceeding the maximum recursion depth (`RecursionError` in Python) in deep trees.
+
+##### 3. Cutoff vs. Failure Distinction
+- **Question**: What is the difference between Cutoff and Failure in DLS, and why is this distinction critical?
+- **Answer**:
+  - **Cutoff**: The goal was not found within depth $l$, but at least one node reached depth $l$ and had successors that were suppressed by the depth limit. The goal *might* exist deeper ($d > l$).
+  - **Failure**: The entire reachable space was exhaustively traversed to natural leaves without hitting any cutoffs. We have proved with certainty that the goal does *not* exist in this connected component.
+  - **Foundation for Iterative Deepening Search (IDS)**: IDS uses this signal. If DLS returns Cutoff, IDS increments the limit ($l \leftarrow l + 1$). If DLS returns Failure, IDS halts immediately because searching deeper will never find nonexistent states.
+
+##### 4. Time & Space Complexity of DLS
+- **Question**: What are the time and space complexities of DLS, and how do they compare with BFS?
+- **Answer**:
+  - **Time Complexity**: $\mathcal{O}(b^l)$, where $b$ is the branching factor and $l$ is the depth limit.
+  - **Space Complexity**: $\mathcal{O}(b \cdot l)$, requiring memory only for the active recursion stack and unexpanded siblings along the path. Unlike BFS, which suffers from an exponential memory bottleneck $\mathcal{O}(b^d)$, DLS retains the linear memory advantage of DFS.
 
 ---
 
