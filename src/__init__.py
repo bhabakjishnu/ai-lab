@@ -232,6 +232,26 @@ from src.bfs_maze_solver import (
     validate_grid as validate_maze_grid,
     visualize_maze_solution,
 )
+from src.depth_limited_search import (
+    BINARY_TREE_DLS_GRAPH,
+    CYCLIC_DLS_GRAPH,
+    DISCONNECTED_DLS_GRAPH,
+    LINEAR_CHAIN_DLS_GRAPH,
+    SAMPLE_DLS_GRAPH,
+    CUTOFF as DLS_CUTOFF,
+    FAILURE as DLS_FAILURE,
+    SUCCESS as DLS_SUCCESS,
+    DLSResult,
+    DLSStatus,
+    DLSStepRecord,
+    DepthLimitedSearch,
+    depth_limited_search,
+    dls,
+    get_dls_viva_reference,
+    normalize_graph as normalize_dls_graph,
+    parse_graph_input as parse_dls_graph_input,
+    visualize_dls,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -446,4 +466,23 @@ __all__ = [
     "MAZE_DOWN_RIGHT_DIRECTIONS",
     "MAZE_CELL_OPEN",
     "MAZE_CELL_WALL",
+    # Question 16: Depth-Limited Search
+    "DLSResult",
+    "DLSStepRecord",
+    "DLSStatus",
+    "DepthLimitedSearch",
+    "depth_limited_search",
+    "dls",
+    "DLS_CUTOFF",
+    "DLS_FAILURE",
+    "DLS_SUCCESS",
+    "SAMPLE_DLS_GRAPH",
+    "BINARY_TREE_DLS_GRAPH",
+    "CYCLIC_DLS_GRAPH",
+    "DISCONNECTED_DLS_GRAPH",
+    "LINEAR_CHAIN_DLS_GRAPH",
+    "get_dls_viva_reference",
+    "visualize_dls",
+    "normalize_dls_graph",
+    "parse_dls_graph_input",
 ]

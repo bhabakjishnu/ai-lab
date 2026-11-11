@@ -100,6 +100,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 15: Breadth-First Search (BFS) 2D Grid Maze Solver",
     )
 
+    # Depth-limited search runner
+    subparsers.add_parser(
+        "dls",
+        aliases=["depth-limited-search", "dls-search"],
+        help="Run Question 16: Depth-Limited Search (DLS)",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -136,6 +143,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         "bfs-maze",
         "maze-solver",
         "bfs-maze-solver",
+        "dls",
+        "depth-limited-search",
+        "dls-search",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -197,6 +207,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_bfs_maze_solver import main as maze_main
             sys.argv = [sys.argv[0]] + remaining
             maze_main()
+        elif cmd in ("dls", "depth-limited-search", "dls-search"):
+            from scripts.run_depth_limited_search import main as dls_main
+            sys.argv = [sys.argv[0]] + remaining
+            dls_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
