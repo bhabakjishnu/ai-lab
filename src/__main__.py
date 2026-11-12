@@ -107,6 +107,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 16: Depth-Limited Search (DLS)",
     )
 
+    # Iterative deepening search runner
+    subparsers.add_parser(
+        "ids",
+        aliases=["iterative-deepening-search", "ids-search"],
+        help="Run Question 17: Iterative Deepening Search (IDS)",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -146,6 +153,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         "dls",
         "depth-limited-search",
         "dls-search",
+        "ids",
+        "iterative-deepening-search",
+        "ids-search",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -211,6 +221,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_depth_limited_search import main as dls_main
             sys.argv = [sys.argv[0]] + remaining
             dls_main()
+        elif cmd in ("ids", "iterative-deepening-search", "ids-search"):
+            from scripts.run_iterative_deepening_search import main as ids_main
+            sys.argv = [sys.argv[0]] + remaining
+            ids_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
