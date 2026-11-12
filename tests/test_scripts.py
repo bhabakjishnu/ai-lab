@@ -25,6 +25,7 @@ from scripts.run_depth_first_search import main as dfs_main
 from scripts.run_uniform_cost_search import main as ucs_main
 from scripts.run_bfs_maze_solver import main as maze_main
 from scripts.run_depth_limited_search import main as dls_script_main
+from scripts.run_iterative_deepening_search import main as ids_script_main
 from src.__main__ import main as cli_main
 
 
@@ -738,6 +739,59 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("VIVA VOCE REFERENCE & THEORY GUIDE", out)
         self.assertIn("Infinite State Spaces:", out)
         self.assertIn("Cutoff vs Failure:", out)
+
+    def test_ids_cli_and_script_modes(self) -> None:
+        """Verify IDS subcommand forwarding and script default, compare-bfs, challenge, demo, and viva modes."""
+        # Subcommand forwarding for ids
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["ids", "--start", "1", "--goal", "4"])
+        out = stdout_trap.getvalue()
+        self.assertIn("Limit 0: Cutoff. Limit 1: Cutoff. Limit 2: Found ['1', '2', '4'].", out)
+        self.assertIn("Total Node Expansions", out)
+
+        # 1. Default run
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_iterative_deepening_search.py"]):
+            with patch("sys.stdout", stdout_trap):
+                ids_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("ITERATIVE DEEPENING SEARCH (IDS) EXECUTION RESULT", out)
+        self.assertIn("Nodes Expanded at Each Depth Iteration:", out)
+
+        # 2. Compare BFS mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_iterative_deepening_search.py", "--compare-bfs"]):
+            with patch("sys.stdout", stdout_trap):
+                ids_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("IDS vs BFS COMPARISON", out)
+        self.assertIn("Shortest Path Match?  : True", out)
+
+        # 3. Challenge mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_iterative_deepening_search.py", "--challenge"]):
+            with patch("sys.stdout", stdout_trap):
+                ids_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE: TOTAL NODE EXPANSIONS", out)
+
+        # 4. Demo mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_iterative_deepening_search.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                ids_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("ITERATIVE DEEPENING SEARCH (IDS) COMPREHENSIVE BENCHMARK SUITE", out)
+
+        # 5. Viva mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_iterative_deepening_search.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                ids_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("ITERATIVE DEEPENING SEARCH (IDS) VIVA VOCE REFERENCE & THEORY GUIDE", out)
+        self.assertIn("Redundant Node Generation:", out)
 
 
 if __name__ == "__main__":

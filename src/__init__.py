@@ -252,6 +252,21 @@ from src.depth_limited_search import (
     parse_graph_input as parse_dls_graph_input,
     visualize_dls,
 )
+from src.iterative_deepening_search import (
+    BINARY_TREE_IDS_GRAPH,
+    CYCLIC_IDS_GRAPH,
+    DISCONNECTED_IDS_GRAPH,
+    SAMPLE_IDS_GRAPH,
+    SHORTCUT_IDS_GRAPH,
+    IDSIterationRecord,
+    IDSResult,
+    IterativeDeepeningSearch,
+    compare_ids_with_bfs,
+    get_ids_viva_reference,
+    ids,
+    iterative_deepening_search,
+    visualize_ids,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -485,4 +500,18 @@ __all__ = [
     "visualize_dls",
     "normalize_dls_graph",
     "parse_dls_graph_input",
+    # Question 17: Iterative Deepening Search
+    "IDSIterationRecord",
+    "IDSResult",
+    "IterativeDeepeningSearch",
+    "iterative_deepening_search",
+    "ids",
+    "compare_ids_with_bfs",
+    "visualize_ids",
+    "get_ids_viva_reference",
+    "SAMPLE_IDS_GRAPH",
+    "SHORTCUT_IDS_GRAPH",
+    "CYCLIC_IDS_GRAPH",
+    "DISCONNECTED_IDS_GRAPH",
+    "BINARY_TREE_IDS_GRAPH",
 ]

@@ -54,6 +54,7 @@ ai-lab/
 │   ├── uniform_cost_search.ipynb        # Question 14: Uniform Cost Search (UCS) Implementation & Viva guide
 │   ├── bfs_2d_maze_solver.ipynb         # Question 15: BFS 2D Maze Solver (Implicit Graph Search) & Viva guide
 │   ├── depth_limited_search.ipynb       # Question 16: Depth-Limited Search (DLS), Tri-State Outcomes & Viva guide
+│   ├── iterative_deepening_search.ipynb # Question 17: Iterative Deepening Search (IDS), Optimality & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -71,11 +72,12 @@ ai-lab/
 │   ├── run_uniform_cost_search.py       # CLI & interactive runner for Question 14 (Priority Queue UCS & Cycle Detection)
 │   ├── run_bfs_maze_solver.py           # CLI & interactive runner for Question 15 (Implicit BFS Maze Solver & Moves)
 │   ├── run_depth_limited_search.py      # CLI & interactive runner for Question 16 (DLS Bounded Search & Deepest Node)
+│   ├── run_iterative_deepening_search.py# CLI & interactive runner for Question 17 (IDS Loop, BFS Compare & Expansions)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -91,6 +93,7 @@ ai-lab/
 │   ├── uniform_cost_search.py          # Question 14: Uniform Cost Search (UCS), Min-Heap Frontier, Cumulative Cost & Cycles
 │   ├── bfs_maze_solver.py               # Question 15: BFS 2D Grid Maze Solver, Dynamic Successors & Move Strings
 │   ├── depth_limited_search.py          # Question 16: Depth-Limited Search (DLS), Bounded Recursion & Tri-State Outcomes
+│   ├── iterative_deepening_search.py    # Question 17: Iterative Deepening Search (IDS), Optimal Depth & Linear Memory
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -109,6 +112,7 @@ ai-lab/
 │   ├── test_uniform_cost_search.py      # Unit tests for Question 14 UCS optimality, priority queue & negative cycles
 │   ├── test_bfs_maze_solver.py          # Unit tests for Question 15 BFS 2D maze solver, successors, moves & bounds
 │   ├── test_depth_limited_search.py     # Unit tests for Question 16 DLS tri-states, limit budget & deepest node
+│   ├── test_iterative_deepening_search.py# Unit tests for Question 17 IDS iterations, BFS optimality & cyclic graphs
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -1741,6 +1745,96 @@ flowchart TD
 - **Answer**:
   - **Time Complexity**: $\mathcal{O}(b^l)$, where $b$ is the branching factor and $l$ is the depth limit.
   - **Space Complexity**: $\mathcal{O}(b \cdot l)$, requiring memory only for the active recursion stack and unexpanded siblings along the path. Unlike BFS, which suffers from an exponential memory bottleneck $\mathcal{O}(b^d)$, DLS retains the linear memory advantage of DFS.
+
+---
+
+### Question 17: Iterative Deepening Search (IDS)
+
+- **Syllabus Area**: Uninformed Search Techniques
+- **Difficulty**: 🟠 Advanced
+- **Practical Type**: Algorithm Design
+- **Core AI Concept**: Iterative Deepening Search (IDS), Completeness, Memory Optimization
+- **Python Concepts Tested**: Loop control, recursive integration
+- **Expected Algorithm / Technique**: Iterative Deepening DFS (`iterative_deepening_search` wrapping `depth_limited_search`)
+- **Recommended Python Libraries**: Standard Library Only (no external dependencies required)
+- **Complexity Expectation**:
+  - **Time Complexity**: $\mathcal{O}(b^d)$, where $b$ is the branching factor and $d$ is the shallowest goal depth.
+  - **Space Complexity**: $\mathcal{O}(b \cdot d)$, linear space matching DFS's active recursion stack.
+- **Constraints / Conditions**: Graph may contain cycles.
+- **Sample Input**: Goal at depth 2.
+- **Sample Output**: `Limit 0: Cutoff. Limit 1: Cutoff. Limit 2: Found ['1', '2', '4'].`
+- **Optional Challenge**: Count and display the total number of node expansions across all iterations.
+- **University Practical Importance**: Advanced.
+
+#### Theoretical Foundations & Algorithmic Design
+
+Iterative Deepening Search (IDS) repeatedly executes `depth_limited_search` for depth bounds $l = 0, 1, 2, \dots$:
+- **If DLS returns `Cutoff`**: At least one branch reached the depth ceiling; increment $l \leftarrow l + 1$.
+- **If DLS returns `Failure`**: Every reachable branch ended naturally without hitting a depth cutoff; the graph is exhausted, so terminate immediately.
+- **If DLS returns `Success`**: The shallowest (shortest-hop) path has been found, matching BFS optimality while retaining DFS's $\mathcal{O}(b \cdot d)$ linear memory footprint.
+
+```mermaid
+flowchart TD
+    Start["Start IDS (limit = 0)"] --> CallDLS["Call depth_limited_search(graph, start, goal, limit)"]
+    CallDLS -->|Success| Done["Return Shortest Path & Total Expansions"]
+    CallDLS -->|Failure| Exhausted["Graph Exhausted: Return Failure"]
+    CallDLS -->|Cutoff| Inc["Increment limit = limit + 1"]
+    Inc --> CallDLS
+```
+
+#### Execution Commands & Usage Examples
+
+1. **Default Syllabus Sample Run** (Goal at depth 2 -> `Limit 0: Cutoff. Limit 1: Cutoff. Limit 2: Found ['1', '2', '4'].`):
+   ```bash
+   python scripts/run_iterative_deepening_search.py
+   ```
+
+2. **Compare IDS vs BFS** (Demonstrates identical shortest-path depth with linear $\mathcal{O}(b \cdot d)$ stack memory):
+   ```bash
+   python scripts/run_iterative_deepening_search.py --compare-bfs
+   ```
+
+3. **Optional Challenge Demonstration** (Total node expansions & redundant regenerations across all iterations):
+   ```bash
+   python scripts/run_iterative_deepening_search.py --challenge
+   ```
+
+4. **Comprehensive Benchmark Suite** (Sample, Shortcut, Cyclic, Exhausted Failure):
+   ```bash
+   python scripts/run_iterative_deepening_search.py --demo
+   ```
+
+5. **Generate Two-Panel Visualization**:
+   ```bash
+   python scripts/run_iterative_deepening_search.py --save reports/ids_search.png
+   ```
+
+6. **Display Viva Voce Theory Guide**:
+   ```bash
+   python scripts/run_iterative_deepening_search.py --viva
+   ```
+
+7. **Top-Level Package Dispatcher**:
+   ```bash
+   python -m src ids --start 1 --goal 4
+   ```
+
+8. **Interactive Jupyter Notebook**:
+   Open [`notebooks/iterative_deepening_search.ipynb`](notebooks/iterative_deepening_search.ipynb) in Jupyter Lab or Antigravity IDE.
+
+#### Viva Voce Questions & Authoritative Answers
+
+##### 1. Why IDS is Preferred in Large State Spaces
+- **Question**: Why is IDS preferred over BFS and DLS in large state spaces?
+- **Answer**: BFS requires $\mathcal{O}(b^d)$ memory to retain its frontier and explored set, exhausting RAM at moderate depths. DLS requires guessing the depth limit $l$ in advance (failing if $l < d$ and losing optimality if $l > d$). IDS automatically finds the shallowest goal depth $d$ using only $\mathcal{O}(b \cdot d)$ linear space.
+
+##### 2. Redundant Node Generation
+- **Question**: Doesn't restarting DLS from the root at every depth limit waste massive computation?
+- **Answer**: No. In a tree with branching factor $b > 1$, the vast majority of nodes reside at the bottom level $b^d$. Total generations are $N_{\text{IDS}} = (d+1)\cdot 1 + d\cdot b + \dots + 1\cdot b^d$, which yields only a constant factor $\frac{b}{b-1}$ over a single search to depth $d$ (e.g., ~11% overhead when $b = 10$), keeping time complexity $\mathcal{O}(b^d)$.
+
+##### 3. Time vs Space Trade-off
+- **Question**: What is the fundamental time vs. space trade-off in IDS?
+- **Answer**: IDS accepts a small constant-factor increase in CPU work (regenerating shallow upper levels) in exchange for an **exponential reduction in memory** from $\mathcal{O}(b^d)$ down to $\mathcal{O}(b \cdot d)$.
 
 ---
 
