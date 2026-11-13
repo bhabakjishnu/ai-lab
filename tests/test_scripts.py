@@ -26,6 +26,7 @@ from scripts.run_uniform_cost_search import main as ucs_main
 from scripts.run_bfs_maze_solver import main as maze_main
 from scripts.run_depth_limited_search import main as dls_script_main
 from scripts.run_iterative_deepening_search import main as ids_script_main
+from scripts.run_bfs_dfs_performance_analyzer import main as bfs_dfs_script_main
 from src.__main__ import main as cli_main
 
 
@@ -792,6 +793,63 @@ class TestScriptExecution(unittest.TestCase):
         out = stdout_trap.getvalue()
         self.assertIn("ITERATIVE DEEPENING SEARCH (IDS) VIVA VOCE REFERENCE & THEORY GUIDE", out)
         self.assertIn("Redundant Node Generation:", out)
+
+    def test_bfs_dfs_performance_analyzer_cli_and_script_modes(self) -> None:
+        """Verify Question 18 BFS vs DFS CLI forwarding and script modes (default, single, dfs-favored, demo, viva)."""
+        # 1. Subcommand forwarding via python -m src bfs-dfs
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["bfs-dfs", "--format", "single"])
+        out = stdout_trap.getvalue()
+        self.assertIn("BFS Nodes Expanded: 45, Path Length: 12", out)
+        self.assertIn("DFS Nodes Expanded: 40, Path Length: 22", out)
+
+        # 2. Default script run
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bfs_dfs_performance_analyzer.py"]):
+            with patch("sys.stdout", stdout_trap):
+                bfs_dfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 18: BFS vs DFS PERFORMANCE ANALYZER", out)
+        self.assertIn("COMPARATIVE METRICS SUMMARY TABLE:", out)
+        self.assertIn("BFS Path (Optimal Shortest Path: *):", out)
+        self.assertIn("DFS Path (Arbitrary Path: *):", out)
+
+        # 3. Single format mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bfs_dfs_performance_analyzer.py", "--format", "single"]):
+            with patch("sys.stdout", stdout_trap):
+                bfs_dfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("BFS Nodes Expanded: 45, Path Length: 12", out)
+
+        # 4. DFS favored maze mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bfs_dfs_performance_analyzer.py", "--maze", "dfs-favored", "--format", "single"]):
+            with patch("sys.stdout", stdout_trap):
+                bfs_dfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("BFS Nodes Expanded: 45, Path Length: 12 | DFS Nodes Expanded: 14, Path Length: 12", out)
+
+        # 5. Viva mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bfs_dfs_performance_analyzer.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                bfs_dfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("BFS vs DFS PERFORMANCE ANALYZER VIVA VOCE THEORY GUIDE", out)
+        self.assertIn("ALGORITHM OPTIMALITY:", out)
+        self.assertIn("SCENARIOS WHERE DFS OUTPERFORMS BFS:", out)
+        self.assertIn("BRANCHING FACTOR IMPACT:", out)
+
+        # 6. Demo benchmark suite mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bfs_dfs_performance_analyzer.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                bfs_dfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("BFS vs DFS 10x10 MAZE BENCHMARK SUITE", out)
+        self.assertIn("Benchmark 1: Default 10x10 Benchmark Maze", out)
 
 
 if __name__ == "__main__":
