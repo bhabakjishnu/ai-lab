@@ -55,6 +55,7 @@ ai-lab/
 │   ├── bfs_2d_maze_solver.ipynb         # Question 15: BFS 2D Maze Solver (Implicit Graph Search) & Viva guide
 │   ├── depth_limited_search.ipynb       # Question 16: Depth-Limited Search (DLS), Tri-State Outcomes & Viva guide
 │   ├── iterative_deepening_search.ipynb # Question 17: Iterative Deepening Search (IDS), Optimality & Viva guide
+│   ├── bfs_vs_dfs_performance_analyzer.ipynb# Question 18: BFS vs DFS Performance Analyzer & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -73,11 +74,12 @@ ai-lab/
 │   ├── run_bfs_maze_solver.py           # CLI & interactive runner for Question 15 (Implicit BFS Maze Solver & Moves)
 │   ├── run_depth_limited_search.py      # CLI & interactive runner for Question 16 (DLS Bounded Search & Deepest Node)
 │   ├── run_iterative_deepening_search.py# CLI & interactive runner for Question 17 (IDS Loop, BFS Compare & Expansions)
+│   ├── run_bfs_dfs_performance_analyzer.py# CLI & interactive runner for Question 18 (BFS vs DFS on 10x10 Maze)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -94,6 +96,7 @@ ai-lab/
 │   ├── bfs_maze_solver.py               # Question 15: BFS 2D Grid Maze Solver, Dynamic Successors & Move Strings
 │   ├── depth_limited_search.py          # Question 16: Depth-Limited Search (DLS), Bounded Recursion & Tri-State Outcomes
 │   ├── iterative_deepening_search.py    # Question 17: Iterative Deepening Search (IDS), Optimal Depth & Linear Memory
+│   ├── bfs_dfs_performance_analyzer.py  # Question 18: BFS vs DFS Performance Analyzer on 10x10 Mazes
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -113,6 +116,7 @@ ai-lab/
 │   ├── test_bfs_maze_solver.py          # Unit tests for Question 15 BFS 2D maze solver, successors, moves & bounds
 │   ├── test_depth_limited_search.py     # Unit tests for Question 16 DLS tri-states, limit budget & deepest node
 │   ├── test_iterative_deepening_search.py# Unit tests for Question 17 IDS iterations, BFS optimality & cyclic graphs
+│   ├── test_bfs_dfs_performance_analyzer.py# Unit tests for Question 18 BFS vs DFS comparison & metrics
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -1835,6 +1839,130 @@ flowchart TD
 ##### 3. Time vs Space Trade-off
 - **Question**: What is the fundamental time vs. space trade-off in IDS?
 - **Answer**: IDS accepts a small constant-factor increase in CPU work (regenerating shallow upper levels) in exchange for an **exponential reduction in memory** from $\mathcal{O}(b^d)$ down to $\mathcal{O}(b \cdot d)$.
+
+---
+
+### Question 18: BFS vs DFS Performance Analyzer
+
+- **Syllabus Area**: Uninformed Search Techniques
+- **Difficulty**: 🟠 Advanced
+- **Practical Type**: Simulation / Comparison
+- **Core AI Concept**: Algorithm Comparison, Time/Space Efficiency, Optimality Guarantees vs. Arbitrary Pathfinding
+- **Python Concepts Tested**: Algorithm encapsulation, metric tracking, empirical benchmarking
+- **Expected Algorithm / Technique**: Breadth-First Search (BFS) and Depth-First Search (DFS)
+- **Recommended Python Libraries**: `time`, `matplotlib` (Optional Challenge)
+- **Complexity Expectation**: Empirical timing and counting
+- **Constraints / Conditions**: Use the exact same neighbor ordering (e.g., Up, Down, Left, Right)
+- **Input Requirements**: Hardcoded 10x10 maze matrix
+- **Sample Input**: Execute comparison
+- **Sample Output**: `BFS Nodes Expanded: 45, Path Length: 12 | DFS Nodes Expanded: 14, Path Length: 22`
+- **Optional Challenge**: Plot the expansion process dynamically using matplotlib
+- **University Practical Importance**: High
+
+#### Theoretical Foundations & Algorithmic Comparison
+
+On a 2D grid maze with uniform transition costs ($c = 1$), BFS and DFS exhibit starkly contrasting performance characteristics:
+
+1. **BFS Optimality**:
+   - Maintains a First-In, First-Out (FIFO) queue (`collections.deque`).
+   - Explores the state space in concentric spherical waves of non-decreasing depth $d$.
+   - **Guaranteed to return the shortest path** (minimum number of transitions).
+   - Space requirement is $\mathcal{O}(b^d)$, creating an exponential memory bottleneck.
+
+2. **DFS Arbitrary Pathfinding**:
+   - Maintains a Last-In, First-Out (LIFO) stack (`list.pop()` or recursion).
+   - Plunges deeply down a single path until reaching a dead-end, wall, or cycle.
+   - **Non-optimal**: Returns the first path that reaches the goal, frequently taking circuitous detours (e.g. 22 steps vs. 12 steps).
+   - Space requirement is only $\mathcal{O}(b \cdot m)$ linear memory, proportional to maximum path depth.
+
+3. **Strict Neighbor Ordering Constraint**:
+   Both algorithms evaluate candidate moves in the exact same priority order:
+   $\text{Up } (-1, 0) \to \text{Down } (+1, 0) \to \text{Left } (0, -1) \to \text{Right } (0, +1)$.
+   To ensure that the iterative DFS stack pops neighbors in the strict forward order matching recursive DFS, candidate successors are pushed onto the LIFO stack in **reversed order** (`reversed(successors)`).
+
+```mermaid
+flowchart TD
+    Start["Start at (0, 0)"] --> Decision{"Search Strategy"}
+    Decision -->|BFS FIFO Queue| LevelOrder["Expand Level-by-Level<br/>(Concentric Waves)"]
+    Decision -->|DFS LIFO Stack| DeepPlunge["Plunge Deep along First Branch<br/>(Up -> Down -> Left -> Right)"]
+    LevelOrder --> BFSGoal["Hit Goal at Depth 12<br/>(Nodes Expanded: 45)"]
+    DeepPlunge --> DFSGoal["Hit Goal via Detour<br/>(Path Length: 22, Nodes Expanded: 40)"]
+    BFSGoal --> Optimal["Guaranteed Optimal Shortest Path"]
+    DFSGoal --> Arbitrary["Arbitrary / Suboptimal Path"]
+```
+
+| Metric / Attribute | Breadth-First Search (BFS) | Depth-First Search (DFS) |
+| :--- | :--- | :--- |
+| **Frontier Structure** | FIFO Queue (`collections.deque`) | LIFO Stack (`list` with `reversed` push) |
+| **Exploration Bias** | Concentric spherical waves (shallowest first) | Deep branch plunge until dead-end |
+| **Time Complexity** | $\mathcal{O}(b^d)$ | $\mathcal{O}(b^m)$ |
+| **Space Complexity** | $\mathcal{O}(b^d)$ *(Exponential RAM bottleneck)* | $\mathcal{O}(b \cdot m)$ *(Linear active branch)* |
+| **Optimality Guarantee** | **Guaranteed Optimal** (Shortest path for unit cost) | **Non-Optimal** (Arbitrary pathfinding) |
+| **Completeness** | **Yes** (if branching factor $b$ is finite) | **Yes** on finite state spaces with visited tracking |
+| **Default 10x10 Maze Result** | **45 Nodes Expanded, Path Length: 12** | **40 Nodes Expanded, Path Length: 22** |
+| **DFS-Favored Scenario** | 45 Nodes Expanded, Path Length: 12 | **14 Nodes Expanded, Path Length: 12** |
+
+#### Execution Commands & Usage Examples
+
+1. **Default Syllabus Sample Run** (10x10 Maze: BFS Optimal 12 vs DFS Arbitrary 22):
+   ```bash
+   python scripts/run_bfs_dfs_performance_analyzer.py
+   ```
+
+2. **Single-Line Format (Exact Syllabus Match)**:
+   ```bash
+   python scripts/run_bfs_dfs_performance_analyzer.py --format single
+   ```
+
+3. **DFS-Favored 10x10 Maze** (Demonstrating Viva Topic 2: DFS 14 Expansions vs BFS 45 Expansions):
+   ```bash
+   python scripts/run_bfs_dfs_performance_analyzer.py --maze dfs-favored
+   ```
+
+4. **Corner-to-Corner 10x10 Maze** (Start (0,0) to Goal (9,9)):
+   ```bash
+   python scripts/run_bfs_dfs_performance_analyzer.py --maze corner
+   ```
+
+5. **Comprehensive Benchmark Suite across all 10x10 Mazes**:
+   ```bash
+   python scripts/run_bfs_dfs_performance_analyzer.py --demo
+   ```
+
+6. **Optional Challenge: Generate & Save Dynamic Matplotlib Expansion Heatmaps**:
+   ```bash
+   python scripts/run_bfs_dfs_performance_analyzer.py --save reports/bfs_vs_dfs_performance.png
+   ```
+
+7. **Display Viva Voce Theory Guide**:
+   ```bash
+   python scripts/run_bfs_dfs_performance_analyzer.py --viva
+   ```
+
+8. **Top-Level Package Dispatcher**:
+   ```bash
+   python -m src bfs-dfs --format single
+   ```
+
+9. **Interactive Jupyter Notebook**:
+   Open [`notebooks/bfs_vs_dfs_performance_analyzer.ipynb`](notebooks/bfs_vs_dfs_performance_analyzer.ipynb) in Jupyter Lab or Antigravity IDE.
+
+#### Viva Voce Questions & Authoritative Answers
+
+##### 1. Algorithm Optimality
+- **Question**: Why is BFS guaranteed to find the optimal path in grid mazes, while DFS is not?
+- **Answer**: In a grid maze where all orthogonal transitions have uniform unit cost ($c = 1$), path cost $g(n)$ equals node depth $d$. BFS uses a FIFO queue, guaranteeing all nodes at depth $d$ are expanded before any node at depth $d + 1$. Thus, the first goal reached is guaranteed to have minimal steps. DFS uses a LIFO stack, plunging down one path without depth synchronization, returning whatever arbitrary path hits the goal first.
+
+##### 2. Scenarios Where DFS Outperforms BFS
+- **Question**: In what practical scenarios does DFS significantly outperform BFS?
+- **Answer**:
+  1. **Goal in early deep branch**: When the goal lies along the first subtree searched by the neighbor ordering, DFS reaches it in $\mathcal{O}(d)$ expansions without exploring sibling branches, whereas BFS must expand $\mathcal{O}(b^d)$ nodes (e.g., DFS takes 14 expansions vs BFS's 45 expansions).
+  2. **Memory limits**: BFS requires $\mathcal{O}(b^d)$ exponential memory; DFS requires only $\mathcal{O}(b \cdot m)$ linear memory.
+  3. **Dense solution spaces**: When many solutions exist and any valid path is acceptable.
+
+##### 3. Branching Factor Impact
+- **Question**: What is the branching factor $b$, and how does it impact BFS vs DFS differently?
+- **Answer**: Branching factor $b$ is the average number of valid moves per state ($1 \le b \le 4$ on grid mazes). Increasing $b$ causes BFS memory $\mathcal{O}(b^d)$ to explode exponentially, while DFS memory $\mathcal{O}(b \cdot m)$ grows only linearly.
 
 ---
 

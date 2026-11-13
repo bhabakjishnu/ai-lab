@@ -114,6 +114,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 17: Iterative Deepening Search (IDS)",
     )
 
+    # BFS vs DFS Performance Analyzer runner
+    subparsers.add_parser(
+        "bfs-dfs",
+        aliases=["bfs-vs-dfs", "performance-analyzer", "maze-analyzer", "maze-compare"],
+        help="Run Question 18: BFS vs DFS Performance Analyzer on 10x10 Mazes",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -156,6 +163,11 @@ def main(argv: Optional[List[str]] = None) -> None:
         "ids",
         "iterative-deepening-search",
         "ids-search",
+        "bfs-dfs",
+        "bfs-vs-dfs",
+        "performance-analyzer",
+        "maze-analyzer",
+        "maze-compare",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -225,6 +237,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_iterative_deepening_search import main as ids_main
             sys.argv = [sys.argv[0]] + remaining
             ids_main()
+        elif cmd in ("bfs-dfs", "bfs-vs-dfs", "performance-analyzer", "maze-analyzer", "maze-compare"):
+            from scripts.run_bfs_dfs_performance_analyzer import main as bfs_dfs_main
+            sys.argv = [sys.argv[0]] + remaining
+            bfs_dfs_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
