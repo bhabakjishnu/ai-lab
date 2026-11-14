@@ -121,6 +121,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 18: BFS vs DFS Performance Analyzer on 10x10 Mazes",
     )
 
+    # Bidirectional Search runner
+    subparsers.add_parser(
+        "bidirectional",
+        aliases=["bidirectional-search", "bds", "bds-search"],
+        help="Run Question 19: Bidirectional Search Simulation (Simultaneous BFS)",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -168,6 +175,10 @@ def main(argv: Optional[List[str]] = None) -> None:
         "performance-analyzer",
         "maze-analyzer",
         "maze-compare",
+        "bidirectional",
+        "bidirectional-search",
+        "bds",
+        "bds-search",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -241,6 +252,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_bfs_dfs_performance_analyzer import main as bfs_dfs_main
             sys.argv = [sys.argv[0]] + remaining
             bfs_dfs_main()
+        elif cmd in ("bidirectional", "bidirectional-search", "bds", "bds-search"):
+            from scripts.run_bidirectional_search import main as bds_main
+            sys.argv = [sys.argv[0]] + remaining
+            bds_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
