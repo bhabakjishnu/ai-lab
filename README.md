@@ -75,11 +75,12 @@ ai-lab/
 │   ├── run_depth_limited_search.py      # CLI & interactive runner for Question 16 (DLS Bounded Search & Deepest Node)
 │   ├── run_iterative_deepening_search.py# CLI & interactive runner for Question 17 (IDS Loop, BFS Compare & Expansions)
 │   ├── run_bfs_dfs_performance_analyzer.py# CLI & interactive runner for Question 18 (BFS vs DFS on 10x10 Maze)
+│   ├── run_bidirectional_search.py      # CLI & interactive runner for Question 19 (Simultaneous BDS & Maze Challenge)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -97,6 +98,7 @@ ai-lab/
 │   ├── depth_limited_search.py          # Question 16: Depth-Limited Search (DLS), Bounded Recursion & Tri-State Outcomes
 │   ├── iterative_deepening_search.py    # Question 17: Iterative Deepening Search (IDS), Optimal Depth & Linear Memory
 │   ├── bfs_dfs_performance_analyzer.py  # Question 18: BFS vs DFS Performance Analyzer on 10x10 Mazes
+│   ├── bidirectional_search.py          # Question 19: Bidirectional Search (BDS), Space Halving & Maze Solver
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -117,6 +119,7 @@ ai-lab/
 │   ├── test_depth_limited_search.py     # Unit tests for Question 16 DLS tri-states, limit budget & deepest node
 │   ├── test_iterative_deepening_search.py# Unit tests for Question 17 IDS iterations, BFS optimality & cyclic graphs
 │   ├── test_bfs_dfs_performance_analyzer.py# Unit tests for Question 18 BFS vs DFS comparison & metrics
+│   ├── test_bidirectional_search.py     # Unit tests for Question 19 BDS dual queues, intersection & maze
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -1963,6 +1966,171 @@ flowchart TD
 ##### 3. Branching Factor Impact
 - **Question**: What is the branching factor $b$, and how does it impact BFS vs DFS differently?
 - **Answer**: Branching factor $b$ is the average number of valid moves per state ($1 \le b \le 4$ on grid mazes). Increasing $b$ causes BFS memory $\mathcal{O}(b^d)$ to explode exponentially, while DFS memory $\mathcal{O}(b \cdot m)$ grows only linearly.
+
+---
+
+### Question 19: Bidirectional Search Simulation
+
+- **Syllabus Area**: Uninformed Search Techniques
+- **Difficulty**: 🔴 Expert
+- **Practical Type**: Algorithm Design
+- **Core AI Concept**: Bidirectional Search, Search Space Halving, Simultaneous BFS, Frontier Collision
+- **Complexity**: Time Complexity: $\mathcal{O}(b^{d/2})$ | Space Complexity: $\mathcal{O}(b^{d/2})$
+
+#### Bidirectional Search Architecture & Dual Frontier Collision
+```mermaid
+flowchart LR
+    subgraph ForwardSearch["Forward BFS Exploration (Start: A)"]
+        A["Start Node (A)"] --> B["Node B"]
+        A --> C["Node C"]
+        B --> D1["Intersection Candidate (D)"]
+    end
+
+    subgraph CollisionGate["Frontier Intersection Check"]
+        D1 -. "Frontier Collision Detected" .-> D2["Meeting Node (D)"]
+    end
+
+    subgraph BackwardSearch["Backward BFS Exploration (Goal: G)"]
+        G["Goal Node (G)"] --> F["Node F"]
+        F --> D2
+        F --> E["Node E"]
+    end
+
+    subgraph SplicedPath["Path Reconstruction & Splicing"]
+        P1["Forward Half: A -> B -> D"] --> Joint["Concat at D"]
+        P2["Backward Half: D -> F -> G"] --> Joint
+        Joint --> FinalPath["Optimal Combined Path: A - B - D - F - G"]
+    end
+```
+
+#### Dual Frontier Sequence Diagram
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Client
+    participant ForwardQueue as Forward Queue (FIFO)
+    participant ForwardVisited as Forward Visited & Parents
+    participant BackwardQueue as Backward Queue (FIFO)
+    participant BackwardVisited as Backward Visited & Parents
+    participant Splicer as Path Splicer
+
+    User->>ForwardQueue: Push Start 'A'
+    User->>BackwardQueue: Push Goal 'G'
+    Note over ForwardQueue,BackwardQueue: Alternating Simultaneous BFS Loop
+
+    ForwardQueue->>ForwardVisited: Pop 'A', Expand Neighbors (B, C)
+    ForwardVisited-->>BackwardVisited: Check Collision: None
+    BackwardQueue->>BackwardVisited: Pop 'G', Expand Neighbor (F)
+    BackwardVisited-->>ForwardVisited: Check Collision: None
+
+    ForwardQueue->>ForwardVisited: Pop 'B', Expand Neighbors (A, C, D)
+    ForwardVisited-->>BackwardVisited: Check Collision: None
+    BackwardQueue->>BackwardVisited: Pop 'F', Expand Neighbors (D, E, G)
+    BackwardVisited->>ForwardVisited: Check Collision: 'D' is in Forward Visited!
+
+    Note over ForwardVisited,BackwardVisited: Frontier Intersection at Node 'D'!
+    ForwardVisited->>Splicer: Forward Path: ['A', 'B', 'D']
+    BackwardVisited->>Splicer: Backward Path: ['D', 'F', 'G']
+    Splicer->>User: Combined Path: 'A-B-D-F-G' | Intersection: 'D'
+```
+
+#### Mathematical Complexity Comparison: Standard BFS vs. Bidirectional Search
+
+| Metric / Property | Standard Forward BFS | Bidirectional Search (BDS) | Efficiency Gain / Impact |
+| :--- | :--- | :--- | :--- |
+| **Search Frontiers** | 1 (Forward from Start) | 2 (Simultaneous Forward & Backward) | Search space divided into two halves |
+| **Search Radius** | Radius $d$ | Two radii of $d/2$ | Halving the exponent |
+| **Time Complexity** | $\mathcal{O}(b^d)$ | $\mathcal{O}(b^{d/2} + b^{d/2}) = \mathcal{O}(b^{d/2})$ | **Exponential reduction** |
+| **Space Complexity** | $\mathcal{O}(b^d)$ | $\mathcal{O}(b^{d/2})$ | Prevents RAM exhaustion |
+| **Optimality Guarantee** | **Guaranteed Optimal** | **Guaranteed Optimal** (Unit step cost) | Finds shortest path |
+| **$b = 10, d = 10$ Nodes** | $10^{10} = \mathbf{10,000,000,000}$ | $2 \times 10^5 = \mathbf{200,000}$ | **50,000x faster execution!** |
+| **Sample Graph Result** | Path: `A-B-D-F-G` | Path: `A-B-D-F-G` | **Intersection at D** |
+
+#### Execution Commands & Usage Examples
+
+1. **Default Syllabus Sample Run** (Start: `A`, Goal: `G`):
+   ```bash
+   python scripts/run_bidirectional_search.py
+   ```
+   *Output*:
+   ```text
+   Intersection at D. Path: A-B-D-F-G
+   ```
+
+2. **Single-Line Format (Exact Syllabus Match)**:
+   ```bash
+   python scripts/run_bidirectional_search.py --format single
+   ```
+
+3. **Custom Start and Goal Queries**:
+   ```bash
+   python scripts/run_bidirectional_search.py --start A --goal F
+   ```
+
+4. **Custom Graph Specification** (Semicolon-delimited or JSON):
+   ```bash
+   python scripts/run_bidirectional_search.py --graph "A: B, C; B: A, D; C: A, D; D: B, C, G; G: D" --start A --goal G
+   ```
+
+5. **Optional Challenge: 2D Grid Maze Bidirectional Search**:
+   ```bash
+   python scripts/run_bidirectional_search.py --challenge
+   ```
+   *Output*:
+   ```text
+   Search Status          : SUCCESS
+   Intersection Coordinate: (4, 3)
+   Shortest Path Length   : 12 steps
+   Total Cells Expanded   : 23
+   ```
+
+6. **Comprehensive Benchmark Suite across Graph Topologies**:
+   ```bash
+   python scripts/run_bidirectional_search.py --demo
+   ```
+
+7. **Generate & Save Matplotlib Graphical Plot**:
+   ```bash
+   python scripts/run_bidirectional_search.py --save reports/bidirectional_search.png
+   ```
+
+8. **Display Viva Voce Theory Guide**:
+   ```bash
+   python scripts/run_bidirectional_search.py --viva
+   ```
+
+9. **Top-Level Package Dispatcher**:
+   ```bash
+   python -m src bidirectional --format single
+   ```
+
+10. **Interactive Jupyter Notebook**:
+    Open [`notebooks/bidirectional_search.ipynb`](notebooks/bidirectional_search.ipynb) in Jupyter Lab or Antigravity IDE.
+
+#### Viva Voce Questions & Authoritative Answers
+
+##### 1. Why $\mathcal{O}(b^{d/2})$ is Massively Faster than $\mathcal{O}(b^d)$
+- **Question**: Why is $\mathcal{O}(b^{d/2})$ massively faster than $\mathcal{O}(b^d)$?
+- **Answer**:
+  In a search space with branching factor $b$ and solution depth $d$, standard forward BFS explores a hypersphere of radius $d$, generating roughly:
+  $$\sum_{i=0}^d b^i = \mathcal{O}(b^d) \text{ states.}$$
+  Bidirectional Search grows two simultaneous hyperspheres of radius $d/2$—one from the start state and one from the goal state. When their frontiers meet at the midpoint, the total states generated is:
+  $$b^{d/2} + b^{d/2} = 2 \cdot b^{d/2} = \mathcal{O}(b^{d/2}).$$
+  Because exponential functions dominate polynomial constants, cutting the exponent in half produces exponential savings. For instance, when $b = 10$ and $d = 10$, $\mathcal{O}(b^d) = 10^{10} = 10,000,000,000$ states (10 billion nodes requiring gigabytes of RAM and days of computation), while $2 \cdot 10^5 = 200,000$ states runs in a fraction of a second with minimal memory—yielding a **50,000x performance improvement**.
+
+##### 2. Difficulties of Backward Search in Directed Graphs
+- **Question**: What are the primary difficulties of backward search in directed graphs?
+- **Answer**:
+  1. **Predecessor Inversion & Edge Directionality**: If directed edges represent one-way transitions ($u \to v$), moving backward from the goal requires computing predecessor states ($v \leftarrow u$). If the graph is stored as an outgoing adjacency list, computing predecessors requires an expensive graph-wide inversion step or runtime reverse lookup.
+  2. **Multiple or Implicit Goal States**: Forward search starts from a single, explicit initial state $s_0$. If the problem defines goals via an abstract predicate or goal test (e.g., "checkmate in chess", "any configuration with zero dirt"), the backward search does not have a single root node. To search backward, one must create an artificial super-goal node with edges to all possible goal states, which can cause an explosive initial branching factor.
+  3. **Irreversible Real-World Actions**: Physical operations may be strictly non-invertible (e.g., dropping an object, burning propellant, baking an ingredient). In such domains, predecessor functions cannot be formulated.
+
+##### 3. Predecessor vs. Successor Generation
+- **Question**: Explain Predecessor vs Successor generation and their impact on search efficiency.
+- **Answer**:
+  - **Successor Function**: $\text{Successors}(s) = \{s' \mid s \xrightarrow{a} s'\}$. Generates next states reachable by applying valid forward operators.
+  - **Predecessor Function**: $\text{Predecessors}(s') = \{s \mid s \xrightarrow{a} s'\}$. Computes prior states from which the current state could have originated.
+  - In undirected graphs, $\text{Predecessors}(s) = \text{Successors}(s)$ identically. In directed graphs, the forward branching factor $b_{\text{fwd}}$ (out-degree) and backward branching factor $b_{\text{bwd}}$ (in-degree) may differ substantially. For example, in theorem proving or planning, many distinct premise states often converge to a single simplified conclusion ($b_{\text{bwd}} \gg b_{\text{fwd}}$). If $b_{\text{bwd}}$ is significantly larger, backward search will experience severe combinatorial explosion. **Dynamic balanced expansion** (always expanding whichever queue has the smaller frontier) mitigates this asymmetry.
 
 ---
 

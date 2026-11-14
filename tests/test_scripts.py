@@ -27,6 +27,7 @@ from scripts.run_bfs_maze_solver import main as maze_main
 from scripts.run_depth_limited_search import main as dls_script_main
 from scripts.run_iterative_deepening_search import main as ids_script_main
 from scripts.run_bfs_dfs_performance_analyzer import main as bfs_dfs_script_main
+from scripts.run_bidirectional_search import main as bds_script_main
 from src.__main__ import main as cli_main
 
 
@@ -850,6 +851,72 @@ class TestScriptExecution(unittest.TestCase):
         out = stdout_trap.getvalue()
         self.assertIn("BFS vs DFS 10x10 MAZE BENCHMARK SUITE", out)
         self.assertIn("Benchmark 1: Default 10x10 Benchmark Maze", out)
+
+    def test_bidirectional_search_script_and_cli_modes(self) -> None:
+        """Verify Question 19 Bidirectional Search CLI forwarding and script modes (default, single, demo, challenge, viva)."""
+        # 1. Subcommand forwarding via python -m src bidirectional --format single
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["bidirectional", "--format", "single"])
+        out = stdout_trap.getvalue()
+        self.assertIn("Intersection at D. Path: A-B-D-F-G", out)
+
+        # 2. Subcommand alias via python -m src bds --format single
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["bds", "--format", "single"])
+        out = stdout_trap.getvalue()
+        self.assertIn("Intersection at D. Path: A-B-D-F-G", out)
+
+        # 3. Default script run (Question 19 full report & table)
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bidirectional_search.py"]):
+            with patch("sys.stdout", stdout_trap):
+                bds_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 19: BIDIRECTIONAL SEARCH SIMULATION", out)
+        self.assertIn("Intersection at D. Path: A-B-D-F-G", out)
+        self.assertIn("STEP-BY-STEP ALTERNATING EXPANSION TRACE TABLE:", out)
+
+        # 4. Single format mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bidirectional_search.py", "--format", "single"]):
+            with patch("sys.stdout", stdout_trap):
+                bds_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), "Intersection at D. Path: A-B-D-F-G")
+
+        # 5. Optional Challenge: 2D Grid Maze mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bidirectional_search.py", "--challenge"]):
+            with patch("sys.stdout", stdout_trap):
+                bds_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE: 2D GRID MAZE BIDIRECTIONAL SEARCH", out)
+        self.assertIn("Intersection Coordinate: (4, 3)", out)
+        self.assertIn("Shortest Path Length   : 12 steps", out)
+        self.assertIn("MAZE VISUALIZATION:", out)
+
+        # 6. Demo benchmark suite mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bidirectional_search.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                bds_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("BIDIRECTIONAL SEARCH (BDS) BENCHMARK SUITE", out)
+        self.assertIn("Benchmark 1: Canonical Sample Graph (Syllabus Default)", out)
+        self.assertIn("Search Space Halving: Unidirectional BFS vs Bidirectional BFS", out)
+
+        # 7. Viva Voce study guide mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_bidirectional_search.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                bds_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 19: BIDIRECTIONAL SEARCH VIVA VOCE THEORY GUIDE", out)
+        self.assertIn("COMPLEXITY ADVANTAGE: O(b^(d/2)) vs O(b^d)", out)
+        self.assertIn("DIFFICULTIES OF BACKWARD SEARCH IN DIRECTED GRAPHS", out)
+        self.assertIn("PREDECESSOR vs SUCCESSOR GENERATION", out)
 
 
 if __name__ == "__main__":
