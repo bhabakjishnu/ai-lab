@@ -56,6 +56,8 @@ ai-lab/
 │   ├── depth_limited_search.ipynb       # Question 16: Depth-Limited Search (DLS), Tri-State Outcomes & Viva guide
 │   ├── iterative_deepening_search.ipynb # Question 17: Iterative Deepening Search (IDS), Optimality & Viva guide
 │   ├── bfs_vs_dfs_performance_analyzer.ipynb# Question 18: BFS vs DFS Performance Analyzer & Viva guide
+│   ├── bidirectional_search.ipynb       # Question 19: Bidirectional Search (BDS) Simulation & Viva guide
+│   ├── water_jug_bfs.ipynb              # Question 20: Water Jug Problem using BFS & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -76,11 +78,12 @@ ai-lab/
 │   ├── run_iterative_deepening_search.py# CLI & interactive runner for Question 17 (IDS Loop, BFS Compare & Expansions)
 │   ├── run_bfs_dfs_performance_analyzer.py# CLI & interactive runner for Question 18 (BFS vs DFS on 10x10 Maze)
 │   ├── run_bidirectional_search.py      # CLI & interactive runner for Question 19 (Simultaneous BDS & Maze Challenge)
+│   ├── run_water_jug_bfs.py             # CLI & interactive runner for Question 20 (Water Jug Problem using BFS)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -99,6 +102,7 @@ ai-lab/
 │   ├── iterative_deepening_search.py    # Question 17: Iterative Deepening Search (IDS), Optimal Depth & Linear Memory
 │   ├── bfs_dfs_performance_analyzer.py  # Question 18: BFS vs DFS Performance Analyzer on 10x10 Mazes
 │   ├── bidirectional_search.py          # Question 19: Bidirectional Search (BDS), Space Halving & Maze Solver
+│   ├── water_jug_bfs.py                 # Question 20: Water Jug Problem using BFS, 6 Production Rules & GCD
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -120,6 +124,7 @@ ai-lab/
 │   ├── test_iterative_deepening_search.py# Unit tests for Question 17 IDS iterations, BFS optimality & cyclic graphs
 │   ├── test_bfs_dfs_performance_analyzer.py# Unit tests for Question 18 BFS vs DFS comparison & metrics
 │   ├── test_bidirectional_search.py     # Unit tests for Question 19 BDS dual queues, intersection & maze
+│   ├── test_water_jug_bfs.py            # Unit tests for Question 20 Water Jug state-space, 6 rules & GCD
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -2131,6 +2136,215 @@ sequenceDiagram
   - **Successor Function**: $\text{Successors}(s) = \{s' \mid s \xrightarrow{a} s'\}$. Generates next states reachable by applying valid forward operators.
   - **Predecessor Function**: $\text{Predecessors}(s') = \{s \mid s \xrightarrow{a} s'\}$. Computes prior states from which the current state could have originated.
   - In undirected graphs, $\text{Predecessors}(s) = \text{Successors}(s)$ identically. In directed graphs, the forward branching factor $b_{\text{fwd}}$ (out-degree) and backward branching factor $b_{\text{bwd}}$ (in-degree) may differ substantially. For example, in theorem proving or planning, many distinct premise states often converge to a single simplified conclusion ($b_{\text{bwd}} \gg b_{\text{fwd}}$). If $b_{\text{bwd}}$ is significantly larger, backward search will experience severe combinatorial explosion. **Dynamic balanced expansion** (always expanding whichever queue has the smaller frontier) mitigates this asymmetry.
+
+---
+
+### Question 20: Water Jug Problem using BFS
+
+- **Syllabus Area**: Uninformed Search Techniques
+- **Difficulty**: 🟠 Advanced
+- **Practical Type**: Problem Solving
+- **Core AI Concept**: State-Space Formulation, Transition Models, Implicit Graph Search, FIFO Frontier
+- **Python Concepts Tested**: Tuple states, mathematical operations, graph search with `collections.deque`
+- **Expected Algorithm**: Breadth-First Search (BFS) on dynamically generated implicit state space
+- **Complexity**: Time Complexity: $\mathcal{O}(X \times Y)$ | Space Complexity: $\mathcal{O}(X \times Y)$
+- **Constraints / Conditions**: Discard invalid states (negative water, overflow, redundant self-loops)
+- **Sample Input**: Capacities: `4, 3`. Target: `2`
+- **Sample Output**: `(0,0) -> (4,0) -> (1,3) -> (1,0) -> (0,1) -> (4,1) -> (2,3)`
+- **Optional Challenge**: Check algebraically if the target is reachable before searching (Bézout's identity & GCD rule)
+- **University Practical Importance**: Very High
+
+#### Problem Statement & AI State-Space Formulation
+Given two jugs of capacities $X$ and $Y$ liters without intermediate markings, an infinite tap, and a drain, find the minimum sequence of operations to measure exactly $Z$ liters in one of the jugs.
+- **State Representation**: A 2-tuple $(x, y)$ of integers representing the water content in Jug 1 and Jug 2, where $0 \le x \le X$ and $0 \le y \le Y$.
+- **Initial State**: $s_0 = (0, 0)$.
+- **Goal Condition**: $x = Z$ (or $y = Z$, or $x = Z \lor y = Z$).
+- **State-Space Geometry**: The theoretical state space has size $(X + 1) \times (Y + 1)$. In practice, because all pouring operations continue until a jug is either empty or full, reachable states lie strictly along the boundary perimeter of the $[0, X] \times [0, Y]$ rectangle and specific diagonal chords, significantly pruning the effective search space.
+
+#### The 6 Canonical Production Rules
+The transition model consists of 6 discrete operators with strict preconditions to eliminate invalid states and non-progressing self-loops:
+
+| Rule # | Action Name | Precondition | Operation / Transformation | Effect State $(x', y')$ | Description |
+| :---: | :--- | :--- | :--- | :---: | :--- |
+| **1** | `Fill 1` | $x < X$ | $x' = X, y' = y$ | $(X, y)$ | Fill Jug 1 to capacity from tap |
+| **2** | `Fill 2` | $y < Y$ | $x' = x, y' = Y$ | $(x, Y)$ | Fill Jug 2 to capacity from tap |
+| **3** | `Empty 1` | $x > 0$ | $x' = 0, y' = y$ | $(0, y)$ | Empty Jug 1 completely into drain |
+| **4** | `Empty 2` | $y > 0$ | $x' = x, y' = 0$ | $(x, 0)$ | Empty Jug 2 completely into drain |
+| **5** | `Pour 1->2` | $x > 0 \land y < Y$ | $d = \min(x, Y - y)$<br>$x' = x - d, y' = y + d$ | $(x - d, y + d)$ | Pour from Jug 1 into Jug 2 until Jug 2 is full or Jug 1 is empty |
+| **6** | `Pour 2->1` | $y > 0 \land x < X$ | $d = \min(y, X - x)$<br>$x' = x + d, y' = y - d$ | $(x + d, y - d)$ | Pour from Jug 2 into Jug 1 until Jug 1 is full or Jug 2 is empty |
+
+#### Production Rules Transition Architecture
+```mermaid
+flowchart TD
+    Current["Current State: (x, y)"]
+    
+    Current -->|Rule 1: x < X| F1["(X, y)<br>Fill Jug 1"]
+    Current -->|Rule 2: y < Y| F2["(x, Y)<br>Fill Jug 2"]
+    Current -->|Rule 3: x > 0| E1["(0, y)<br>Empty Jug 1"]
+    Current -->|Rule 4: y > 0| E2["(x, 0)<br>Empty Jug 2"]
+    Current -->|Rule 5: x > 0 and y < Y| P12["(x - d, y + d)<br>Pour Jug 1 -> Jug 2<br>d = min(x, Y - y)"]
+    Current -->|Rule 6: y > 0 and x < X| P21["(x + d, y - d)<br>Pour Jug 2 -> Jug 1<br>d = min(y, X - x)"]
+
+    F1 --> Validate{Visited Check}
+    F2 --> Validate
+    E1 --> Validate
+    E2 --> Validate
+    P12 --> Validate
+    P21 --> Validate
+
+    Validate -->|Not in Visited| Enqueue[Push to FIFO Queue & Record Parent Pointer]
+    Validate -->|Already Explored| Prune[Discard / Prune Duplicate State]
+```
+
+#### Canonical Solution Path State Machine (Capacities: 4L, 3L; Target: 2L)
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> S0: Initial State
+    S0: (0, 0) - Empty Jugs
+    S1: (4, 0) - Fill Jug 1
+    S2: (1, 3) - Pour 1 to 2 (3L)
+    S3: (1, 0) - Empty Jug 2
+    S4: (0, 1) - Pour 1 to 2 (1L)
+    S5: (4, 1) - Fill Jug 1
+    S6: (2, 3) - Pour 1 to 2 (2L)
+
+    S0 --> S1: Rule 1 (Fill 1)
+    S1 --> S2: Rule 5 (Pour 1->2)
+    S2 --> S3: Rule 4 (Empty 2)
+    S3 --> S4: Rule 5 (Pour 1->2)
+    S4 --> S5: Rule 1 (Fill 1)
+    S5 --> S6: Rule 5 (Pour 1->2)
+    S6 --> [*]: Goal Reached (2L in Jug 1)
+```
+
+#### Algebraic Solvability & Bézout's Identity (Optional Challenge)
+Any sequence of water filling, emptying, and pouring operations alters total volume strictly by integer linear combinations of $X$ and $Y$:
+$$\text{Measured Volume} = a \cdot X + b \cdot Y \quad (a, b \in \mathbb{Z})$$
+By **Bézout's Identity**, the smallest positive integer expressible in this form is $g = \gcd(X, Y)$. Hence, every measurable volume must be an exact multiple of $\gcd(X, Y)$.
+
+> **Necessary and Sufficient Reachability Conditions**:
+> 1. **Capacity Upper Bound**: $Z \le \max(X, Y)$ (for measuring in one jug; $Z \le X$ if measuring in Jug 1 specifically).
+> 2. **Divisibility Condition**: $Z \pmod{\gcd(X, Y)} = 0$.
+> 
+> *Example of Unsolvable State*: Capacities $X = 6\text{L}, Y = 4\text{L}$ with Target $Z = 5\text{L}$. Here $\gcd(6, 4) = 2$. Because $5 \pmod 2 = 1 \ne 0$, no sequence of operations can ever produce 5 liters.
+
+#### Target in Jug 1 vs. Target in Any Jug Comparison
+
+| Configuration | Target Jug | Optimal Path | Steps | Nodes Explored | Description |
+| :--- | :---: | :--- | :---: | :---: | :--- |
+| **Canonical Syllabus** | **Jug 1** | `(0,0) -> (4,0) -> (1,3) -> (1,0) -> (0,1) -> (4,1) -> (2,3)` | **6** | 10 | Exact match for Rich & Knight textbook problem |
+| **Shortest Overall** | **Any** | `(0,0) -> (0,3) -> (3,0) -> (3,3) -> (4,2)` | **4** | 7 | Measures 2L in Jug 2 in fewer steps |
+| **Die Hard 3** | **Jug 1** | `(0,0) -> (5,0) -> (2,3) -> (2,0) -> (0,2) -> (5,2) -> (4,3)` | **6** | 11 | Classic movie puzzle (Capacities 5, 3 -> Target 4) |
+| **Unsolvable** | **Any** | `No solution path found.` | **0** | 0 | $\gcd(6, 4) = 2 \nmid 5$ (Pruned immediately by GCD check) |
+
+#### Execution Commands & Usage Examples
+
+1. **Default Syllabus Sample Run** (Capacities: 4, 3; Target: 2):
+   ```bash
+   python scripts/run_water_jug_bfs.py
+   ```
+   *Output*:
+   ```text
+   SYLLABUS SAMPLE OUTPUT:
+     >>> (0,0) -> (4,0) -> (1,3) -> (1,0) -> (0,1) -> (4,1) -> (2,3)
+   ```
+
+2. **Single-Line Format (Exact Syllabus Match)**:
+   ```bash
+   python scripts/run_water_jug_bfs.py --format single
+   ```
+   *Output*:
+   ```text
+   (0,0) -> (4,0) -> (1,3) -> (1,0) -> (0,1) -> (4,1) -> (2,3)
+   ```
+
+3. **Step-by-Step Transition Trace Table**:
+   ```bash
+   python scripts/run_water_jug_bfs.py --format table
+   ```
+
+4. **Custom Capacities and Target** (e.g. Die Hard 3: Capacities 5L, 3L; Target 4L):
+   ```bash
+   python scripts/run_water_jug_bfs.py -x 5 -y 3 -z 4
+   ```
+
+5. **Target in Any Jug** (Find shortest path measuring target in either jug):
+   ```bash
+   python scripts/run_water_jug_bfs.py -x 4 -y 3 -z 2 --target-jug any
+   ```
+
+6. **Optional Challenge: Algebraic Reachability & GCD Rule Analysis**:
+   ```bash
+   python scripts/run_water_jug_bfs.py --challenge
+   ```
+
+7. **Comprehensive Automated Benchmark Suite**:
+   ```bash
+   python scripts/run_water_jug_bfs.py --demo
+   ```
+
+8. **Display Viva Voce Theory Guide**:
+   ```bash
+   python scripts/run_water_jug_bfs.py --viva
+   ```
+
+9. **Top-Level Package Dispatcher**:
+   ```bash
+   python -m src water-jug --format single
+   ```
+   or using the alias:
+   ```bash
+   python -m src jug-bfs --format single
+   ```
+
+10. **Interactive Jupyter Notebook**:
+    Open [`notebooks/water_jug_bfs.ipynb`](notebooks/water_jug_bfs.ipynb) in Jupyter Lab or Antigravity IDE.
+
+#### Viva Voce Questions & Authoritative Answers
+
+##### 1. State Space Representation and Effective Size
+- **Question**: How is the state space represented in the Water Jug Problem, and what is its effective size?
+- **Answer**:
+  A state is represented as an ordered tuple of non-negative integers $(x, y)$, where $x \in [0, X]$ denotes the volume in Jug 1 and $y \in [0, Y]$ denotes the volume in Jug 2. The initial state is $(0, 0)$.
+  The theoretical discrete state space contains $(X + 1) \times (Y + 1)$ potential tuples. However, because pouring operations are executed until a jug is either completely full or completely empty, at least one jug is always at level $0$, $X$, or $Y$ in any non-initial state. Thus, all reachable states lie on the perimeter of the rectangle $[0, X] \times [0, Y]$ and specific internal diagonal line segments, making the effective reachable state space significantly smaller (e.g., exactly 14 reachable states for capacities 4L and 3L out of 20 theoretical states).
+
+##### 2. Action Rules Definition and Precondition Pruning
+- **Question**: Detail the 6 production rules used in the transition model and why preconditions are required.
+- **Answer**:
+  The 6 deterministic operators are:
+  1. `Fill 1`: $(x, y) \to (X, y)$ requiring $x < X$.
+  2. `Fill 2`: $(x, y) \to (x, Y)$ requiring $y < Y$.
+  3. `Empty 1`: $(x, y) \to (0, y)$ requiring $x > 0$.
+  4. `Empty 2`: $(x, y) \to (x, 0)$ requiring $y > 0$.
+  5. `Pour 1->2`: $(x, y) \to (x - d, y + d)$ where $d = \min(x, Y - y)$, requiring $x > 0 \land y < Y$.
+  6. `Pour 2->1`: $(x, y) \to (x + d, y - d)$ where $d = \min(y, X - x)$, requiring $y > 0 \land x < X$.
+  Preconditions are essential to prune invalid transitions (e.g., negative water amounts or overflows) and eliminate useless self-loops (such as pouring from an empty jug or filling an already full jug), avoiding state explosion.
+
+##### 3. Unsolvable States (GCD Rule and Bézout's Identity)
+- **Question**: State and prove the GCD rule for unsolvable states.
+- **Answer**:
+  By Bézout's Identity from number theory, for any positive integers $X$ and $Y$, the set of integer linear combinations:
+  $$L = \{a \cdot X + b \cdot Y \mid a, b \in \mathbb{Z}\}$$
+  is equal to the set of all integer multiples of $\gcd(X, Y)$.
+  Since every filling operation adds $X$ or $Y$, every emptying operation subtracts $X$ or $Y$, and pouring conserves total volume between jugs, the water amount in either jug at any step $k$ must be of the form $a \cdot X + b \cdot Y$, and consequently must be divisible by $\gcd(X, Y)$.
+  Therefore, a target $Z$ can be measured if and only if:
+  1. $Z \le \max(X, Y)$ (capacity constraint).
+  2. $Z \pmod{\gcd(X, Y)} = 0$ (divisibility condition).
+  If $Z \pmod{\gcd(X, Y)} \ne 0$, no sequence of physical operations can ever measure $Z$.
+
+##### 4. BFS Optimality and Completeness
+- **Question**: Why is BFS guaranteed to find the shortest action sequence?
+- **Answer**:
+  Because each production rule constitutes a single atomic step with uniform unit transition cost $c(s, a, s') = 1$, Breadth-First Search expands nodes in order of non-decreasing path cost (depth-by-depth). The first time the search discovers a state satisfying the goal test, the path leading to it is guaranteed to have the minimum number of transitions (shortest path). Furthermore, because the state space is finite and bounded by $(X + 1)(Y + 1)$, maintaining a hash set of visited states guarantees completeness—preventing cycles and ensuring termination in finite time.
+
+##### 5. Time and Space Complexity
+- **Question**: What are the asymptotic time and space complexities?
+- **Answer**:
+  - **Time Complexity**: $\mathcal{O}(X \times Y)$. There are at most $(X + 1) \times (Y + 1)$ unique reachable states. For each state dequeued, exactly 6 production rules are evaluated in $\mathcal{O}(1)$ time.
+  - **Space Complexity**: $\mathcal{O}(X \times Y)$. The memory allocated for the FIFO queue (`collections.deque`) and the visited dictionary / parent pointers stores at most $(X + 1) \times (Y + 1)$ state tuples.
+
+---
 
 ---
 

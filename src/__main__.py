@@ -128,6 +128,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 19: Bidirectional Search Simulation (Simultaneous BFS)",
     )
 
+    # Water Jug Problem runner
+    subparsers.add_parser(
+        "water-jug",
+        aliases=["water-jug-bfs", "jug-bfs", "waterjug"],
+        help="Run Question 20: Water Jug Problem using BFS (Implicit Graph Search)",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -179,6 +186,10 @@ def main(argv: Optional[List[str]] = None) -> None:
         "bidirectional-search",
         "bds",
         "bds-search",
+        "water-jug",
+        "water-jug-bfs",
+        "jug-bfs",
+        "waterjug",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -256,6 +267,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_bidirectional_search import main as bds_main
             sys.argv = [sys.argv[0]] + remaining
             bds_main()
+        elif cmd in ("water-jug", "water-jug-bfs", "jug-bfs", "waterjug"):
+            from scripts.run_water_jug_bfs import main as water_jug_main
+            sys.argv = [sys.argv[0]] + remaining
+            water_jug_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining

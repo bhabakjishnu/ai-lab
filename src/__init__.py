@@ -314,6 +314,26 @@ from src.bidirectional_search import (
     plot_grid_maze_bidirectional,
     solve_grid_maze_bidirectional,
 )
+from src.water_jug_bfs import (
+    COPRIME_WATER_JUG_PARAMS,
+    DIE_HARD_WATER_JUG_PARAMS,
+    EQUAL_CAPACITY_PARAMS,
+    RULE_DEFINITIONS,
+    SAMPLE_WATER_JUG_PARAMS,
+    UNSOLVABLE_WATER_JUG_PARAMS,
+    AlgebraicReachabilityResult,
+    TransitionRecord as WaterJugTransitionRecord,
+    WaterJugAction,
+    WaterJugSearchResult,
+    WaterJugSolver,
+    WaterJugState,
+    check_reachability_algebraic,
+    extended_gcd,
+    format_state_arrow_path,
+    get_water_jug_viva_reference,
+    render_ascii_water_jugs,
+    solve_water_jug_bfs,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -601,4 +621,23 @@ __all__ = [
     "plot_bidirectional_search",
     "plot_grid_maze_bidirectional",
     "solve_grid_maze_bidirectional",
+    # Question 20: Water Jug Problem using BFS
+    "COPRIME_WATER_JUG_PARAMS",
+    "DIE_HARD_WATER_JUG_PARAMS",
+    "EQUAL_CAPACITY_PARAMS",
+    "RULE_DEFINITIONS",
+    "SAMPLE_WATER_JUG_PARAMS",
+    "UNSOLVABLE_WATER_JUG_PARAMS",
+    "AlgebraicReachabilityResult",
+    "WaterJugTransitionRecord",
+    "WaterJugAction",
+    "WaterJugSearchResult",
+    "WaterJugSolver",
+    "WaterJugState",
+    "check_reachability_algebraic",
+    "extended_gcd",
+    "format_state_arrow_path",
+    "get_water_jug_viva_reference",
+    "render_ascii_water_jugs",
+    "solve_water_jug_bfs",
 ]
