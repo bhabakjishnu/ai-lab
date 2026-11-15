@@ -28,6 +28,7 @@ from scripts.run_depth_limited_search import main as dls_script_main
 from scripts.run_iterative_deepening_search import main as ids_script_main
 from scripts.run_bfs_dfs_performance_analyzer import main as bfs_dfs_script_main
 from scripts.run_bidirectional_search import main as bds_script_main
+from scripts.run_water_jug_bfs import main as water_jug_script_main
 from src.__main__ import main as cli_main
 
 
@@ -917,6 +918,92 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("COMPLEXITY ADVANTAGE: O(b^(d/2)) vs O(b^d)", out)
         self.assertIn("DIFFICULTIES OF BACKWARD SEARCH IN DIRECTED GRAPHS", out)
         self.assertIn("PREDECESSOR vs SUCCESSOR GENERATION", out)
+
+    def test_water_jug_bfs_script_execution(self) -> None:
+        """Verify Question 20 Water Jug Problem runner script across all CLI modes."""
+        # 1. Module execution: python -m src water-jug --format single
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["water-jug", "--format", "single"])
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), "(0,0) -> (4,0) -> (1,3) -> (1,0) -> (0,1) -> (4,1) -> (2,3)")
+
+        # 2. Module execution with alias: python -m src jug-bfs --format single
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["jug-bfs", "--format", "single"])
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), "(0,0) -> (4,0) -> (1,3) -> (1,0) -> (0,1) -> (4,1) -> (2,3)")
+
+        # 3. Default script run (Question 20 full report, table & ASCII diagrams)
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_water_jug_bfs.py"]):
+            with patch("sys.stdout", stdout_trap):
+                water_jug_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 20: WATER JUG PROBLEM USING BFS", out)
+        self.assertIn("(0,0) -> (4,0) -> (1,3) -> (1,0) -> (0,1) -> (4,1) -> (2,3)", out)
+        self.assertIn("STEP-BY-STEP TRANSITION TRACE TABLE:", out)
+        self.assertIn("ASCII WATER LEVEL DIAGRAMS:", out)
+
+        # 4. Single format mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_water_jug_bfs.py", "--format", "single"]):
+            with patch("sys.stdout", stdout_trap):
+                water_jug_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), "(0,0) -> (4,0) -> (1,3) -> (1,0) -> (0,1) -> (4,1) -> (2,3)")
+
+        # 5. Table format mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_water_jug_bfs.py", "--format", "table"]):
+            with patch("sys.stdout", stdout_trap):
+                water_jug_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("| Step | Action       | Rule # | State (J1,J2)|", out)
+        self.assertIn("Fill 1", out)
+        self.assertIn("Pour 1->2", out)
+
+        # 6. JSON format mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_water_jug_bfs.py", "--format", "json"]):
+            with patch("sys.stdout", stdout_trap):
+                water_jug_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn('"arrow_path_string": "(0,0) -> (4,0) -> (1,3) -> (1,0) -> (0,1) -> (4,1) -> (2,3)"', out)
+
+        # 7. Optional Challenge: Algebraic reachability analysis
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_water_jug_bfs.py", "--challenge"]):
+            with patch("sys.stdout", stdout_trap):
+                water_jug_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE: ALGEBRAIC REACHABILITY & GCD RULE ANALYSIS", out)
+        self.assertIn("Theorem (Bézout's Identity & Diophantine Solvability)", out)
+        self.assertIn("[REACHABLE]", out)
+        self.assertIn("[UNREACHABLE]", out)
+
+        # 8. Demo benchmark suite mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_water_jug_bfs.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                water_jug_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("WATER JUG BFS BENCHMARK SUITE", out)
+        self.assertIn("Benchmark 1: Canonical Sample (Syllabus Default)", out)
+        self.assertIn("Benchmark 2: Die Hard 3 Puzzle", out)
+        self.assertIn("Benchmark 5: Unsolvable", out)
+
+        # 9. Viva Voce study guide mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_water_jug_bfs.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                water_jug_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 20: WATER JUG PROBLEM VIVA VOCE THEORY GUIDE", out)
+        self.assertIn("State Space Representation", out)
+        self.assertIn("Action Rules Definition", out)
+        self.assertIn("Unsolvable States & GCD Rule", out)
 
 
 if __name__ == "__main__":
