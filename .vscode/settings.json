@@ -1,4 +1,5 @@
 {
+    "python.defaultInterpreterPath": "C:\\Users\\jishn\\miniconda3\\envs\\ai-lab\\python.exe",
     "python.condaPath": "C:\\Users\\jishn\\miniconda3\\condabin\\conda.bat",
     "python.terminal.activateEnvironment": false,
     "terminal.integrated.profiles.windows": {

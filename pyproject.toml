@@ -26,3 +26,6 @@ ai-lab = "src.__main__:main"
 testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-v"
+
+[tool.pyrefly]
+python-interpreter-path = "C:/Users/jishn/miniconda3/envs/ai-lab/python.exe"
