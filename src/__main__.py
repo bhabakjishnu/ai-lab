@@ -142,6 +142,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 21: Missionaries and Cannibals Problem using DFS",
     )
 
+    # UCS Grid Navigation runner
+    subparsers.add_parser(
+        "ucs-grid",
+        aliases=["ucs-grid-nav", "grid-ucs", "topological-ucs", "ucs22"],
+        help="Run Question 22: Uniform Cost Search (UCS) Grid Navigation with Cost Modifiers",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -201,6 +208,11 @@ def main(argv: Optional[List[str]] = None) -> None:
         "missionaries-and-cannibals",
         "mc-dfs",
         "mc",
+        "ucs-grid",
+        "ucs-grid-nav",
+        "grid-ucs",
+        "topological-ucs",
+        "ucs22",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -286,6 +298,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_missionaries_cannibals_dfs import main as mc_main
             sys.argv = [sys.argv[0]] + remaining
             mc_main()
+        elif cmd in ("ucs-grid", "ucs-grid-nav", "grid-ucs", "topological-ucs", "ucs22"):
+            from scripts.run_ucs_grid_navigation import main as ucs_grid_main
+            sys.argv = [sys.argv[0]] + remaining
+            ucs_grid_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining

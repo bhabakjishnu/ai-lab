@@ -59,6 +59,7 @@ ai-lab/
 │   ├── bidirectional_search.ipynb       # Question 19: Bidirectional Search (BDS) Simulation & Viva guide
 │   ├── water_jug_bfs.ipynb              # Question 20: Water Jug Problem using BFS & Viva guide
 │   ├── missionaries_cannibals_dfs.ipynb # Question 21: Missionaries and Cannibals Problem using DFS & Viva guide
+│   ├── ucs_grid_navigation.ipynb        # Question 22: UCS Grid Navigation with Cost Modifiers & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -81,11 +82,12 @@ ai-lab/
 │   ├── run_bidirectional_search.py      # CLI & interactive runner for Question 19 (Simultaneous BDS & Maze Challenge)
 │   ├── run_water_jug_bfs.py             # CLI & interactive runner for Question 20 (Water Jug Problem using BFS)
 │   ├── run_missionaries_cannibals_dfs.py# CLI & interactive runner for Question 21 (Missionaries and Cannibals DFS)
+│   ├── run_ucs_grid_navigation.py       # CLI & interactive runner for Question 22 (UCS Grid Navigation)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -106,6 +108,7 @@ ai-lab/
 │   ├── bidirectional_search.py          # Question 19: Bidirectional Search (BDS), Space Halving & Maze Solver
 │   ├── water_jug_bfs.py                 # Question 20: Water Jug Problem using BFS, 6 Production Rules & GCD
 │   ├── missionaries_cannibals_dfs.py    # Question 21: Missionaries and Cannibals DFS, 5 Moves & Constraint Checking
+│   ├── ucs_grid_navigation.py           # Question 22: UCS Grid Navigation, Cost Modifiers, Min-Heap & Diagonals
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -129,6 +132,7 @@ ai-lab/
 │   ├── test_bidirectional_search.py     # Unit tests for Question 19 BDS dual queues, intersection & maze
 │   ├── test_water_jug_bfs.py            # Unit tests for Question 20 Water Jug state-space, 6 rules & GCD
 │   ├── test_missionaries_cannibals_dfs.py# Unit tests for Question 21 Missionaries and Cannibals DFS, 5 Moves & Cycles
+│   ├── test_ucs_grid_navigation.py      # Unit tests for Question 22 UCS grid navigation, parsing, costs & diagonals
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -2577,6 +2581,175 @@ flowchart TD
   No. It is a famous mathematical theorem in Artificial Intelligence (Amarel, 1968) that for a boat capacity of $K = 2$, the Missionaries and Cannibals problem is solvable if and only if $N \le 3$.
   For $N \ge 4$, the problem is provably **unsolvable** with a 2-person boat unless an intermediate island in the river is introduced or the boat capacity is increased to $K \ge 3$.
   *Reason*: To transport missionaries across without being eaten, the boat must shuttle back and forth. With $N \ge 4$ and $K = 2$, every possible crossing leaves at least one bank where cannibals outnumber missionaries during the intermediate transition stage.
+
+---
+
+### Question 22: Uniform Cost Search (UCS) Grid Navigation with Cost Modifiers
+
+[![Syllabus](https://img.shields.io/badge/Syllabus-Uninformed%20Search%20Techniques-purple?logo=read-the-docs&logoColor=white)](https://github.com/bhabakjishnu/ai-lab)
+[![Difficulty](https://img.shields.io/badge/Difficulty-Advanced-orange)](#question-22-uniform-cost-search-ucs-grid-navigation-with-cost-modifiers)
+[![Practical Type](https://img.shields.io/badge/Practical-Simulation-blue)](#question-22-uniform-cost-search-ucs-grid-navigation-with-cost-modifiers)
+[![Algorithm](https://img.shields.io/badge/Algorithm-Uniform%20Cost%20Search%20(heapq)-brightgreen)](#question-22-uniform-cost-search-ucs-grid-navigation-with-cost-modifiers)
+
+- **Syllabus Area**: Uninformed Search Techniques
+- **Difficulty**: 🟠 Advanced
+- **Practical Type**: Simulation
+- **Core AI Concept**: Variable Step Costs, UCS Optimality, Min-Heap Priority Queue, Goal Test Placement (Expansion vs Generation)
+- **Python Concepts Tested**: 2D coordinate mapping, priority queues (`heapq`), dictionary hashing, generator animations
+- **Expected Algorithm / Technique**: Uniform Cost Search (Dijkstra over 2D State Space)
+- **Recommended Python Libraries**: `heapq`, `math`
+- **Complexity Expectation**:
+  - **Time Complexity**: $\mathcal{O}(E \log V)$ where $V = H \times W$ (total cells) and $E \le 4V$ (orthogonal) or $E \le 8V$ (diagonal)
+  - **Space Complexity**: $\mathcal{O}(V)$ auxiliary memory for frontier min-heap, `best_cost` dictionary, and parent pointer tree
+- **Constraints / Conditions**: Cannot move diagonally (by default); strictly 4-directional movements: Up $(-1, 0)$, Down $(1, 0)$, Left $(0, -1)$, Right $(0, 1)$
+- **Input Requirements**: Grid of characters, Start coords, Goal coords
+- **Expected Output**: Coordinate list and integer/numerical cost
+- **Sample Input**: `['...', '.M.', '..G']`
+- **Sample Output**: `Cost: 4, Path: (0,0)->(1,0)->(2,0)->(2,1)->(2,2)`
+- **Optional Challenge**: Allow diagonal moves with a calculated multiplier cost (Euclidean $\sqrt{2}$) and corner-cutting prevention
+- **University Practical Importance**: Advanced
+
+#### Problem Statement & Topological Grid Modeling
+In realistic robotic navigation and path planning, the cost to traverse terrain is rarely uniform. An autonomous mobile agent navigates an $H \times W$ 2D topological map grid from start coordinates $(r_{\text{start}}, c_{\text{start}})$ to goal coordinates $(r_{\text{goal}}, c_{\text{goal}})$. Different terrain characters assign distinct movement cost modifiers to entering a cell:
+
+| Terrain Character | Terrain Type | Step Cost Modifier | Description & AI Implications |
+| :---: | :---: | :---: | :--- |
+| `.` | Clear / Flat Ground | **1** | Standard frictionless surface; optimal baseline path cost |
+| `M` | Mountain / Rough Terrain | **5** | Heavy elevation penalty; agent prefers 4 clear steps over climbing 1 mountain |
+| `W` | Water / Marsh / Swamp | **10** | High-resistance aquatic hazard; forces long detours through dry terrain |
+| `#` / `X` | Obstacle / Wall | $\infty$ | Impassable barrier; strictly forbidden for traversal |
+| `S` | Start Cell | 1 (0 initial) | Origin coordinate of the search agent |
+| `G` | Goal Cell | 1 | Destination target coordinate |
+
+#### Coordinate Cost Dictionary Parsing (Task Requirement 1)
+The 2D topological grid is parsed into a hash table mapping coordinate pairs $(r, c) \mapsto \text{cost}$:
+$$\mathcal{M}: \mathbb{Z}^2 \cap [0, H-1] \times [0, W-1] \to \mathbb{R}^+$$
+
+For the canonical sample grid `['...', '.M.', '..G']`:
+```python
+{
+    (0, 0): 1, (0, 1): 1, (0, 2): 1,
+    (1, 0): 1, (1, 1): 5, (1, 2): 1,
+    (2, 0): 1, (2, 1): 1, (2, 2): 1
+}
+```
+
+#### Uniform Cost Search Algorithm (Task Requirements 2, 3 & 4)
+Uniform Cost Search explores states in order of cumulative path cost $g(n)$ from the start node:
+1. **Frontier Priority Queue**: Managed using Python's `heapq` module as a binary min-heap storing tuples:
+   $$(g(n), \text{counter}, (r, c))$$
+   The monotonic `counter` guarantees deterministic FIFO tie-breaking for equal-cost states without invoking coordinate comparison.
+2. **Goal Test Placement**: Crucially applied upon **expansion** (when popped from the min-heap), **not** upon generation (insertion). In spaces with variable edge weights, the first path discovered to the goal may carry a higher total cost than an alternate path currently pending in the frontier.
+3. **Lazy Deletion / Superseded Entry Handling**: Because Python's `heapq` lacks an $\mathcal{O}(\log N)$ `decrease_key`, when a cheaper path is found, the lower-cost tuple is pushed to the heap. When popped, if `cost > best_cost[coord]`, the stale entry is discarded in $\mathcal{O}(1)$ time.
+4. **4-Directional Movement**: Explores neighbors in orthogonal order: Up $(-1, 0)$, Down $(1, 0)$, Left $(0, -1)$, Right $(0, 1)$.
+
+#### Optional Challenge: 8-Directional Diagonal Movement with Calculated Multiplier
+When diagonal movement is enabled (`--diagonal`), the agent transitions across diagonal intersections with Euclidean distance scaling:
+$$\Delta d = \sqrt{\Delta r^2 + \Delta c^2} = \sqrt{1^2 + 1^2} = \sqrt{2} \approx 1.41421356$$
+$$\text{step\_cost} = \text{terrain\_cost} \times \sqrt{2}$$
+
+- **Corner-Cutting Prevention**: If both orthogonal adjacent cells $(r+dr, c)$ and $(r, c+dc)$ contain impassable obstacles, diagonal squeezing between them is physically impossible and strictly prohibited.
+
+#### Comparative Performance Analysis: UCS vs BFS
+When step costs vary, Breadth-First Search (BFS) is **hop-optimal** but **cost-suboptimal**:
+- On water barrier grid `['S.W.G', '..W..', '.....']`:
+  - **BFS Path**: $(0,0) \to (0,1) \to (0,2) \to (0,3) \to (0,4)$
+    - Hop Count: 4 steps
+    - Total Cost: 13 (steps through water cell $(0, 2)$)
+  - **UCS Path**: $(0,0) \to (1,0) \to (2,0) \to (2,1) \to (2,2) \to (2,3) \to (1,3) \to (0,3) \to (0,4)$
+    - Hop Count: 8 steps (longer detour)
+    - Total Cost: **8** (circumvents water via clear ground)
+    - **Cost Savings**: 5 cost units ($38.5\%$ reduction)
+
+#### Verification & CLI Usage Examples
+
+1. **Standard Sample Run**:
+   ```bash
+   python scripts/run_ucs_grid_navigation.py --sample
+   ```
+   *Output*:
+   ```
+   Cost: 4, Path: (0,0)->(1,0)->(2,0)->(2,1)->(2,2)
+   ```
+
+2. **ASCII Topological Map & Wavefront View**:
+   ```bash
+   python scripts/run_ucs_grid_navigation.py --ascii
+   ```
+
+3. **Optional Challenge (Diagonal Moves Enabled)**:
+   ```bash
+   python scripts/run_ucs_grid_navigation.py --diagonal
+   ```
+
+4. **Comparative Analysis against BFS**:
+   ```bash
+   python scripts/run_ucs_grid_navigation.py --compare-bfs
+   ```
+
+5. **Terminal Animation Mode**:
+   ```bash
+   python scripts/run_ucs_grid_navigation.py --animate --delay 0.05
+   ```
+
+6. **Machine-Readable JSON Output**:
+   ```bash
+   python scripts/run_ucs_grid_navigation.py --json
+   ```
+
+7. **University Viva Voce Reference Guide**:
+   ```bash
+   python scripts/run_ucs_grid_navigation.py --viva
+   ```
+
+8. **Comprehensive Laboratory Demonstration**:
+   ```bash
+   python scripts/run_ucs_grid_navigation.py --demo
+   ```
+
+9. **Top-Level CLI Module Invocation**:
+   ```bash
+   python -m src ucs-grid
+   ```
+
+10. **Interactive Jupyter Notebook**:
+    Open [`notebooks/ucs_grid_navigation.ipynb`](notebooks/ucs_grid_navigation.ipynb) in Jupyter Lab or Antigravity IDE.
+
+#### Viva Voce Questions & Authoritative Answers
+
+##### 1. Priority Queue Popping Mechanism
+- **Question**: Explain the Priority Queue popping mechanism in UCS and why the goal test must occur at pop rather than push.
+- **Answer**:
+  In Uniform Cost Search (UCS), the frontier is maintained as a min-heap ordered by cumulative path cost $g(n)$. When `heapq.heappop()` extracts the minimum element, it guarantees that no unexplored path currently in the frontier has a lower path cost than the popped node.
+  Crucially, the goal test **must** be performed when a node is selected for **expansion** (popped from the priority queue), **not** when it is **generated** (pushed to the queue). If the goal test were applied at generation (like in standard BFS), the algorithm would terminate upon discovering the *first* path to the goal. In graphs with non-uniform edge weights, the first path found may consist of fewer hops but carry a vastly higher cumulative cost (e.g. crossing an expensive mountain or water body in 2 steps instead of 4 clear ground steps). Testing at expansion guarantees that all paths with cost strictly less than the goal's cost have already been fully explored, mathematically proving path cost optimality.
+
+##### 2. Dealing with Non-Uniform Step Costs
+- **Question**: How does Uniform Cost Search deal with non-uniform step costs, and why does Breadth-First Search (BFS) fail here?
+- **Answer**:
+  Breadth-First Search assumes uniform unit edge weights ($c = 1$ for all transitions). It expands states in order of hop-depth $d$, meaning it guarantees finding the path with the minimum number of transitions, but **not** the minimum total cost.
+  UCS generalizes BFS by expanding states along contours of equal cumulative cost $g(n)$. It treats the map as a continuous cost gradient: a step onto clear ground `.` costs 1, a mountain `M` costs 5, and water `W` costs 10. UCS will happily take a 4-step detour around a mountain through clear ground (cost $1+1+1+1 = 4$) rather than a 1-step direct climb into the mountain (cost 5). In terms of search geometry, while BFS expands concentric circles in grid space, UCS expands deformed cost contours that bend and flow around high-cost terrain features.
+
+##### 3. Completeness of UCS with Variable Weights
+- **Question**: Discuss the Completeness of Uniform Cost Search with variable edge weights.
+- **Answer**:
+  UCS is complete if and only if two formal mathematical conditions are satisfied:
+  1. The branching factor $b$ is finite ($b < \infty$).
+  2. Every step cost is bounded below by a strictly positive constant $\varepsilon$: $c(s, a, s') \ge \varepsilon > 0$.
+  If step costs were permitted to be zero (or approach zero arbitrarily without a positive lower bound), the search could enter an infinite zero-cost loop or an infinite sequence of fractional steps whose infinite sum converges to a finite value less than the goal's cost (Zeno's paradox, e.g. steps of $1/2, 1/4, 1/8\dots$). Under the positive lower bound condition ($\varepsilon > 0$), the cumulative cost along any infinite path diverges to infinity ($\lim g(n) = \infty$). Consequently, the number of states with $g(n) \le C^*$ (where $C^*$ is the optimal goal cost) is strictly finite, guaranteeing that UCS will terminate and find the optimal goal.
+
+##### 4. Optional Challenge: Diagonal Moves with Calculated Multiplier Costs
+- **Question**: Explain the mechanics of allowing diagonal moves with a calculated multiplier cost and corner-cutting prevention.
+- **Answer**:
+  When diagonal movements are enabled, an agent transitions to 8 neighboring cells instead of 4. Moving diagonally across a unit grid square covers a geometric distance of $\sqrt{1^2 + 1^2} = \sqrt{2} \approx 1.4142$. To maintain physical metric realism, the step cost for entering a cell diagonally is scaled by this multiplier:
+  $$\text{step\_cost} = \text{cell\_cost} \times \sqrt{2}$$
+  Furthermore, realistic pathfinding must account for *corner cutting*. If an agent attempts to move diagonally from $(r, c)$ to $(r+1, c+1)$, but both orthogonal adjacent cells $(r+1, c)$ and $(r, c+1)$ contain impassable obstacles (walls), physical geometry prevents the agent from squeezing through the infinitely narrow zero-width tangent point. The solver includes corner-cutting prevention rules to enforce valid spatial navigation.
+
+##### 5. Time and Space Complexity Analysis
+- **Question**: What is the Time and Space Complexity of Uniform Cost Search on an $H \times W$ grid?
+- **Answer**:
+  Let $V = H \times W$ be the total number of cells in the grid, and $E$ be the total number of valid directed edges between adjacent cells. In 4-directional grid navigation, each cell has at most 4 neighbors, so $E \le 4V$. With diagonals enabled, $E \le 8V$.
+  - **Time Complexity**: $\mathcal{O}(E \log V)$. Each unique grid cell is expanded at most once (popped from min-heap in $\mathcal{O}(\log V)$), and each edge relaxation inserts into the min-heap at most once ($\mathcal{O}(\log V)$). Hence the overall time complexity is $\mathcal{O}(E \log V)$.
+  - **Space Complexity**: $\mathcal{O}(V)$. The frontier priority queue, the `best_cost` hash table, the parent pointer dictionary, and the explored set each store at most $\mathcal{O}(V)$ coordinates in the worst case.
 
 ---
 
