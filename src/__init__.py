@@ -371,6 +371,23 @@ from src.missionaries_cannibals_dfs import (
     solve_missionaries_cannibals_dfs,
     validate_state_detailed as validate_missionaries_cannibals_state_detailed,
 )
+from src.ucs_grid_navigation import (
+    ALL_8_DIRECTIONS as UCS_GRID_ALL_8_DIRECTIONS,
+    DEFAULT_OBSTACLES as UCS_GRID_DEFAULT_OBSTACLES,
+    DEFAULT_TERRAIN_COSTS as UCS_GRID_DEFAULT_TERRAIN_COSTS,
+    ORTHOGONAL_DIRECTIONS as UCS_GRID_ORTHOGONAL_DIRECTIONS,
+    MoveAction as UCSGridMoveAction,
+    TerrainType as UCSGridTerrainType,
+    TopologicalGrid,
+    UCSGridResult,
+    UCSGridSolver,
+    compare_ucs_vs_bfs,
+    format_path_coords as format_ucs_grid_path_coords,
+    get_ucs_grid_viva_reference,
+    parse_grid_to_cost_dict,
+    render_grid_with_path as render_ucs_grid_with_path,
+    solve_ucs_grid,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -707,4 +724,20 @@ __all__ = [
     "render_ascii_river",
     "solve_missionaries_cannibals_dfs",
     "validate_missionaries_cannibals_state_detailed",
+    # Question 22: UCS Grid Navigation with Cost Modifiers
+    "UCS_GRID_ALL_8_DIRECTIONS",
+    "UCS_GRID_DEFAULT_OBSTACLES",
+    "UCS_GRID_DEFAULT_TERRAIN_COSTS",
+    "UCS_GRID_ORTHOGONAL_DIRECTIONS",
+    "UCSGridMoveAction",
+    "UCSGridResult",
+    "UCSGridSolver",
+    "UCSGridTerrainType",
+    "TopologicalGrid",
+    "compare_ucs_vs_bfs",
+    "format_ucs_grid_path_coords",
+    "get_ucs_grid_viva_reference",
+    "parse_grid_to_cost_dict",
+    "render_ucs_grid_with_path",
+    "solve_ucs_grid",
 ]

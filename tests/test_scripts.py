@@ -36,6 +36,7 @@ from scripts.run_bfs_dfs_performance_analyzer import main as bfs_dfs_script_main
 from scripts.run_bidirectional_search import main as bds_script_main
 from scripts.run_water_jug_bfs import main as water_jug_script_main
 from scripts.run_missionaries_cannibals_dfs import main as mc_script_main
+from scripts.run_ucs_grid_navigation import main as ucs_grid_script_main
 from src.__main__ import main as cli_main
 
 
@@ -1136,6 +1137,96 @@ class TestScriptExecution(unittest.TestCase):
         out = stdout_trap.getvalue()
         self.assertIn("MISSIONARIES & CANNIBALS PROBLEM (DFS ITERATIVE)", out)
         self.assertIn("Step 1: 2C cross right -> (3, 1, 'Right')", out)
+
+    def test_run_ucs_grid_navigation_script(self) -> None:
+        """Comprehensive verification of Question 22 runner script across all CLI modes."""
+        # 1. Default execution on sample grid
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_grid_navigation.py"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Cost: 4, Path: (0,0)->(1,0)->(2,0)->(2,1)->(2,2)", out)
+
+        # 2. Sample flag
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_grid_navigation.py", "--sample"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Cost: 4, Path: (0,0)->(1,0)->(2,0)->(2,1)->(2,2)", out)
+
+        # 3. Custom grid with ASCII visualization
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_grid_navigation.py", "--grid", "...", ".M.", "..G", "--ascii"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("UNIFORM COST SEARCH GRID RESULT", out)
+        self.assertIn("ASCII Map Visualization", out)
+
+        # 4. Diagonal mode (Optional Challenge)
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_grid_navigation.py", "--diagonal"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Cost: 3.41", out)
+
+        # 5. BFS Comparison mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_grid_navigation.py", "--compare-bfs"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("UCS VS BFS COMPARATIVE PERFORMANCE ANALYSIS", out)
+        self.assertIn("BFS (Hop-Optimal) Path", out)
+        self.assertIn("UCS (Cost-Optimal) Path", out)
+
+        # 6. JSON output mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_grid_navigation.py", "--json"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn('"success": true', out)
+        self.assertIn('"cost": 4', out)
+
+        # 7. Viva Voce guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_grid_navigation.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 22: UCS GRID NAVIGATION VIVA VOCE THEORY GUIDE", out)
+        self.assertIn("Priority Queue popping mechanism", out)
+        self.assertIn("Completeness", out)
+
+        # 8. Animation mode with zero delay
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_grid_navigation.py", "--animate", "--delay", "0.0"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("UCS WAVEFRONT EXPANSION ANIMATION", out)
+        self.assertIn("GOAL REACHED! OPTIMAL PATH FOUND!", out)
+
+        # 9. Full Demo mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_grid_navigation.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 22: UCS GRID NAVIGATION COMPREHENSIVE LABORATORY DEMO", out)
+        self.assertIn("STANDARD SAMPLE EXECUTION", out)
+        self.assertIn("OPTIONAL CHALLENGE: DIAGONAL MOVES", out)
+
+        # 10. Top-level CLI invocation via 'python -m src ucs-grid'
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["ucs-grid"])
+        out = stdout_trap.getvalue()
+        self.assertIn("Cost: 4, Path: (0,0)->(1,0)->(2,0)->(2,1)->(2,2)", out)
 
 
 if __name__ == "__main__":
