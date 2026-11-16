@@ -15,11 +15,17 @@ from scripts.run_randomized_agent import main as randomized_main
 from scripts.run_model_based_agent import main as model_main
 from scripts.run_goal_based_agent import main as goal_main
 from scripts.run_utility_based_agent import main as utility_main
-from scripts.run_multi_agent_simulation import main as multi_agent_main
+try:
+    from scripts.run_multi_agent_simulation import main as multi_agent_main
+except (ImportError, OSError):
+    multi_agent_main = None
 from scripts.run_stochastic_vacuum_agent import main as stochastic_main
 from scripts.run_environment_classifier import main as env_classifier_main
 from scripts.run_agent_performance_evaluator import main as agent_eval_main
-from scripts.run_state_space_visualizer import main as state_space_main
+try:
+    from scripts.run_state_space_visualizer import main as state_space_main
+except (ImportError, OSError):
+    state_space_main = None
 from scripts.run_breadth_first_search import main as bfs_main
 from scripts.run_depth_first_search import main as dfs_main
 from scripts.run_uniform_cost_search import main as ucs_main
@@ -29,6 +35,7 @@ from scripts.run_iterative_deepening_search import main as ids_script_main
 from scripts.run_bfs_dfs_performance_analyzer import main as bfs_dfs_script_main
 from scripts.run_bidirectional_search import main as bds_script_main
 from scripts.run_water_jug_bfs import main as water_jug_script_main
+from scripts.run_missionaries_cannibals_dfs import main as mc_script_main
 from src.__main__ import main as cli_main
 
 
@@ -1004,6 +1011,131 @@ class TestScriptExecution(unittest.TestCase):
         self.assertIn("State Space Representation", out)
         self.assertIn("Action Rules Definition", out)
         self.assertIn("Unsolvable States & GCD Rule", out)
+
+    def test_missionaries_cannibals_dfs_script_executions(self) -> None:
+        """Comprehensive verification of Question 21 runner script across all CLI modes."""
+        # 1. Default standard run (iterative DFS, 3M 3C)
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_missionaries_cannibals_dfs.py"]):
+            with patch("sys.stdout", stdout_trap):
+                mc_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("MISSIONARIES & CANNIBALS PROBLEM (DFS ITERATIVE)", out)
+        self.assertIn("Step 1: 2C cross right -> (3, 1, 'Right')", out)
+        self.assertIn("Goal Reached: (0, 0, 'Right') in 11 boat trips!", out)
+
+        # 2. Table format mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_missionaries_cannibals_dfs.py", "--format", "table"]):
+            with patch("sys.stdout", stdout_trap):
+                mc_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("+------+--------------------+--------------------+", out)
+        self.assertIn("Left Bank (M, C)", out)
+        self.assertIn("2C cross right", out)
+
+        # 3. Arrow trace mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_missionaries_cannibals_dfs.py", "--format", "arrows"]):
+            with patch("sys.stdout", stdout_trap):
+                mc_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("(3,3,Left) --[2C cross right]--> (3,1,Right)", out)
+
+        # 4. Detailed ASCII river mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_missionaries_cannibals_dfs.py", "--format", "detailed"]):
+            with patch("sys.stdout", stdout_trap):
+                mc_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("MISSIONARIES & CANNIBALS RIVER CROSSING TRACE", out)
+        self.assertIn("Left Bank:", out)
+        self.assertIn("[BOAT]", out)
+
+        # 5. Recursive DFS mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_missionaries_cannibals_dfs.py", "--method", "recursive"]):
+            with patch("sys.stdout", stdout_trap):
+                mc_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("DFS RECURSIVE", out)
+        self.assertIn("Goal Reached: (0, 0, 'Right') in 11 boat trips!", out)
+
+        # 6. Compare validation strategies (generation vs testing)
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_missionaries_cannibals_dfs.py", "--compare-validation"]):
+            with patch("sys.stdout", stdout_trap):
+                mc_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("CONSTRAINT VALIDATION: GENERATION vs TESTING", out)
+        self.assertIn("Forward Checking", out)
+        self.assertIn("Generate-and-Test", out)
+
+        # 7. Compare DFS vs BFS
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_missionaries_cannibals_dfs.py", "--compare-bfs"]):
+            with patch("sys.stdout", stdout_trap):
+                mc_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("ALGORITHM COMPARISON: DEPTH-FIRST SEARCH (DFS) vs BREADTH-FIRST SEARCH (BFS)", out)
+        self.assertIn("DFS (LIFO Stack)", out)
+        self.assertIn("BFS (FIFO Queue)", out)
+
+        # 8. State space combinatorial analysis
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_missionaries_cannibals_dfs.py", "--state-space"]):
+            with patch("sys.stdout", stdout_trap):
+                mc_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("STATE SPACE COMBINATORIAL ANALYSIS", out)
+        self.assertIn("Theoretical Unconstrained States: 32", out)
+        self.assertIn("Valid (Safe) States: 20", out)
+        self.assertIn("Reachable Safe States from (3, 3, 'Left'): 16", out)
+
+        # 9. Animation mode with zero delay
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_missionaries_cannibals_dfs.py", "--animate", "--delay", "0.0"]):
+            with patch("sys.stdout", stdout_trap):
+                mc_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("MISSIONARIES & CANNIBALS RIVER CROSSING ANIMATION", out)
+        self.assertIn("ALL 3 MISSIONARIES AND 3 CANNIBALS SAFELY CROSSED", out)
+
+        # 10. JSON mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_missionaries_cannibals_dfs.py", "--json"]):
+            with patch("sys.stdout", stdout_trap):
+                mc_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn('"success": true', out)
+        self.assertIn('"total_trips": 11', out)
+
+        # 11. Viva Voce guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_missionaries_cannibals_dfs.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                mc_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 21: MISSIONARIES & CANNIBALS VIVA VOCE THEORY GUIDE", out)
+        self.assertIn("Constraint Validation: Generation vs Testing", out)
+        self.assertIn("State Space Size and Reachability", out)
+        self.assertIn("Why BFS is Preferred Over DFS", out)
+
+        # 12. Full Demo mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_missionaries_cannibals_dfs.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                mc_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 21: MISSIONARIES & CANNIBALS FULL LABORATORY DEMO", out)
+
+        # 13. Top-level CLI invocation via 'python -m src mc'
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["mc"])
+        out = stdout_trap.getvalue()
+        self.assertIn("MISSIONARIES & CANNIBALS PROBLEM (DFS ITERATIVE)", out)
+        self.assertIn("Step 1: 2C cross right -> (3, 1, 'Right')", out)
 
 
 if __name__ == "__main__":
