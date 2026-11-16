@@ -135,6 +135,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 20: Water Jug Problem using BFS (Implicit Graph Search)",
     )
 
+    # Missionaries and Cannibals problem runner
+    subparsers.add_parser(
+        "missionaries-cannibals",
+        aliases=["missionaries-and-cannibals", "mc-dfs", "mc"],
+        help="Run Question 21: Missionaries and Cannibals Problem using DFS",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -190,6 +197,10 @@ def main(argv: Optional[List[str]] = None) -> None:
         "water-jug-bfs",
         "jug-bfs",
         "waterjug",
+        "missionaries-cannibals",
+        "missionaries-and-cannibals",
+        "mc-dfs",
+        "mc",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -271,6 +282,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_water_jug_bfs import main as water_jug_main
             sys.argv = [sys.argv[0]] + remaining
             water_jug_main()
+        elif cmd in ("missionaries-cannibals", "missionaries-and-cannibals", "mc-dfs", "mc"):
+            from scripts.run_missionaries_cannibals_dfs import main as mc_main
+            sys.argv = [sys.argv[0]] + remaining
+            mc_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining

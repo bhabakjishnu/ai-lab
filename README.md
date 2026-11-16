@@ -58,6 +58,7 @@ ai-lab/
 │   ├── bfs_vs_dfs_performance_analyzer.ipynb# Question 18: BFS vs DFS Performance Analyzer & Viva guide
 │   ├── bidirectional_search.ipynb       # Question 19: Bidirectional Search (BDS) Simulation & Viva guide
 │   ├── water_jug_bfs.ipynb              # Question 20: Water Jug Problem using BFS & Viva guide
+│   ├── missionaries_cannibals_dfs.ipynb # Question 21: Missionaries and Cannibals Problem using DFS & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -79,11 +80,12 @@ ai-lab/
 │   ├── run_bfs_dfs_performance_analyzer.py# CLI & interactive runner for Question 18 (BFS vs DFS on 10x10 Maze)
 │   ├── run_bidirectional_search.py      # CLI & interactive runner for Question 19 (Simultaneous BDS & Maze Challenge)
 │   ├── run_water_jug_bfs.py             # CLI & interactive runner for Question 20 (Water Jug Problem using BFS)
+│   ├── run_missionaries_cannibals_dfs.py# CLI & interactive runner for Question 21 (Missionaries and Cannibals DFS)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -103,6 +105,7 @@ ai-lab/
 │   ├── bfs_dfs_performance_analyzer.py  # Question 18: BFS vs DFS Performance Analyzer on 10x10 Mazes
 │   ├── bidirectional_search.py          # Question 19: Bidirectional Search (BDS), Space Halving & Maze Solver
 │   ├── water_jug_bfs.py                 # Question 20: Water Jug Problem using BFS, 6 Production Rules & GCD
+│   ├── missionaries_cannibals_dfs.py    # Question 21: Missionaries and Cannibals DFS, 5 Moves & Constraint Checking
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -125,6 +128,7 @@ ai-lab/
 │   ├── test_bfs_dfs_performance_analyzer.py# Unit tests for Question 18 BFS vs DFS comparison & metrics
 │   ├── test_bidirectional_search.py     # Unit tests for Question 19 BDS dual queues, intersection & maze
 │   ├── test_water_jug_bfs.py            # Unit tests for Question 20 Water Jug state-space, 6 rules & GCD
+│   ├── test_missionaries_cannibals_dfs.py# Unit tests for Question 21 Missionaries and Cannibals DFS, 5 Moves & Cycles
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -2343,6 +2347,236 @@ By **Bézout's Identity**, the smallest positive integer expressible in this for
 - **Answer**:
   - **Time Complexity**: $\mathcal{O}(X \times Y)$. There are at most $(X + 1) \times (Y + 1)$ unique reachable states. For each state dequeued, exactly 6 production rules are evaluated in $\mathcal{O}(1)$ time.
   - **Space Complexity**: $\mathcal{O}(X \times Y)$. The memory allocated for the FIFO queue (`collections.deque`) and the visited dictionary / parent pointers stores at most $(X + 1) \times (Y + 1)$ state tuples.
+
+---
+
+### Question 21: Missionaries and Cannibals Problem using Depth-First Search (DFS)
+
+[![Syllabus](https://img.shields.io/badge/Syllabus-Uninformed%20Search%20Techniques-purple?logo=read-the-docs&logoColor=white)](https://github.com/bhabakjishnu/ai-lab)
+[![Difficulty](https://img.shields.io/badge/Difficulty-Expert-red)](#question-21-missionaries-and-cannibals-problem-using-depth-first-search-dfs)
+[![Practical Type](https://img.shields.io/badge/Practical-State--Space%20Search-blue)](#question-21-missionaries-and-cannibals-problem-using-depth-first-search-dfs)
+[![Algorithm](https://img.shields.io/badge/Algorithm-DFS%20with%20Cycle%20Detection-brightgreen)](#question-21-missionaries-and-cannibals-problem-using-depth-first-search-dfs)
+
+- **Syllabus Area**: Uninformed Search Techniques
+- **Difficulty**: 🔴 Expert
+- **Practical Type**: State-Space Search
+- **Core AI Concept**: Constraint Checking in State Generation, Implicit Graph Traversal, Loop Avoidance
+- **Python Concepts Tested**: Complex condition evaluation, tuple representation, recursive & iterative DFS
+- **Expected Algorithm / Technique**: Depth-First Search (DFS) with cycle detection
+- **Recommended Python Libraries**: None (Pure Python Standard Library)
+- **Complexity**: Time/Space bounded by small state space ($|S| \le 32$, $|S_{\text{safe}}| = 20$, $|S_{\text{reachable}}| = 16$)
+- **Constraints / Conditions**: DFS must avoid loops; at no time can cannibals outnumber missionaries on either bank
+- **Input Requirements**: None (Standard 3M, 3C parameters)
+- **Expected Output**: Trace of states leading to `(0, 0, 'Right')`
+- **Sample Input**: Execute search
+- **Sample Output**: `Step 1: 2C cross right... [Full path trace]`
+- **Optional Challenge**: Animate the text output with delays
+- **University Practical Importance**: Very High
+
+#### Problem Statement & State-Space Formulation
+Three missionaries ($M$) and three cannibals ($C$) must cross from the left bank to the right bank of a river using a boat that can hold at most two people (boat capacity = 2). The boat cannot cross without at least one person rowing (minimum passengers = 1). At no time, on either riverbank, can cannibals outnumber missionaries present on that bank, unless there are zero missionaries on that bank (if $M = 0$, cannibals have no missionaries to eat).
+
+- **State Representation**: A 3-tuple `(M_left, C_left, Boat_pos)`:
+  - `M_left`: Count of missionaries on the left riverbank ($0 \le M_l \le 3$)
+  - `C_left`: Count of cannibals on the left riverbank ($0 \le C_l \le 3$)
+  - `Boat_pos`: Position of the boat (`'Left'` or `'Right'`)
+- **Complementary Bank (Right Bank)**:
+  - $M_{\text{right}} = 3 - M_{\text{left}}$
+  - $C_{\text{right}} = 3 - C_{\text{left}}$
+- **Initial State**: $s_0 = (3, 3, \text{'Left'})$
+- **Goal State**: $s_g = (0, 0, \text{'Right'})$
+
+#### The 5 Canonical Moves
+The boat holds at least 1 and at most 2 passengers, yielding exactly 5 permissible move operations:
+
+| Move | Passenger Tuple $(m, c)$ | Total In Boat | Description | Directional Effect (from Left) | Directional Effect (from Right) |
+| :---: | :---: | :---: | :--- | :--- | :--- |
+| **1M** | $(1, 0)$ | 1 | 1 Missionary crosses | $(M_l - 1, C_l, \text{'Right'})$ | $(M_l + 1, C_l, \text{'Left'})$ |
+| **2M** | $(2, 0)$ | 2 | 2 Missionaries cross | $(M_l - 2, C_l, \text{'Right'})$ | $(M_l + 2, C_l, \text{'Left'})$ |
+| **1C** | $(0, 1)$ | 1 | 1 Cannibal crosses | $(M_l, C_l - 1, \text{'Right'})$ | $(M_l, C_l + 1, \text{'Left'})$ |
+| **2C** | $(0, 2)$ | 2 | 2 Cannibals cross | $(M_l, C_l - 2, \text{'Right'})$ | $(M_l, C_l + 2, \text{'Left'})$ |
+| **1M1C** | $(1, 1)$ | 2 | 1 Missionary + 1 Cannibal cross | $(M_l - 1, C_l - 1, \text{'Right'})$ | $(M_l + 1, C_l + 1, \text{'Left'})$ |
+
+#### Constraint Checking: Generation vs Testing
+- **Physical Feasibility**: A move is physically permissible only if sufficient missionaries and cannibals are located on the departure bank:
+  $$\text{If } \text{Boat} = \text{'Left'} \implies M_l \ge m \land C_l \ge c$$
+  $$\text{If } \text{Boat} = \text{'Right'} \implies (3 - M_l) \ge m \land (3 - C_l) \ge c$$
+- **Cannibal Safety Condition**:
+  - Left Bank: If $M_l > 0$, then $M_l \ge C_l$ (Cannibals $\le$ Missionaries)
+  - Right Bank: If $M_r > 0$, then $M_r \ge C_r$ where $M_r = 3 - M_l, C_r = 3 - C_l$
+- **Validation in State Generation (Forward Checking)**:
+  Evaluates feasibility and safety rules *before* creating and pushing states onto the DFS search stack. This prunes unviable transitions immediately, reducing the effective branching factor from 5 to ~1–2.
+- **Validation in State Testing (Generate-and-Test)**:
+  Blindly creates all arithmetic candidates and filters out-of-bounds/unsafe states afterwards.
+
+#### State Space Combinatorial Analysis
+- **Theoretical Combinatorial Space**: $(3 + 1) \times (3 + 1) \times 2 = 32$ states
+- **Safe (Valid) States**: Exactly 20 states satisfy the cannibal safety constraints on both banks
+- **Reachable Safe States**: Exactly 16 states are reachable from $s_0 = (3, 3, \text{'Left'})$
+- **Unreachable Safe States**: Exactly 4 states (such as $(3, 3, \text{'Right'})$ and $(0, 0, \text{'Left'})$) violate river conservation parity
+
+#### State Transition Machine
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> S0: Initial State
+    S0: (3, 3, Left)
+    S1: (3, 1, Right)
+    S2: (3, 2, Left)
+    S3: (3, 0, Right)
+    S4: (3, 1, Left)
+    S5: (1, 1, Right)
+    S6: (2, 2, Left)
+    S7: (0, 2, Right)
+    S8: (0, 3, Left)
+    S9: (0, 1, Right)
+    S10: (0, 2, Left)
+    S11: (0, 0, Right)
+
+    S0 --> S1: 2C cross right
+    S1 --> S2: 1C cross left
+    S2 --> S3: 2C cross right
+    S3 --> S4: 1C cross left
+    S4 --> S5: 2M cross right
+    S5 --> S6: 1M1C cross left
+    S6 --> S7: 2M cross right
+    S7 --> S8: 1C cross left
+    S8 --> S9: 2C cross right
+    S9 --> S10: 1C cross left
+    S10 --> S11: 2C cross right
+    S11 --> [*]: Goal Reached (11 Trips)
+```
+
+#### Depth-First Search with Cycle Detection Architecture
+```mermaid
+flowchart TD
+    Start([Initial State: 3M, 3C, Left]) --> PushStack[Push state to LIFO Stack with Active Path Set]
+    PushStack --> Pop[Pop current state from Stack]
+    Pop --> GoalCheck{Is state (0, 0, Right)?}
+    GoalCheck -->|Yes| Success([Solution Found in 11 Trips!])
+    GoalCheck -->|No| GenMoves[Evaluate 5 Moves: 2C, 1M1C, 2M, 1C, 1M]
+    
+    GenMoves --> Precond{Enough people on departure bank?}
+    Precond -->|No| PruneCap[Prune: Insufficient Capacity]
+    Precond -->|Yes| SafeCheck{Is next state safe on both banks?}
+    SafeCheck -->|No| PruneSafe[Prune: Cannibals outnumber M]
+    SafeCheck -->|Yes| CycleCheck{Is state in active path visited set?}
+    CycleCheck -->|Yes| PruneCycle[Prune: Cycle / Loop Detected]
+    CycleCheck -->|No| PushNext[Push successor to LIFO Stack with Updated Path]
+    
+    PushNext --> MoreNodes{Stack Empty?}
+    PruneCap --> MoreNodes
+    PruneSafe --> MoreNodes
+    PruneCycle --> MoreNodes
+    MoreNodes -->|No| Pop
+    MoreNodes -->|Yes| Fail([Search Exhausted: No Path])
+```
+
+#### Canonical Sequence of 11 Boat Trips
+| Step | Action | Left Bank (M, C) | River / Boat | Right Bank (M, C) | State Tuple |
+| :---: | :--- | :---: | :---: | :---: | :---: |
+| **0** | Initial State | 3M, 3C [BOAT] | ~~~~~~~~~~~~~~~~~~ | 0M, 0C | `(3, 3, 'Left')` |
+| **1** | 2C cross right | 3M, 1C | ~~~ [2C] >>>> ~~~ | 0M, 2C [BOAT] | `(3, 1, 'Right')` |
+| **2** | 1C cross left | 3M, 2C [BOAT] | ~~~ <<<< [1C] ~~~ | 0M, 1C | `(3, 2, 'Left')` |
+| **3** | 2C cross right | 3M, 0C | ~~~ [2C] >>>> ~~~ | 0M, 3C [BOAT] | `(3, 0, 'Right')` |
+| **4** | 1C cross left | 3M, 1C [BOAT] | ~~~ <<<< [1C] ~~~ | 0M, 2C | `(3, 1, 'Left')` |
+| **5** | 2M cross right | 1M, 1C | ~~~ [2M] >>>> ~~~ | 2M, 2C [BOAT] | `(1, 1, 'Right')` |
+| **6** | 1M1C cross left | 2M, 2C [BOAT] | ~~~ <<<< [1M1C] ~~~ | 1M, 1C | `(2, 2, 'Left')` |
+| **7** | 2M cross right | 0M, 2C | ~~~ [2M] >>>> ~~~ | 3M, 1C [BOAT] | `(0, 2, 'Right')` |
+| **8** | 1C cross left | 0M, 3C [BOAT] | ~~~ <<<< [1C] ~~~ | 3M, 0C | `(0, 3, 'Left')` |
+| **9** | 2C cross right | 0M, 1C | ~~~ [2C] >>>> ~~~ | 3M, 2C [BOAT] | `(0, 1, 'Right')` |
+| **10** | 1C cross left | 0M, 2C [BOAT] | ~~~ <<<< [1C] ~~~ | 3M, 1C | `(0, 2, 'Left')` |
+| **11** | 2C cross right | 0M, 0C | ~~~ [2C] >>>> ~~~ | 3M, 3C [BOAT] | `(0, 0, 'Right')` |
+
+#### How to Run
+1. **Default standard trace**:
+   ```bash
+   python scripts/run_missionaries_cannibals_dfs.py
+   ```
+2. **Formatted table view**:
+   ```bash
+   python scripts/run_missionaries_cannibals_dfs.py --format table
+   ```
+3. **Compact arrow trace**:
+   ```bash
+   python scripts/run_missionaries_cannibals_dfs.py --format arrows
+   ```
+4. **Compare DFS vs BFS**:
+   ```bash
+   python scripts/run_missionaries_cannibals_dfs.py --compare-bfs
+   ```
+5. **Constraint validation comparison**:
+   ```bash
+   python scripts/run_missionaries_cannibals_dfs.py --compare-validation
+   ```
+6. **State space combinatorial breakdown**:
+   ```bash
+   python scripts/run_missionaries_cannibals_dfs.py --state-space
+   ```
+7. **Optional Challenge: Text Animation with Delays**:
+   ```bash
+   python scripts/run_missionaries_cannibals_dfs.py --animate --delay 0.4
+   ```
+8. **Viva Voce examination guide**:
+   ```bash
+   python scripts/run_missionaries_cannibals_dfs.py --viva
+   ```
+9. **Top-level CLI dispatcher**:
+   ```bash
+   python -m src mc
+   ```
+10. **Interactive Jupyter Notebook**:
+    Open [`notebooks/missionaries_cannibals_dfs.ipynb`](notebooks/missionaries_cannibals_dfs.ipynb) in Jupyter Lab or Antigravity IDE.
+
+#### Viva Voce Questions & Authoritative Answers
+
+##### 1. Constraint Validation: Generation vs. Testing
+- **Question**: Explain the difference between constraint validation during state generation versus constraint validation during state testing in state-space search.
+- **Answer**:
+  In state-space search, constraints can be evaluated at two distinct phases:
+  1. *Validation During Generation (Precondition Checking / Forward Checking)*:
+     The search agent evaluates physical preconditions (e.g. are there enough people on the departure bank?) and safety rules (e.g. will cannibals outnumber missionaries on either bank?) **before** creating or queueing the child node. If a move is invalid or unsafe, it is pruned immediately. This prunes unviable branches before memory allocation or stack insertion, reducing the effective branching factor from 5 to ~1–2 valid transitions per state.
+  2. *Validation During Testing (Generate-and-Test)*:
+     The generator blindly creates all 5 mathematical successor states $(M \pm m, C \pm c)$ and only later tests each state against constraint rules. While conceptually simpler, this wastes CPU cycles generating out-of-bounds states (e.g. negative people) and allocating stack objects for states that are instantly discarded.
+  *Conclusion*: In AI constraint satisfaction and state-space search, validation during generation is strictly superior in terms of time and memory complexity.
+
+##### 2. State Space Size of This Problem
+- **Question**: What is the theoretical state space size of the 3M, 3C problem, how many states are safe, and how many are actually reachable?
+- **Answer**:
+  For 3 missionaries, 3 cannibals, and 1 boat:
+  1. *Theoretical Combinatorial Size*:
+     - $M_{\text{left}} \in \{0, 1, 2, 3\}$ (4 values)
+     - $C_{\text{left}} \in \{0, 1, 2, 3\}$ (4 values)
+     - $\text{Boat\_pos} \in \{\text{'Left'}, \text{'Right'}\}$ (2 values)
+     - Total unrestricted state space = $4 \times 4 \times 2 = 32$ states.
+  2. *Valid (Safe) States*:
+     A state is safe if $M = 0$ or $M \ge C$ on both banks:
+     - $M_{\text{left}} = 0$: $C_{\text{left}} \in \{0, 1, 2, 3\}$ (4 valid configurations)
+     - $M_{\text{left}} = 1$: $C_{\text{left}}$ can only be 1 (Right has 2M, 2C) (1 valid configuration)
+     - $M_{\text{left}} = 2$: $C_{\text{left}}$ can only be 2 (Right has 1M, 1C) (1 valid configuration)
+     - $M_{\text{left}} = 3$: $C_{\text{left}} \in \{0, 1, 2, 3\}$ (4 valid configurations)
+     - Total safe configurations = $4 + 1 + 1 + 4 = 10$ configurations.
+     - With the boat on Left or Right: $10 \times 2 = 20$ safe states in total.
+  3. *Reachable Safe States*:
+     From the initial state $(3, 3, \text{'Left'})$, exactly 16 of the 20 safe states are reachable. The remaining 4 safe states (such as $(3, 3, \text{'Right'})$ or $(0, 0, \text{'Left'})$) are unreachable because they violate river conservation parity (the boat cannot be on the other side without people crossing).
+
+##### 3. Why BFS Might Be Preferred Over DFS Here
+- **Question**: Why might Breadth-First Search (BFS) be preferred over Depth-First Search (DFS) for solving the Missionaries and Cannibals problem?
+- **Answer**:
+  BFS is generally preferred over DFS for this problem for several key reasons:
+  1. *Shortest Path Optimality*:
+     BFS explores states level-by-level (by path length). The first time it encounters the goal $(0, 0, \text{'Right'})$, it is mathematically guaranteed to have found the shortest path (minimum number of boat trips, which is exactly 11 trips for 3M, 3C). DFS does **not** guarantee the shortest path; depending on move ordering, DFS may follow a long, convoluted path of 15, 20, or more crossings.
+  2. *Risk of Infinite Loops in DFS*:
+     Because river-crossing moves are reversible (an action can be undone immediately), DFS without cycle detection will enter an infinite loop ping-ponging between two states. BFS naturally terminates even with simpler tracking because it does not chase deep paths.
+  3. *Small State Space*:
+     The memory benefit of DFS ($\mathcal{O}(b \cdot d)$ vs $\mathcal{O}(b^d)$) is irrelevant here because the total state space is tiny (only 16 reachable states). BFS easily fits in memory (a few kilobytes) while providing the optimal solution.
+
+##### 4. Generalization to N Missionaries and N Cannibals
+- **Question**: Can the Missionaries and Cannibals problem be solved for $N = 4$ or higher with a 2-person boat?
+- **Answer**:
+  No. It is a famous mathematical theorem in Artificial Intelligence (Amarel, 1968) that for a boat capacity of $K = 2$, the Missionaries and Cannibals problem is solvable if and only if $N \le 3$.
+  For $N \ge 4$, the problem is provably **unsolvable** with a 2-person boat unless an intermediate island in the river is introduced or the boat capacity is increased to $K \ge 3$.
+  *Reason*: To transport missionaries across without being eaten, the boat must shuttle back and forth. With $N \ge 4$ and $K = 2$, every possible crossing leaves at least one bank where cannibals outnumber missionaries during the intermediate transition stage.
 
 ---
 
