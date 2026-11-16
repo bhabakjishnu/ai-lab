@@ -37,6 +37,7 @@ from scripts.run_bidirectional_search import main as bds_script_main
 from scripts.run_water_jug_bfs import main as water_jug_script_main
 from scripts.run_missionaries_cannibals_dfs import main as mc_script_main
 from scripts.run_ucs_grid_navigation import main as ucs_grid_script_main
+from scripts.run_multi_goal_bfs_maze import main as multi_goal_bfs_script_main
 from src.__main__ import main as cli_main
 
 
@@ -1227,6 +1228,106 @@ class TestScriptExecution(unittest.TestCase):
             cli_main(["ucs-grid"])
         out = stdout_trap.getvalue()
         self.assertIn("Cost: 4, Path: (0,0)->(1,0)->(2,0)->(2,1)->(2,2)", out)
+
+    def test_multi_goal_bfs_maze_script_execution(self) -> None:
+        """Verify Question 23: Multi-Goal BFS maze script runs across all CLI modes."""
+        # 1. Exact sample mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_multi_goal_bfs_maze.py", "--sample"]):
+            with patch("sys.stdout", stdout_trap):
+                multi_goal_bfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Closest exit found at (1,8) in 9 steps.", out)
+
+        # 2. Default execution with ASCII
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_multi_goal_bfs_maze.py"]):
+            with patch("sys.stdout", stdout_trap):
+                multi_goal_bfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION 23: MAZE WITH MULTIPLE EXITS (MULTI-GOAL BFS)", out)
+        self.assertIn("Closest exit found at (1,8) in 9 steps.", out)
+        self.assertIn("SUCCESS", out)
+        self.assertIn("ASCII MAZE SOLUTION", out)
+
+        # 3. Optional Challenge mode: All exits sorted by distance
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_multi_goal_bfs_maze.py", "--all-exits"]):
+            with patch("sys.stdout", stdout_trap):
+                multi_goal_bfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE: ALL EXITS SORTED BY DISTANCE", out)
+        self.assertIn("Exit (1, 8): 9 steps [CLOSEST]", out)
+        self.assertIn("Exit (5, 5): 10 steps", out)
+
+        # 4. Viva Voce Topic 1 benchmark
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_multi_goal_bfs_maze.py", "--benchmark-set"]):
+            with patch("sys.stdout", stdout_trap):
+                multi_goal_bfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("VIVA VOCE TOPIC 1: TESTING FOR MULTIPLE GOALS EFFICIENTLY", out)
+        self.assertIn("Speedup Factor", out)
+
+        # 5. Viva Voce Topic 2 UCS comparison
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_multi_goal_bfs_maze.py", "--compare-ucs"]):
+            with patch("sys.stdout", stdout_trap):
+                multi_goal_bfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("VIVA VOCE TOPIC 2: DOES UCS STILL WORK WITH MULTIPLE GOALS?", out)
+        self.assertIn("UCS Compatible with Multiple Goals? : YES", out)
+
+        # 6. JSON output mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_multi_goal_bfs_maze.py", "--json"]):
+            with patch("sys.stdout", stdout_trap):
+                multi_goal_bfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn('"found": true', out)
+        self.assertIn('"path_length": 9', out)
+        self.assertIn('"closest_exit": [', out)
+
+        # 7. Viva Voce theory guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_multi_goal_bfs_maze.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                multi_goal_bfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("UNIVERSITY VIVA VOCE GUIDE", out)
+        self.assertIn("Multi-goal search spaces", out)
+
+        # 8. Animation mode with zero delay
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_multi_goal_bfs_maze.py", "--animate", "--delay", "0.0"]):
+            with patch("sys.stdout", stdout_trap):
+                multi_goal_bfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("INTERACTIVE TERMINAL SEARCH ANIMATION", out)
+        self.assertIn("Search concluded in", out)
+
+        # 9. Full Demo mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_multi_goal_bfs_maze.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                multi_goal_bfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("COMPREHENSIVE MULTI-GOAL BFS DEMONSTRATION", out)
+        self.assertIn("Detour Demonstration", out)
+
+        # 10. Top-level CLI invocation via 'python -m src multi-goal-bfs'
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["multi-goal-bfs", "--sample"])
+        out = stdout_trap.getvalue()
+        self.assertIn("Closest exit found at (1,8) in 9 steps.", out)
+
+        # 11. Top-level CLI invocation via alias 'python -m src maze23'
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["maze23", "--sample"])
+        out = stdout_trap.getvalue()
+        self.assertIn("Closest exit found at (1,8) in 9 steps.", out)
 
 
 if __name__ == "__main__":

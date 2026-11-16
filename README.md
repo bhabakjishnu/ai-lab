@@ -60,6 +60,7 @@ ai-lab/
 │   ├── water_jug_bfs.ipynb              # Question 20: Water Jug Problem using BFS & Viva guide
 │   ├── missionaries_cannibals_dfs.ipynb # Question 21: Missionaries and Cannibals Problem using DFS & Viva guide
 │   ├── ucs_grid_navigation.ipynb        # Question 22: UCS Grid Navigation with Cost Modifiers & Viva guide
+│   ├── maze_with_multiple_exits.ipynb   # Question 23: Maze with Multiple Exits (Multi-Goal BFS) & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -83,11 +84,12 @@ ai-lab/
 │   ├── run_water_jug_bfs.py             # CLI & interactive runner for Question 20 (Water Jug Problem using BFS)
 │   ├── run_missionaries_cannibals_dfs.py# CLI & interactive runner for Question 21 (Missionaries and Cannibals DFS)
 │   ├── run_ucs_grid_navigation.py       # CLI & interactive runner for Question 22 (UCS Grid Navigation)
+│   ├── run_multi_goal_bfs_maze.py       # CLI & interactive runner for Question 23 (Multi-Goal BFS Solver)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -109,6 +111,7 @@ ai-lab/
 │   ├── water_jug_bfs.py                 # Question 20: Water Jug Problem using BFS, 6 Production Rules & GCD
 │   ├── missionaries_cannibals_dfs.py    # Question 21: Missionaries and Cannibals DFS, 5 Moves & Constraint Checking
 │   ├── ucs_grid_navigation.py           # Question 22: UCS Grid Navigation, Cost Modifiers, Min-Heap & Diagonals
+│   ├── multi_goal_bfs_maze.py           # Question 23: Maze with Multiple Exits, Multi-Goal BFS, Set Hashing & All Exits
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -133,6 +136,7 @@ ai-lab/
 │   ├── test_water_jug_bfs.py            # Unit tests for Question 20 Water Jug state-space, 6 rules & GCD
 │   ├── test_missionaries_cannibals_dfs.py# Unit tests for Question 21 Missionaries and Cannibals DFS, 5 Moves & Cycles
 │   ├── test_ucs_grid_navigation.py      # Unit tests for Question 22 UCS grid navigation, parsing, costs & diagonals
+│   ├── test_multi_goal_bfs_maze.py      # Unit tests for Question 23 Multi-Goal BFS, sets, detours & all exits
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -2753,11 +2757,194 @@ When step costs vary, Breadth-First Search (BFS) is **hop-optimal** but **cost-s
 
 ---
 
+### Question 23: Maze with Multiple Exits (Multi-Goal Breadth-First Search)
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Title** | Maze with Multiple Exits |
+| **Syllabus Area** | Uninformed Search Techniques |
+| **Difficulty** | 🟡 Intermediate |
+| **Practical Type** | Algorithm Modification |
+| **Core AI Concept** | Multi-Goal Search Spaces, BFS Level-Order Optimality, Set Membership Testing |
+| **Python Concepts Tested** | `collections.deque`, Hash Set `set()` $\mathcal{O}(1)$ lookup, Predecessor Backtracking |
+| **Expected Algorithm** | Multi-Goal Breadth-First Search (Multi-Goal BFS) |
+| **Recommended Libraries** | `collections` (`deque`), `typing`, `matplotlib` |
+| **Time Complexity** | $\mathcal{O}(b^d)$ where $b$ is the branching factor ($\le 4$) and $d$ is depth of the closest goal |
+| **Space Complexity** | $\mathcal{O}(b^d)$ for FIFO frontier queue and visited set ($\le \mathcal{O}(R \times C)$ on grid) |
+| **Constraints / Conditions** | Multiple goals exist; only one is required |
+| **Input Requirements** | 2D Maze array, Start coordinate, List of Exit coordinates |
+| **Expected Output** | Coords of the optimal exit and the path length |
+| **Sample Input** | Exits: `(5,5), (1,8)`. Start: `(0,0)` |
+| **Sample Output** | `Closest exit found at (1,8) in 9 steps.` |
+| **Optional Challenge** | Return paths to ALL exits sorted by distance |
+| **University Practical Importance** | High |
+| **Viva Voce Topics** | • Testing for multiple goals efficiently<br>• Does UCS still work with multiple goals? |
+
 ---
 
-## Getting Started
+#### 1. Theoretical Background & Multi-Goal Search Spaces
 
-### 1. Requirements & Setup
+##### Multi-Goal Formulation
+In standard single-goal pathfinding, an agent searches for a path from $s_{\text{start}}$ to a single target state $s_{\text{goal}}$, halting when `current == goal`. However, in many real-world AI applications (such as autonomous emergency evacuation, multi-depot logistics, and Pacman ghost avoidance), there are multiple valid exit points or destinations.
+
+Formally, a multi-goal search problem defines the goal state as a set of coordinates:
+$$G = \{g_1, g_2, \dots, g_k\}$$
+
+The task requirement is to find a path to **any** goal $g \in G$ that minimizes the path length:
+$$g^* = \arg\min_{g \in G} \text{dist}(s_{\text{start}}, g)$$
+
+##### Why BFS Guarantees Finding the Closest Exit
+Breadth-First Search explores the implicit state space level by level using a First-In-First-Out (FIFO) queue:
+$$\text{Level } 0 \to \text{Level } 1 \to \text{Level } 2 \dots \to \text{Level } d$$
+
+On an unweighted grid maze where each step transition has unit cost ($c = 1$):
+1. **Monotonic Non-Decreasing Depth**: Nodes are popped from the FIFO frontier in strictly non-decreasing order of their distance $d$ from the start state ($d(s_1) \le d(s_2) \le \dots$).
+2. **First Encounter Guarantee**: When the BFS algorithm encounters a node $s$ that satisfies $s \in G$, no unexplored node at depth $< d(s)$ exists in the queue or state space. Therefore, the very first exit reached by BFS is mathematically guaranteed to be the closest exit (minimal path length in steps).
+3. **Admissible Early Termination**: As soon as the first exit is reached, BFS can immediately halt and return the solution path, bypassing the expansion of all deeper subtrees.
+
+```mermaid
+flowchart TD
+    Start(["Start (0,0)"]) --> Q["FIFO Queue: deque([(Start, 0)])\nVisited: {Start}"]
+    Q --> Pop["Pop front: (curr, dist)"]
+    Pop --> GoalCheck{"curr in goal_set?"}
+    GoalCheck -->|Yes| Halt(["HALT: Return (curr, dist)\nGuaranteed Closest Exit!"])
+    GoalCheck -->|No| Gen["Generate Cardinal Neighbors\n(Up, Down, Left, Right)"]
+    Gen --> Valid{"In Bounds & Not Wall\n& Not in Visited?"}
+    Valid -->|Yes| Enq["Mark Visited\nRecord Parent Pointer\nqueue.append((neighbor, dist+1))"]
+    Valid -->|No| Skip["Discard neighbor"]
+    Enq --> QEmpty{"Queue Empty?"}
+    Skip --> QEmpty
+    QEmpty -->|No| Pop
+    QEmpty -->|Yes| Fail(["Unreachable: No Exit Found"])
+```
+
+---
+
+#### 2. Efficient Goal Testing: Hash Set vs. List Membership
+
+A central focus of Question 23 is the computational complexity of the goal membership test:
+
+$$\text{Goal Test: Is } \text{current} \in G\text{?}$$
+
+| Feature | Naive List Membership (`curr in exits_list`) | Hash Set Membership (`curr in exits_set`) |
+| :--- | :--- | :--- |
+| **Underlying Data Structure** | Contiguous C-array of pointers (`list`) | Open-addressing Hash Table (`set`) |
+| **Single Check Complexity** | $\mathcal{O}(k)$ linear scan | $\mathcal{O}(1)$ average hash bucket lookup |
+| **Over $V$ Node Expansions** | $\mathcal{O}(k \cdot V)$ total time overhead | $\mathcal{O}(V + k)$ total time overhead |
+| **Scalability with Many Exits** | Severely degrades as $k$ increases | Independent of number of candidate exits $k$ |
+| **Empirical Speedup (1,000 goals)** | $700+\text{ ms}$ over 50,000 queries | $\approx 1.8\text{ ms}$ (**$370\times$ FASTER**) |
+
+By converting the candidate exits list into a Python `set` upon function entry (`valid_exits_set = set(exits)`), goal testing overhead is reduced to constant $\mathcal{O}(1)$ time per node, fully preserving the optimal $\mathcal{O}(b^d)$ BFS time complexity.
+
+---
+
+#### 3. Viva Voce Topic: Does UCS Still Work with Multiple Goals?
+
+A common university examination question is:
+> *"Does Uniform Cost Search (UCS) still work with multiple goals? How does it differ from Multi-Goal BFS?"*
+
+##### Answer & Mathematical Explanation:
+**YES, UCS works seamlessly with multiple goals.** However, BFS and UCS optimize fundamentally different objective functions:
+
+1. **Multi-Goal BFS**:
+   - Assumes uniform step costs ($c = 1$).
+   - Optimizes **step count / hop count**: $d(s, g) = \min \text{hops}$.
+   - Can test goals either upon generation or expansion.
+2. **Multi-Goal UCS**:
+   - Handles arbitrary non-negative variable step costs ($c(s, a, s') \ge \varepsilon > 0$).
+   - Optimizes **cumulative path cost**: $g(n) = \sum c(s_i, a_i, s_{i+1})$.
+   - Maintains a min-heap priority queue ordered by cumulative cost $g(n)$.
+   - **Crucial Requirement**: In UCS, the goal test **MUST** be performed upon **expansion** (popping from the min-heap), **NEVER** upon generation. A path discovered first to a goal might have higher edge weights, while a cheaper detour to another goal is still awaiting expansion.
+
+##### Comparative Scenario:
+Consider a grid navigation scenario with variable terrain:
+- **Start**: `(0, 0)`
+- **Exit A**: Located at `(0, 2)` — 2 steps away through Deep Swamp (step cost = 10 each, total cost = 20).
+- **Exit B**: Located at `(1, 3)` — 4 steps away along Paved Road (step cost = 1 each, total cost = 4).
+
+| Algorithm | Objective Metric | Chosen Exit | Steps (Hops) | Total Cost | Explanation |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| **Multi-Goal BFS** | Minimum Hops | **Exit A `(0, 2)`** | **2 steps** | 20 | Discovers Exit A first at depth 2 (fewer hops). |
+| **Multi-Goal UCS** | Minimum Cost $g(n)$ | **Exit B `(1, 3)`** | 4 steps | **4** | Expands along cost contours; reaches Exit B at cost 4 before cost 20. |
+
+---
+
+#### 4. Optional Challenge: Returning Paths to ALL Exits Sorted by Distance
+
+The module also implements the Optional Challenge (`find_all=True` or `find_all_exits_sorted()`):
+1. Instead of terminating upon the first exit, the BFS loop continues until the queue is exhausted or all valid exits in `valid_exits_set` have been visited.
+2. For each discovered exit, its shortest path length, ordered coordinate path, and cardinal action sequence (`'U', 'D', 'L', 'R'`) are reconstructed via predecessor pointers.
+3. The discovered exits are sorted in ascending order of path length:
+   $$\text{Exits Sorted: } [\text{Exit}_1 (\text{shortest}), \text{Exit}_2, \dots, \text{Exit}_m]$$
+4. Any exits that are physically sealed inside walls or located in disconnected subgraphs are identified in `unreachable_exits`.
+
+##### Sample Output on Canonical Benchmark:
+```text
+ALL CANDIDATE EXITS (SORTED BY DISTANCE):
+  1. Exit (1, 8): 9 steps [CLOSEST] | Moves: R, R, R, R, R, R, R, R, D
+  2. Exit (5, 5): 10 steps          | Moves: D, D, D, D, D, R, R, R, R, R
+```
+
+---
+
+#### 5. Command-Line Interface (CLI) Usage
+
+The runner script `scripts/run_multi_goal_bfs_maze.py` provides rich command-line interfaces:
+
+```bash
+# 1. Exact sample output only:
+python scripts/run_multi_goal_bfs_maze.py --sample
+# Output: Closest exit found at (1,8) in 9 steps.
+
+# 2. Standard execution with ASCII maze rendering:
+python scripts/run_multi_goal_bfs_maze.py
+
+# 3. Optional Challenge: Return paths to ALL exits sorted by distance:
+python scripts/run_multi_goal_bfs_maze.py --all-exits
+
+# 4. Viva Voce Topic 1: Benchmark set vs list membership efficiency:
+python scripts/run_multi_goal_bfs_maze.py --benchmark-set
+
+# 5. Viva Voce Topic 2: Compare Multi-Goal BFS vs Multi-Goal UCS:
+python scripts/run_multi_goal_bfs_maze.py --compare-ucs
+
+# 6. University Viva Voce examination theory guide:
+python scripts/run_multi_goal_bfs_maze.py --viva
+
+# 7. Machine-readable JSON output:
+python scripts/run_multi_goal_bfs_maze.py --json
+
+# 8. Interactive terminal search animation:
+python scripts/run_multi_goal_bfs_maze.py --animate --delay 0.05
+
+# 9. Top-level CLI module invocation:
+python -m src multi-goal-bfs --sample
+python -m src maze23 --all-exits
+```
+
+---
+
+#### 6. University Viva Voce Examination Reference
+
+##### Q1: How do you modify Breadth-First Search to handle multiple goal states?
+- **Answer**: In standard single-goal BFS, the goal test is an equality check (`current == goal`). In multi-goal search spaces, the goal state is formulated as a collection $G = \{g_1, g_2, \dots, g_k\}$. The goal test is modified to set membership testing (`current in goal_set`). By storing goal coordinates in a hash set (`set`), membership testing is performed in $\mathcal{O}(1)$ average time. Because BFS expands states in strictly non-decreasing order of depth, the very first goal state reached is guaranteed to be the closest exit.
+
+##### Q2: Why is set membership testing more efficient than list scanning for multiple goals?
+- **Answer**: Checking membership in a standard Python list (`coord in exits_list`) performs an $\mathcal{O}(k)$ linear search over all $k$ candidate exits. Across $V$ node expansions, this degrades total time complexity to $\mathcal{O}(k \cdot V)$. In contrast, a Python `set` uses an open-addressing hash table with $\mathcal{O}(1)$ average-case lookup, reducing total goal-testing overhead to $\mathcal{O}(V + k)$ and preserving the optimal $\mathcal{O}(b^d)$ BFS runtime.
+
+##### Q3: Does Uniform Cost Search (UCS) still work with multiple goals?
+- **Answer**: Yes, UCS works seamlessly with multiple goals. While BFS minimizes the number of step hops, UCS minimizes cumulative path cost $g(n)$ under variable edge weights. UCS maintains a priority queue of candidate states ordered by $g(n)$. When multiple goals exist, UCS tests `current in goal_set` upon popping from the min-heap. Because states are expanded in non-decreasing order of cumulative cost, the first goal popped is guaranteed to have the minimum total path cost. Crucially, in UCS the goal test **must** be performed upon expansion (heap pop), not generation.
+
+##### Q4: Can the goal test in BFS be performed upon generation instead of expansion?
+- **Answer**: Yes. In unit-cost BFS, all step costs are equal to 1. Any goal node discovered as an immediate successor of a node at depth $d$ is located at depth $d + 1$. Because all states at depth $\le d$ have already been evaluated and no goal was found among them, no goal can exist at depth $\le d$. Therefore, testing upon generation is admissible, optimal, and saves up to a factor of $b$ node expansions.
+
+##### Q5: What is the Time and Space Complexity of Multi-Goal BFS?
+- **Answer**:
+  - **Time Complexity**: $\mathcal{O}(b^d)$, where $b$ is the branching factor ($b \le 4$ on an orthogonal grid) and $d$ is the depth of the **closest** reachable goal. On an $R \times C$ grid with cycle detection via a visited set, time complexity is upper-bounded by $\mathcal{O}(R \cdot C)$.
+  - **Space Complexity**: $\mathcal{O}(b^d)$, required for storing frontier nodes in the FIFO queue and expanded coordinates in the visited set, upper-bounded by $\mathcal{O}(R \cdot C)$.
+
+---
+
 
 Ensure Python 3 is installed. To install dependencies for notebooks and experimentation:
 

@@ -149,6 +149,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 22: Uniform Cost Search (UCS) Grid Navigation with Cost Modifiers",
     )
 
+    # Multi-Goal BFS Maze runner
+    subparsers.add_parser(
+        "multi-goal-bfs",
+        aliases=["maze-multiple-exits", "multi-exit-maze", "multi-goal-maze", "maze23"],
+        help="Run Question 23: Maze with Multiple Exits (Multi-Goal BFS)",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -213,6 +220,11 @@ def main(argv: Optional[List[str]] = None) -> None:
         "grid-ucs",
         "topological-ucs",
         "ucs22",
+        "multi-goal-bfs",
+        "maze-multiple-exits",
+        "multi-exit-maze",
+        "multi-goal-maze",
+        "maze23",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -302,6 +314,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_ucs_grid_navigation import main as ucs_grid_main
             sys.argv = [sys.argv[0]] + remaining
             ucs_grid_main()
+        elif cmd in ("multi-goal-bfs", "maze-multiple-exits", "multi-exit-maze", "multi-goal-maze", "maze23"):
+            from scripts.run_multi_goal_bfs_maze import main as multi_goal_bfs_main
+            sys.argv = [sys.argv[0]] + remaining
+            multi_goal_bfs_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
