@@ -410,6 +410,26 @@ from src.multi_goal_bfs_maze import (
     solve_multi_goal_bfs,
     visualize_multi_goal_maze,
 )
+from src.distance_calculators import (
+    Point2D,
+    PointLike,
+    DistanceResult,
+    manhattan,
+    euclidean,
+    chebyshev,
+    octile,
+    minkowski,
+    compute_distances,
+    compare_point_pairs,
+    format_comparison_table,
+    parse_point,
+    parse_point_pairs,
+    verify_metric_space_axioms,
+    compare_heuristics_for_grid_topology,
+    render_ascii_distance_grid,
+    plot_distance_metrics,
+    get_distance_viva_reference,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -783,4 +803,23 @@ __all__ = [
     "parse_ascii_maze",
     "solve_multi_goal_bfs",
     "visualize_multi_goal_maze",
+    # Question 24: Manhattan and Euclidean Distance Calculators
+    "Point2D",
+    "PointLike",
+    "DistanceResult",
+    "manhattan",
+    "euclidean",
+    "chebyshev",
+    "octile",
+    "minkowski",
+    "compute_distances",
+    "compare_point_pairs",
+    "format_comparison_table",
+    "parse_point",
+    "parse_point_pairs",
+    "verify_metric_space_axioms",
+    "compare_heuristics_for_grid_topology",
+    "render_ascii_distance_grid",
+    "plot_distance_metrics",
+    "get_distance_viva_reference",
 ]

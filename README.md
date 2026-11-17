@@ -61,6 +61,7 @@ ai-lab/
 │   ├── missionaries_cannibals_dfs.ipynb # Question 21: Missionaries and Cannibals Problem using DFS & Viva guide
 │   ├── ucs_grid_navigation.ipynb        # Question 22: UCS Grid Navigation with Cost Modifiers & Viva guide
 │   ├── maze_with_multiple_exits.ipynb   # Question 23: Maze with Multiple Exits (Multi-Goal BFS) & Viva guide
+│   ├── manhattan_euclidean_distance_calculators.ipynb # Question 24: Manhattan & Euclidean Distance Calculators & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -85,11 +86,12 @@ ai-lab/
 │   ├── run_missionaries_cannibals_dfs.py# CLI & interactive runner for Question 21 (Missionaries and Cannibals DFS)
 │   ├── run_ucs_grid_navigation.py       # CLI & interactive runner for Question 22 (UCS Grid Navigation)
 │   ├── run_multi_goal_bfs_maze.py       # CLI & interactive runner for Question 23 (Multi-Goal BFS Solver)
+│   ├── run_distance_calculators.py      # CLI & interactive runner for Question 24 (Distance Calculators & Metrics)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -112,6 +114,7 @@ ai-lab/
 │   ├── missionaries_cannibals_dfs.py    # Question 21: Missionaries and Cannibals DFS, 5 Moves & Constraint Checking
 │   ├── ucs_grid_navigation.py           # Question 22: UCS Grid Navigation, Cost Modifiers, Min-Heap & Diagonals
 │   ├── multi_goal_bfs_maze.py           # Question 23: Maze with Multiple Exits, Multi-Goal BFS, Set Hashing & All Exits
+│   ├── distance_calculators.py          # Question 24: Manhattan, Euclidean, Chebyshev & Octile Distance Metrics
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -137,6 +140,7 @@ ai-lab/
 │   ├── test_missionaries_cannibals_dfs.py# Unit tests for Question 21 Missionaries and Cannibals DFS, 5 Moves & Cycles
 │   ├── test_ucs_grid_navigation.py      # Unit tests for Question 22 UCS grid navigation, parsing, costs & diagonals
 │   ├── test_multi_goal_bfs_maze.py      # Unit tests for Question 23 Multi-Goal BFS, sets, detours & all exits
+│   ├── test_distance_calculators.py     # Unit tests for Question 24 Manhattan, Euclidean & Chebyshev calculators
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -2942,6 +2946,201 @@ python -m src maze23 --all-exits
 - **Answer**:
   - **Time Complexity**: $\mathcal{O}(b^d)$, where $b$ is the branching factor ($b \le 4$ on an orthogonal grid) and $d$ is the depth of the **closest** reachable goal. On an $R \times C$ grid with cycle detection via a visited set, time complexity is upper-bounded by $\mathcal{O}(R \cdot C)$.
   - **Space Complexity**: $\mathcal{O}(b^d)$, required for storing frontier nodes in the FIFO queue and expanded coordinates in the visited set, upper-bounded by $\mathcal{O}(R \cdot C)$.
+
+---
+
+### Question 24: Manhattan and Euclidean Distance Calculators (Informed Search & Heuristics)
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Title** | Manhattan and Euclidean Distance Calculators |
+| **Syllabus Area** | Informed Search and Heuristics |
+| **Difficulty** | 🟢 Beginner |
+| **Practical Type** | Implementation |
+| **Core AI Concept** | Heuristic Functions, Distance Metrics, Admissibility, Dominance |
+| **Python Concepts Tested** | Math operations (`math.hypot`, `math.sqrt`), Function definitions, Type validation |
+| **Expected Algorithm** | Arithmetic distance calculation |
+| **Recommended Libraries** | `math`, `typing`, `matplotlib` |
+| **Time Complexity** | $\mathcal{O}(1)$ constant time arithmetic operations |
+| **Space Complexity** | $\mathcal{O}(1)$ constant auxiliary memory |
+| **Constraints / Conditions** | Euclidean requires square roots |
+| **Input Requirements** | Two tuples representing $(x_1, y_1)$ and $(x_2, y_2)$ |
+| **Expected Output** | Manhattan and Euclidean distances formatted to 2 decimal places |
+| **Sample Input** | `(1, 1), (4, 5)` |
+| **Sample Output** | `Manhattan: 7, Euclidean: 5.00` |
+| **Optional Challenge** | Implement Chebyshev (Diagonal / Chessboard) distance |
+| **University Practical Importance** | Viva Important |
+| **Viva Voce Topics** | • Overestimation vs Underestimation<br>• When to use Manhattan vs Euclidean<br>• Definition of admissible heuristic |
+
+---
+
+#### 1. Theoretical Background: Heuristic Functions & Distance Metrics
+
+##### The Role of Distance Metrics in Informed Search
+In Informed (Heuristic) Search algorithms—such as **$A^*$ Search**, **Greedy Best-First Search**, and **Iterative Deepening $A^*$ (IDA\*)**—an evaluation function $f(n)$ guides the frontier expansion:
+$$f(n) = g(n) + h(n)$$
+where:
+- $g(n)$ is the exact accumulated path cost from the start node $s_{\text{start}}$ to node $n$.
+- $h(n)$ is the heuristic estimation of the cheapest cost from node $n$ to the goal.
+
+The heuristic function $h(n)$ acts as a problem relaxation: it calculates the distance between the current state and the goal under an idealized model where certain movement constraints or obstacles are removed. The mathematical metric chosen for $h(n)$ must correspond directly to the physical movement operators permitted in the environment.
+
+##### 1. Manhattan Distance ($L_1$ Norm / Taxicab Metric)
+Named after the orthogonal street grid of Manhattan, New York:
+$$d_M(p_1, p_2) = |x_1 - x_2| + |y_1 - y_2| = \Delta x + \Delta y$$
+- **Permitted Operators**: Strictly 4 orthogonal cardinal movements (Up, Down, Left, Right).
+- **Admissibility**: Exact $h^*(n)$ on a 4-connected grid without obstacles; strictly admissible with obstacles.
+- **Properties**: Integer result when coordinates are integral; computationally fast (pure additions and subtractions, zero square roots).
+
+##### 2. Euclidean Distance ($L_2$ Norm / Straight-Line Metric)
+Represents the straight-line displacement "as the crow flies":
+$$d_E(p_1, p_2) = \sqrt{(x_1 - x_2)^2 + (y_1 - y_2)^2} = \sqrt{\Delta x^2 + \Delta y^2}$$
+- **Permitted Operators**: Continuous 2D/3D physical space or unconstrained any-angle movement.
+- **Admissibility**: Strictly admissible lower bound on any planar grid because a straight line is the shortest possible path between two points in Euclidean space.
+- **Computational Cost**: Requires a floating-point square root operation (`math.sqrt` or `math.hypot`).
+
+##### 3. Chebyshev Distance ($L_\infty$ Norm / Chessboard Metric - Optional Challenge)
+Named after Russian mathematician Pafnuty Chebyshev:
+$$d_C(p_1, p_2) = \max(|x_1 - x_2|, |y_1 - y_2|) = \max(\Delta x, \Delta y)$$
+- **Permitted Operators**: 8-directional movement (orthogonal and diagonal) where diagonal moves cost the same as orthogonal moves (cost = 1, exactly like the King in Chess).
+- **Admissibility**: Exact $h^*(n)$ on an 8-connected grid with uniform step costs without obstacles.
+
+##### 4. Octile Distance (8-Directional with $\sqrt{2}$ Diagonal Cost)
+On standard 8-connected grids where diagonal movement incurs a realistic Euclidean step cost ($D_1 = 1$, $D_2 = \sqrt{2} \approx 1.414$):
+$$d_O(p_1, p_2) = D_1 \cdot \max(\Delta x, \Delta y) + (D_2 - D_1) \cdot \min(\Delta x, \Delta y)$$
+
+##### 5. Minkowski Distance ($L_p$ Family Generalization)
+All the above distance metrics are unified under the general Minkowski norm:
+$$d_p(p_1, p_2) = \left(|x_1 - x_2|^p + |y_1 - y_2|^p\right)^{1/p}$$
+- $p = 1$: Manhattan Distance ($L_1$)
+- $p = 2$: Euclidean Distance ($L_2$)
+- $p \to \infty$: Chebyshev Distance ($L_\infty$)
+
+---
+
+#### 2. Movement Topology & Heuristic Selection Matrix
+
+```mermaid
+flowchart TD
+    Q{"Allowed Agent Movement?"}
+    Q -->|4 Orthogonal Directions| M["Manhattan Distance (L1)\nh(n) = |dx| + |dy|\nDominates Euclidean"]
+    Q -->|Any Angle / Continuous| E["Euclidean Distance (L2)\nh(n) = sqrt(dx² + dy²)\nExact Straight Line"]
+    Q -->|8 Directions: Uniform Cost 1| C["Chebyshev Distance (L∞)\nh(n) = max(|dx|, |dy|)\nKing's Move"]
+    Q -->|8 Directions: Diagonal=sqrt 2| O["Octile Distance\nh(n) = max(dx,dy) + (sqrt 2 - 1)min(dx,dy)\nTightest 8-Way Bound"]
+```
+
+| Movement Topology | Allowed Actions | Step Costs | Dominant & Admissible Heuristic | Overestimating Heuristics (Inadmissible) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Orthogonal Grid** | 4 Cardinal (N, S, E, W) | $1.0$ | **Manhattan ($L_1$)** (Exact $h^*$ without obstacles) | None (Euclidean & Chebyshev underestimate) |
+| **King's Grid** | 8 Directions | All $1.0$ | **Chebyshev ($L_\infty$)** (Exact $h^*$ without obstacles) | **Manhattan & Euclidean** (Overestimate $h^*$!) |
+| **Weighted 8-Way Grid** | 8 Directions | Orthogonal: $1.0$, Diagonal: $\sqrt{2}$ | **Octile Distance** (Exact $h^*$ without obstacles) | **Manhattan** (Overestimates diagonal shortcuts) |
+| **Continuous Space** | Any real angle | $\Delta s$ | **Euclidean ($L_2$)** (Exact $h^*$ straight line) | **Manhattan** (Overestimates straight line) |
+
+---
+
+#### 3. Mathematical Rigor: Metric Space Axiom Proofs
+
+A distance function $d: X \times X \to \mathbb{R}$ is a mathematically valid metric on a coordinate space $X$ if and only if it satisfies four fundamental axioms for all points $p_1, p_2, p_3 \in X$:
+
+1. **Non-Negativity**:
+   $$d(p_1, p_2) \ge 0$$
+   *Proof*: For Manhattan: $|x_1 - x_2| \ge 0$ and $|y_1 - y_2| \ge 0 \implies \Delta x + \Delta y \ge 0$. For Euclidean: $\Delta x^2 + \Delta y^2 \ge 0 \implies \sqrt{\Delta x^2 + \Delta y^2} \ge 0$.
+
+2. **Identity of Indiscernibles**:
+   $$d(p_1, p_2) = 0 \iff p_1 = p_2$$
+   *Proof*: $|x_1 - x_2| + |y_1 - y_2| = 0 \iff |x_1 - x_2| = 0$ and $|y_1 - y_2| = 0 \iff x_1 = x_2$ and $y_1 = y_2 \iff p_1 = p_2$.
+
+3. **Symmetry**:
+   $$d(p_1, p_2) = d(p_2, p_1)$$
+   *Proof*: Follows from $|x_1 - x_2| = |x_2 - x_1|$ and $(x_1 - x_2)^2 = (x_2 - x_1)^2$.
+
+4. **Triangle Inequality**:
+   $$d(p_1, p_3) \le d(p_1, p_2) + d(p_2, p_3)$$
+   *Proof*: In Manhattan metric:
+   $$|x_1 - x_3| = |(x_1 - x_2) + (x_2 - x_3)| \le |x_1 - x_2| + |x_2 - x_3|$$
+   Summing with the corresponding $y$-inequality yields $d_M(p_1, p_3) \le d_M(p_1, p_2) + d_M(p_2, p_3)$. For Euclidean, this follows directly from the Cauchy-Schwarz inequality.
+
+---
+
+#### 4. Execution & CLI Usage Examples
+
+##### 1. Default Sample Run
+```bash
+python scripts/run_distance_calculators.py
+```
+**Output**:
+```text
+Manhattan: 7, Euclidean: 5.00
+```
+
+##### 2. Benchmark Multi-Pair Table with Chebyshev (Optional Challenge)
+```bash
+python scripts/run_distance_calculators.py --benchmark
+```
+**Output**:
+```text
++--------+--------------+--------------+----+----+-----------+-----------+-----------+--------+-------------+
+| Pair # | Point 1      | Point 2      | dx | dy | Manhattan | Euclidean | Chebyshev | Octile | Ratio (M/E) |
++--------+--------------+--------------+----+----+-----------+-----------+-----------+--------+-------------+
+| 1      | (1, 1)       | (4, 5)       | 3  | 4  | 7.00      | 5.00      | 4.00      | 5.24   | 1.400       |
+| 2      | (0, 0)       | (3, 4)       | 3  | 4  | 7.00      | 5.00      | 4.00      | 5.24   | 1.400       |
+| 3      | (0, 0)       | (5, 0)       | 5  | 0  | 5.00      | 5.00      | 5.00      | 5.00   | 1.000       |
+| 4      | (2, 3)       | (2, 9)       | 0  | 6  | 6.00      | 6.00      | 6.00      | 6.00   | 1.000       |
+| 5      | (0, 0)       | (4, 4)       | 4  | 4  | 8.00      | 5.66      | 4.00      | 5.66   | 1.414       |
+| 6      | (-3, -2)     | (5, 6)       | 8  | 8  | 16.00     | 11.31     | 8.00      | 11.31  | 1.414       |
+| 7      | (1.50, 2.50) | (4.50, 6.50) | 3  | 4  | 7.00      | 5.00      | 4.00      | 5.24   | 1.400       |
++--------+--------------+--------------+----+----+-----------+-----------+-----------+--------+-------------+
+```
+
+##### 3. ASCII Grid Trajectory Rendering
+```bash
+python scripts/run_distance_calculators.py --ascii
+```
+
+##### 4. Metric Space Axiom Verification
+```bash
+python scripts/run_distance_calculators.py --axioms
+```
+
+##### 5. Run via Top-Level CLI Dispatcher
+```bash
+python -m src distances
+python -m src distance-calculators --benchmark
+```
+
+---
+
+#### 5. Viva Voce Examination Reference Guide
+
+##### Q1: What is the difference between heuristic overestimation and underestimation in $A^*$ Search?
+- **Answer**:
+  - **Underestimation ($h(n) \le h^*(n)$)**: The heuristic is optimistic. It guarantees **admissibility**, meaning $A^*$ search is mathematically guaranteed to find an optimal (minimal-cost) path. Because the estimated cost to the goal is never higher than the true cost, an optimal path will never be prematurely pruned or bypassed in favor of a suboptimal goal.
+  - **Overestimation ($h(n) > h^*(n)$)**: The heuristic is pessimistic (inadmissible). Overestimating can cause $A^*$ to assign an artificially high $f(n) = g(n) + h(n)$ to nodes on the true optimal path, causing the search to explore and terminate along a suboptimal path first. While overestimation may accelerate search speed (behaving like Greedy Best-First Search), optimality is sacrificed.
+
+##### Q2: When should an AI agent use Manhattan distance vs. Euclidean distance?
+- **Answer**:
+  - **Manhattan Distance ($L_1$)**: Use when agent motion is strictly restricted to **4 orthogonal directions** (Up, Down, Left, Right), such as street grid navigation, 15-puzzle / 8-puzzle sliding tile puzzles, or maze navigation without diagonals. On an orthogonal grid, Manhattan distance is the exact distance without obstacles and strictly dominates Euclidean distance ($h_M(n) \ge h_E(n)$), pruning more search states.
+  - **Euclidean Distance ($L_2$)**: Use when motion is **continuous**, allows **any angle**, or when aerial/holonomic movement is possible (e.g., UAV flight, robot arm path planning). If applied to an orthogonal grid, Euclidean distance is admissible but severely underestimates, expanding more search nodes than Manhattan.
+
+##### Q3: What is the formal mathematical definition of an admissible heuristic?
+- **Answer**:
+  A heuristic function $h(n)$ is **admissible** if for every state $n$ in the state space:
+  $$0 \le h(n) \le h^*(n)$$
+  where $h^*(n)$ represents the true minimal cost to reach the goal from state $n$, and $h(\text{goal}) = 0$.
+
+##### Q4: What is consistency (monotonicity), and does consistency imply admissibility?
+- **Answer**:
+  A heuristic $h(n)$ is **consistent** (or monotonic) if for every node $n$ and every successor $n'$ generated by action $a$ with step cost $c(n, a, n')$:
+  $$h(n) \le c(n, a, n') + h(n')$$
+  This is the triangle inequality applied to heuristics.
+  - **Key Relationship**: Consistency **strictly implies** admissibility (every consistent heuristic is admissible).
+  - **Graph Search Guarantee**: When $h(n)$ is consistent, $A^*$ graph search never needs to reopen closed nodes, ensuring that each state is expanded at most once ($\mathcal{O}(V)$ expansions).
+
+##### Q5: What is heuristic dominance, and why is a dominant heuristic superior?
+- **Answer**:
+  Given two admissible heuristics $h_1(n)$ and $h_2(n)$, $h_2$ **dominates** $h_1$ if:
+  $$h_2(n) \ge h_1(n) \quad \forall n$$
+  Because $h_2$ provides a tighter, closer estimate to $h^*(n)$, fewer suboptimal nodes satisfy $f(n) = g(n) + h(n) < C^*$. Consequently, $A^*$ using $h_2$ is mathematically guaranteed to expand fewer or equal nodes than $A^*$ using $h_1$, maximizing search efficiency while retaining optimality.
 
 ---
 

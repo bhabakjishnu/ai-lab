@@ -38,6 +38,7 @@ from scripts.run_water_jug_bfs import main as water_jug_script_main
 from scripts.run_missionaries_cannibals_dfs import main as mc_script_main
 from scripts.run_ucs_grid_navigation import main as ucs_grid_script_main
 from scripts.run_multi_goal_bfs_maze import main as multi_goal_bfs_script_main
+from scripts.run_distance_calculators import main as distance_script_main
 from src.__main__ import main as cli_main
 
 
@@ -1328,6 +1329,107 @@ class TestScriptExecution(unittest.TestCase):
             cli_main(["maze23", "--sample"])
         out = stdout_trap.getvalue()
         self.assertIn("Closest exit found at (1,8) in 9 steps.", out)
+
+    def test_run_distance_calculators_script_runs_successfully(self) -> None:
+        """Verify Question 24 Distance Calculators CLI execution and all functional modes."""
+        # 1. Default Sample Execution: (1, 1), (4, 5) -> Manhattan: 7, Euclidean: 5.00
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_distance_calculators.py"]):
+            with patch("sys.stdout", stdout_trap):
+                distance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Manhattan: 7, Euclidean: 5.00", out)
+
+        # 2. Custom Points via --p1 and --p2
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_distance_calculators.py", "--p1", "0", "0", "--p2", "3", "4"]):
+            with patch("sys.stdout", stdout_trap):
+                distance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Manhattan: 7, Euclidean: 5.00", out)
+
+        # 3. Optional Challenge: Chebyshev Distance
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_distance_calculators.py", "--chebyshev"]):
+            with patch("sys.stdout", stdout_trap):
+                distance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Manhattan: 7, Euclidean: 5.00, Chebyshev: 4", out)
+
+        # 4. Multi-Pair Expression
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_distance_calculators.py", "--pairs", "(1,1),(4,5); (0,0),(3,4)"]):
+            with patch("sys.stdout", stdout_trap):
+                distance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Pair 1", out)
+        self.assertIn("Pair 2", out)
+
+        # 5. Benchmark Table Mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_distance_calculators.py", "--benchmark"]):
+            with patch("sys.stdout", stdout_trap):
+                distance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("BENCHMARK COMPARISON TABLE", out)
+        self.assertIn("Ratio (M/E)", out)
+
+        # 6. ASCII Grid Visualization
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_distance_calculators.py", "--ascii"]):
+            with patch("sys.stdout", stdout_trap):
+                distance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("2D ASCII TRAJECTORY VISUALIZATION", out)
+        self.assertIn("Legend: S=Start", out)
+
+        # 7. Metric Space Axiom Verification
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_distance_calculators.py", "--axioms"]):
+            with patch("sys.stdout", stdout_trap):
+                distance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("METRIC SPACE AXIOM VERIFICATION", out)
+        self.assertIn("Triangle Ineq", out)
+
+        # 8. Movement Topology Admissibility Analysis
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_distance_calculators.py", "--topology", "orthogonal"]):
+            with patch("sys.stdout", stdout_trap):
+                distance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("HEURISTIC ADMISSIBILITY & DOMINANCE ANALYSIS", out)
+        self.assertIn("Optimal & Dominant", out)
+
+        # 9. Viva Voce Reference Guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_distance_calculators.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                distance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("AI LAB VIVA VOCE STUDY GUIDE", out)
+        self.assertIn("Overestimation Vs Underestimation", out)
+
+        # 10. CLI Dispatcher: python -m src distance-calculators
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["distance-calculators"])
+        out = stdout_trap.getvalue()
+        self.assertIn("Manhattan: 7, Euclidean: 5.00", out)
+
+        # 11. CLI Dispatcher Alias: python -m src distances
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["distances"])
+        out = stdout_trap.getvalue()
+        self.assertIn("Manhattan: 7, Euclidean: 5.00", out)
+
+        # 12. CLI Dispatcher Alias: python -m src q24
+        stdout_trap = io.StringIO()
+        with patch("sys.stdout", stdout_trap):
+            cli_main(["q24"])
+        out = stdout_trap.getvalue()
+        self.assertIn("Manhattan: 7, Euclidean: 5.00", out)
 
 
 if __name__ == "__main__":

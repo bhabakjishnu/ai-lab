@@ -156,6 +156,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 23: Maze with Multiple Exits (Multi-Goal BFS)",
     )
 
+    # Manhattan and Euclidean Distance Calculators runner
+    subparsers.add_parser(
+        "distance-calculators",
+        aliases=["distances", "manhattan-euclidean", "distance-metrics", "q24"],
+        help="Run Question 24: Manhattan and Euclidean Distance Calculators (Informed Search & Heuristics)",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -225,6 +232,11 @@ def main(argv: Optional[List[str]] = None) -> None:
         "multi-exit-maze",
         "multi-goal-maze",
         "maze23",
+        "distance-calculators",
+        "distances",
+        "manhattan-euclidean",
+        "distance-metrics",
+        "q24",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -318,6 +330,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_multi_goal_bfs_maze import main as multi_goal_bfs_main
             sys.argv = [sys.argv[0]] + remaining
             multi_goal_bfs_main()
+        elif cmd in ("distance-calculators", "distances", "manhattan-euclidean", "distance-metrics", "q24"):
+            from scripts.run_distance_calculators import main as dist_main
+            sys.argv = [sys.argv[0]] + remaining
+            dist_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
