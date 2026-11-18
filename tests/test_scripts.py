@@ -39,6 +39,7 @@ from scripts.run_missionaries_cannibals_dfs import main as mc_script_main
 from scripts.run_ucs_grid_navigation import main as ucs_grid_script_main
 from scripts.run_multi_goal_bfs_maze import main as multi_goal_bfs_script_main
 from scripts.run_distance_calculators import main as distance_script_main
+from scripts.run_eight_puzzle_heuristics import main as eight_puzzle_script_main
 from src.__main__ import main as cli_main
 
 
@@ -1430,6 +1431,127 @@ class TestScriptExecution(unittest.TestCase):
             cli_main(["q24"])
         out = stdout_trap.getvalue()
         self.assertIn("Manhattan: 7, Euclidean: 5.00", out)
+
+    def test_run_eight_puzzle_heuristics_script_modes(self) -> None:
+        """Verify Question 25 8-Puzzle Heuristic Evaluator CLI and all script modes."""
+        # 1. Default canonical sample execution
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_heuristics.py"]):
+            with patch("sys.stdout", stdout_trap):
+                eight_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 25: 8-PUZZLE HEURISTIC EVALUATOR", out)
+        self.assertIn("h1 (Misplaced): 8, h2 (Manhattan): 18", out)
+        self.assertIn("SOLVABLE", out)
+
+        # 2. Exact sample output format
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_heuristics.py", "--format", "sample"]):
+            with patch("sys.stdout", stdout_trap):
+                eight_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), "h1 (Misplaced): 8, h2 (Manhattan): 18")
+
+        # 3. Custom matrices via --current and --goal
+        stdout_trap = io.StringIO()
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "run_eight_puzzle_heuristics.py",
+                "--current",
+                "[[1,0,2],[3,4,5],[6,7,8]]",
+                "--goal",
+                "[[0,1,2],[3,4,5],[6,7,8]]",
+                "--format",
+                "sample",
+            ],
+        ):
+            with patch("sys.stdout", stdout_trap):
+                eight_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), "h1 (Misplaced): 1, h2 (Manhattan): 1")
+
+        # 4. Table format
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_heuristics.py", "--format", "table"]):
+            with patch("sys.stdout", stdout_trap):
+                eight_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("TOTAL (Blank '0' Excluded)", out)
+
+        # 5. JSON format
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_heuristics.py", "--format", "json"]):
+            with patch("sys.stdout", stdout_trap):
+                eight_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn('"h1_misplaced": 8', out)
+        self.assertIn('"h2_manhattan": 18', out)
+
+        # 6. Optional Challenge: random solvable board generation
+        stdout_trap = io.StringIO()
+        with patch.object(
+            sys,
+            "argv",
+            ["run_eight_puzzle_heuristics.py", "--random", "--seed", "42", "--count", "2"],
+        ):
+            with patch("sys.stdout", stdout_trap):
+                eight_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE: RANDOM SOLVABLE 8-PUZZLE BOARD", out)
+        self.assertIn("Random Solvable Board #1", out)
+        self.assertIn("Random Solvable Board #2", out)
+        self.assertIn("SOLVABLE", out)
+
+        # 7. Dominance study
+        stdout_trap = io.StringIO()
+        with patch.object(
+            sys,
+            "argv",
+            ["run_eight_puzzle_heuristics.py", "--dominance-study", "--samples", "20", "--seed", "7"],
+        ):
+            with patch("sys.stdout", stdout_trap):
+                eight_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("EMPIRICAL DOMINANCE ANALYSIS", out)
+        self.assertIn("h2(n) >= h1(n) on 100% States? : True", out)
+
+        # 8. Blank space inadmissibility demo
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_heuristics.py", "--blank-demo"]):
+            with patch("sys.stdout", stdout_trap):
+                eight_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("WHY THE BLANK SPACE (0) MUST NOT BE COUNTED", out)
+        self.assertIn("Admissible: False", out)
+
+        # 9. Full Demo mode
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_heuristics.py", "--demo"]):
+            with patch("sys.stdout", stdout_trap):
+                eight_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("FULL LABORATORY DEMO", out)
+        self.assertIn("BENCHMARK STATE COMPARISON", out)
+
+        # 10. Viva Voce study guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_heuristics.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                eight_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("VIVA VOCE STUDY GUIDE", out)
+        self.assertIn("Dominance Of Heuristics", out)
+        self.assertIn("Why Blank Space Is Not Counted", out)
+
+        # 11. Top-level CLI dispatcher & aliases
+        for cmd in ("eight-puzzle", "8-puzzle", "q25"):
+            stdout_trap = io.StringIO()
+            with patch("sys.stdout", stdout_trap):
+                cli_main([cmd, "--format", "sample"])
+            out = stdout_trap.getvalue()
+            self.assertEqual(out.strip(), "h1 (Misplaced): 8, h2 (Manhattan): 18")
 
 
 if __name__ == "__main__":
