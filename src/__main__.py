@@ -163,6 +163,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 24: Manhattan and Euclidean Distance Calculators (Informed Search & Heuristics)",
     )
 
+    # 8-Puzzle Heuristic Evaluator runner
+    subparsers.add_parser(
+        "eight-puzzle",
+        aliases=["8-puzzle", "eight-puzzle-heuristics", "puzzle-heuristics", "q25"],
+        help="Run Question 25: 8-Puzzle Heuristic Evaluator (h1 Misplaced Tiles & h2 Manhattan Distance)",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -237,6 +244,11 @@ def main(argv: Optional[List[str]] = None) -> None:
         "manhattan-euclidean",
         "distance-metrics",
         "q24",
+        "eight-puzzle",
+        "8-puzzle",
+        "eight-puzzle-heuristics",
+        "puzzle-heuristics",
+        "q25",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -334,6 +346,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_distance_calculators import main as dist_main
             sys.argv = [sys.argv[0]] + remaining
             dist_main()
+        elif cmd in ("eight-puzzle", "8-puzzle", "eight-puzzle-heuristics", "puzzle-heuristics", "q25"):
+            from scripts.run_eight_puzzle_heuristics import main as eight_puzzle_main
+            sys.argv = [sys.argv[0]] + remaining
+            eight_puzzle_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining

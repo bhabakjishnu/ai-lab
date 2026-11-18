@@ -62,6 +62,7 @@ ai-lab/
 │   ├── ucs_grid_navigation.ipynb        # Question 22: UCS Grid Navigation with Cost Modifiers & Viva guide
 │   ├── maze_with_multiple_exits.ipynb   # Question 23: Maze with Multiple Exits (Multi-Goal BFS) & Viva guide
 │   ├── manhattan_euclidean_distance_calculators.ipynb # Question 24: Manhattan & Euclidean Distance Calculators & Viva guide
+│   ├── eight_puzzle_heuristic_evaluator.ipynb # Question 25: 8-Puzzle Heuristic Evaluator (h1 & h2) & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -87,11 +88,12 @@ ai-lab/
 │   ├── run_ucs_grid_navigation.py       # CLI & interactive runner for Question 22 (UCS Grid Navigation)
 │   ├── run_multi_goal_bfs_maze.py       # CLI & interactive runner for Question 23 (Multi-Goal BFS Solver)
 │   ├── run_distance_calculators.py      # CLI & interactive runner for Question 24 (Distance Calculators & Metrics)
+│   ├── run_eight_puzzle_heuristics.py   # CLI & interactive runner for Question 25 (8-Puzzle h1 & h2 Evaluator)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -115,6 +117,7 @@ ai-lab/
 │   ├── ucs_grid_navigation.py           # Question 22: UCS Grid Navigation, Cost Modifiers, Min-Heap & Diagonals
 │   ├── multi_goal_bfs_maze.py           # Question 23: Maze with Multiple Exits, Multi-Goal BFS, Set Hashing & All Exits
 │   ├── distance_calculators.py          # Question 24: Manhattan, Euclidean, Chebyshev & Octile Distance Metrics
+│   ├── eight_puzzle_heuristics.py       # Question 25: 8-Puzzle Heuristic Evaluator (h1 Misplaced & h2 Manhattan)
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -141,6 +144,7 @@ ai-lab/
 │   ├── test_ucs_grid_navigation.py      # Unit tests for Question 22 UCS grid navigation, parsing, costs & diagonals
 │   ├── test_multi_goal_bfs_maze.py      # Unit tests for Question 23 Multi-Goal BFS, sets, detours & all exits
 │   ├── test_distance_calculators.py     # Unit tests for Question 24 Manhattan, Euclidean & Chebyshev calculators
+│   ├── test_eight_puzzle_heuristics.py  # Unit tests for Question 25 8-Puzzle h1, h2, dominance & solvability
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -3141,6 +3145,87 @@ python -m src distance-calculators --benchmark
   Given two admissible heuristics $h_1(n)$ and $h_2(n)$, $h_2$ **dominates** $h_1$ if:
   $$h_2(n) \ge h_1(n) \quad \forall n$$
   Because $h_2$ provides a tighter, closer estimate to $h^*(n)$, fewer suboptimal nodes satisfy $f(n) = g(n) + h(n) < C^*$. Consequently, $A^*$ using $h_2$ is mathematically guaranteed to expand fewer or equal nodes than $A^*$ using $h_1$, maximizing search efficiency while retaining optimality.
+
+---
+
+### Question 25: 8-Puzzle Heuristic Evaluator
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Syllabus Area** | Informed Search and Heuristics |
+| **Difficulty** | 🟡 Intermediate |
+| **Practical Type** | Algorithm Design |
+| **Core AI Concept** | Heuristic Evaluation for State Spaces, Admissibility, Heuristic Dominance |
+| **Python Concepts Tested** | Matrix iteration, flattening, index math (`divmod`), O(1) dictionary lookups |
+| **Expected Algorithm** | Misplaced Tile (`h1`) & Manhattan Distance (`h2`) algorithms |
+| **Recommended Libraries** | None (pure Python standard library) |
+| **Time Complexity** | $\mathcal{O}(N)$ where $N = 9$ |
+| **Space Complexity** | $\mathcal{O}(N)$ where $N = 9$ |
+| **Constraints / Conditions** | Blank space (`0`) must **NOT** be counted in `h1` or `h2` |
+| **Input Requirements** | Two $3 \times 3$ matrices (Current State, Goal State) |
+| **Expected Output** | Integers for `h1` and `h2` |
+| **Sample Input** | `Current: [[7,2,4],[5,0,6],[8,3,1]]`, `Goal: [[0,1,2],[3,4,5],[6,7,8]]` |
+| **Sample Output** | `h1 (Misplaced): 8, h2 (Manhattan): 18` |
+| **Optional Challenge** | Generate a random solvable board (via inversion parity) and calculate heuristics |
+| **University Practical Importance** | Very High |
+| **Viva Voce Topics** | • Dominance of heuristics ($h_2$ dominates $h_1$)<br>• Admissibility of $h_1$ and $h_2$<br>• Why the blank space (`0`) isn't counted |
+
+#### Evaluation Pipeline (`O(N)` with `divmod`)
+```mermaid
+flowchart TD
+    In["Two 3x3 Matrices<br/>Current & Goal (0 = Blank)"] --> Val["Validate 3x3 Permutations of 0..8"]
+    Val --> Map["Build Goal Coordinate Map O(N)<br/>goal_pos[tile] = divmod(idx, 3)"]
+    Map --> Iter["Iterate Flattened Current Grid O(N)"]
+    Iter --> Blank{"Is tile == 0?"}
+    Blank -->|Yes| Skip["Skip Blank Space<br/>(Preserves Admissibility)"]
+    Blank -->|No| Calc["Compute (r, c) = divmod(idx, 3)<br/>h1 += (curr != goal)<br/>h2 += |r - r_g| + |c - c_g|"]
+    Skip --> Out["Output h1 & h2<br/>Verify h2 >= h1 Dominance"]
+    Calc --> Out
+```
+
+#### Running the 8-Puzzle Heuristic Evaluator
+
+1. **Default Sample Run** (`[[7,2,4],[5,0,6],[8,3,1]]` vs `[[0,1,2],[3,4,5],[6,7,8]]`):
+   ```bash
+   python scripts/run_eight_puzzle_heuristics.py
+   ```
+   Or exact syllabus sample line:
+   ```bash
+   python scripts/run_eight_puzzle_heuristics.py --format sample
+   ```
+   *Output*:
+   ```text
+   h1 (Misplaced): 8, h2 (Manhattan): 18
+   ```
+
+2. **Optional Challenge (Random Solvable Board Generation)**:
+   ```bash
+   python scripts/run_eight_puzzle_heuristics.py --random --seed 42
+   ```
+
+3. **Empirical Dominance Verification (`h2 >= h1`)**:
+   ```bash
+   python scripts/run_eight_puzzle_heuristics.py --dominance-study --samples 100 --seed 42
+   ```
+
+4. **Blank-Space Admissibility Counterexample**:
+   ```bash
+   python scripts/run_eight_puzzle_heuristics.py --blank-demo
+   ```
+
+5. **Run via Top-Level CLI Dispatcher**:
+   ```bash
+   python -m src eight-puzzle
+   python -m src q25 --format sample
+   ```
+
+6. **Display Viva Voce Reference Guide**:
+   ```bash
+   python scripts/run_eight_puzzle_heuristics.py --viva
+   ```
+
+7. **Interactive Jupyter Notebook**:
+   Open [`notebooks/eight_puzzle_heuristic_evaluator.ipynb`](notebooks/eight_puzzle_heuristic_evaluator.ipynb) in Jupyter Lab or Antigravity IDE.
 
 ---
 
