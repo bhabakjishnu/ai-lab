@@ -170,6 +170,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 25: 8-Puzzle Heuristic Evaluator (h1 Misplaced Tiles & h2 Manhattan Distance)",
     )
 
+    # Greedy Best-First Search runner
+    subparsers.add_parser(
+        "gbfs",
+        aliases=["greedy", "greedy-best-first-search", "best-first-search", "q26"],
+        help="Run Question 26: Greedy Best-First Search on a Graph (Priority Queue & Pure Heuristics)",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -249,6 +256,11 @@ def main(argv: Optional[List[str]] = None) -> None:
         "eight-puzzle-heuristics",
         "puzzle-heuristics",
         "q25",
+        "gbfs",
+        "greedy",
+        "greedy-best-first-search",
+        "best-first-search",
+        "q26",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -350,6 +362,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_eight_puzzle_heuristics import main as eight_puzzle_main
             sys.argv = [sys.argv[0]] + remaining
             eight_puzzle_main()
+        elif cmd in ("gbfs", "greedy", "greedy-best-first-search", "best-first-search", "q26"):
+            from scripts.run_greedy_best_first_search import main as gbfs_main
+            sys.argv = [sys.argv[0]] + remaining
+            gbfs_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining

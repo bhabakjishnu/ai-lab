@@ -40,6 +40,7 @@ from scripts.run_ucs_grid_navigation import main as ucs_grid_script_main
 from scripts.run_multi_goal_bfs_maze import main as multi_goal_bfs_script_main
 from scripts.run_distance_calculators import main as distance_script_main
 from scripts.run_eight_puzzle_heuristics import main as eight_puzzle_script_main
+from scripts.run_greedy_best_first_search import main as gbfs_script_main
 from src.__main__ import main as cli_main
 
 
@@ -1568,6 +1569,103 @@ class TestScriptExecution(unittest.TestCase):
                 cli_main([cmd, "--format", "sample"])
             out = stdout_trap.getvalue()
             self.assertEqual(out.strip(), "h1 (Misplaced): 8, h2 (Manhattan): 18")
+
+    def test_greedy_best_first_search_script_execution(self) -> None:
+        """Verify Question 26 runner across all flags, benchmarks, and CLI dispatcher."""
+        # 1. Default run
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_greedy_best_first_search.py"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Greedy Best-First Search (GBFS) Execution Summary", out)
+        self.assertIn("Path chosen based on minimum h(n): A -> B -> C", out)
+
+        # 2. Exact syllabus sample output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_greedy_best_first_search.py", "--sample"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), "Path chosen based on minimum h(n): A -> B -> C")
+
+        # 3. Custom graph & heuristics via CLI
+        stdout_trap = io.StringIO()
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "run_greedy_best_first_search.py",
+                "--graph",
+                "X: Y; Y: Z; Z:",
+                "--heuristics",
+                "X: 10, Y: 4, Z: 0",
+                "--start",
+                "X",
+                "--goal",
+                "Z",
+            ],
+        ):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Path chosen based on minimum h(n): X -> Y -> Z", out)
+
+        # 4. Optional Challenge suboptimality run
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_greedy_best_first_search.py", "--challenge"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE", out)
+        self.assertIn("YES (Optimal Failure Demonstrated)", out)
+        self.assertIn("55.00x", out)
+
+        # 5. AIMA Romania Map benchmark
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_greedy_best_first_search.py", "--romania"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Russell & Norvig Romania Map", out)
+        self.assertIn("Arad -> Sibiu -> Fagaras -> Bucharest", out)
+        self.assertIn("450", out)
+        self.assertIn("418", out)
+
+        # 6. Local Minima demo
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_greedy_best_first_search.py", "--local-minima"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Getting Stuck in Local Minima", out)
+        self.assertIn("Dead_End", out)
+
+        # 7. Viva Voce reference
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_greedy_best_first_search.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Viva Voce Guide", out)
+        self.assertIn("Is Greedy Best-First Search optimal?", out)
+
+        # 8. Step-by-step table trace
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_greedy_best_first_search.py", "--table"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("EXPAND", out)
+        self.assertIn("GOAL_REACHED", out)
+
+        # 9. Top-level CLI dispatcher & aliases
+        for cmd in ("gbfs", "greedy", "greedy-best-first-search", "q26"):
+            stdout_trap = io.StringIO()
+            with patch("sys.stdout", stdout_trap):
+                cli_main([cmd, "--sample"])
+            out = stdout_trap.getvalue()
+            self.assertEqual(out.strip(), "Path chosen based on minimum h(n): A -> B -> C")
 
 
 if __name__ == "__main__":

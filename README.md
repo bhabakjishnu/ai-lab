@@ -63,6 +63,7 @@ ai-lab/
 │   ├── maze_with_multiple_exits.ipynb   # Question 23: Maze with Multiple Exits (Multi-Goal BFS) & Viva guide
 │   ├── manhattan_euclidean_distance_calculators.ipynb # Question 24: Manhattan & Euclidean Distance Calculators & Viva guide
 │   ├── eight_puzzle_heuristic_evaluator.ipynb # Question 25: 8-Puzzle Heuristic Evaluator (h1 & h2) & Viva guide
+│   ├── greedy_best_first_search.ipynb   # Question 26: Greedy Best-First Search on a Graph & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -89,11 +90,12 @@ ai-lab/
 │   ├── run_multi_goal_bfs_maze.py       # CLI & interactive runner for Question 23 (Multi-Goal BFS Solver)
 │   ├── run_distance_calculators.py      # CLI & interactive runner for Question 24 (Distance Calculators & Metrics)
 │   ├── run_eight_puzzle_heuristics.py   # CLI & interactive runner for Question 25 (8-Puzzle h1 & h2 Evaluator)
+│   ├── run_greedy_best_first_search.py  # CLI & interactive runner for Question 26 (Greedy Best-First Search & Suboptimality)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -118,6 +120,7 @@ ai-lab/
 │   ├── multi_goal_bfs_maze.py           # Question 23: Maze with Multiple Exits, Multi-Goal BFS, Set Hashing & All Exits
 │   ├── distance_calculators.py          # Question 24: Manhattan, Euclidean, Chebyshev & Octile Distance Metrics
 │   ├── eight_puzzle_heuristics.py       # Question 25: 8-Puzzle Heuristic Evaluator (h1 Misplaced & h2 Manhattan)
+│   ├── greedy_best_first_search.py      # Question 26: Greedy Best-First Search on a Graph, Min-Heap Priority Queue & Suboptimality
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -145,6 +148,7 @@ ai-lab/
 │   ├── test_multi_goal_bfs_maze.py      # Unit tests for Question 23 Multi-Goal BFS, sets, detours & all exits
 │   ├── test_distance_calculators.py     # Unit tests for Question 24 Manhattan, Euclidean & Chebyshev calculators
 │   ├── test_eight_puzzle_heuristics.py  # Unit tests for Question 25 8-Puzzle h1, h2, dominance & solvability
+│   ├── test_greedy_best_first_search.py # Unit tests for Question 26 GBFS traversal, suboptimality, cycles & local minima
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -3226,6 +3230,102 @@ flowchart TD
 
 7. **Interactive Jupyter Notebook**:
    Open [`notebooks/eight_puzzle_heuristic_evaluator.ipynb`](notebooks/eight_puzzle_heuristic_evaluator.ipynb) in Jupyter Lab or Antigravity IDE.
+
+---
+
+### Question 26: Greedy Best-First Search on a Graph
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Syllabus Area** | Informed Search and Heuristics |
+| **Difficulty** | 🟡 Intermediate |
+| **Practical Type** | Implementation |
+| **Core AI Concept** | Greedy Best-First Search, Pure Heuristic Search ($f(n) = h(n)$) |
+| **Python Concepts Tested** | Dictionary lookups, `heapq` min-heap priority queue, tie-breaking |
+| **Expected Algorithm** | Best-First Traversal |
+| **Recommended Libraries** | `heapq` (Python standard library) |
+| **Time Complexity** | $\mathcal{O}(b^m)$ in worst case ($b$ = branching factor, $m$ = maximum depth) |
+| **Space Complexity** | $\mathcal{O}(b^m)$ in worst case (maintaining frontier and explored set) |
+| **Constraints / Conditions** | Ignore step costs ($g(n)$) during priority queue ordering |
+| **Input Requirements** | Graph dictionary, Heuristics dictionary, Start node, Goal node |
+| **Expected Output** | Path traversal list |
+| **Sample Input** | Heuristics: `{'A': 5, 'B': 2, 'C': 0}`, Graph: `{'A': ['B'], 'B': ['C'], 'C': []}`, Start: `A`, Goal: `C` |
+| **Sample Output** | `Path chosen based on minimum h(n): A -> B -> C` |
+| **Optional Challenge** | Construct a graph where Greedy fails to find the optimal path (compared against UCS/Dijkstra) |
+| **University Practical Importance** | High |
+| **Viva Voce Topics** | • Is Greedy Search optimal? (No; counterexample S->A->G cost 110 vs S->B->G cost 2)<br>• Is Greedy Search complete? (Incomplete in Tree search; Complete in finite Graph search with explored set)<br>• Getting stuck in local minima (deceptive dead-end heuristics) |
+
+#### Greedy Best-First Search Architecture
+```mermaid
+flowchart TD
+    Start["Start Node n0, Goal g, Graph, Heuristics h"] --> InitQ["Initialize Min-Heap Frontier Q with (h(n0), tie_key, n0, [n0])<br/>Explored Set = empty"]
+    InitQ --> CheckEmpty{"Is Frontier Q Empty?"}
+    CheckEmpty -->|Yes| Fail["Goal Unreachable (Return None)"]
+    CheckEmpty -->|No| PopMin["Pop Node u with Minimum h(u) from Q"]
+    PopMin --> GoalCheck{"Is u == Goal g?"}
+    GoalCheck -->|Yes| Success["Return Path & Search Metrics<br/>Path chosen based on minimum h(n)"]
+    GoalCheck -->|No| ExpCheck{"Is u in Explored Set?"}
+    ExpCheck -->|Yes| PopMin
+    ExpCheck -->|No| AddExp["Add u to Explored Set & Traversal Order"]
+    AddExp --> LoopNeigh["For each neighbor v of u:"]
+    LoopNeigh --> VisitedCheck{"Is v in Explored Set?"}
+    VisitedCheck -->|Yes| SkipNeigh["Skip (Avoid Cycles)"]
+    VisitedCheck -->|No| PushQ["Lookup h(v) in Heuristics Dict<br/>heappush(Q, (h(v), tie_key, v, path + [v]))"]
+    SkipNeigh --> LoopNeigh
+    PushQ --> CheckEmpty
+```
+
+#### Running Greedy Best-First Search
+
+1. **Default Sample Run** (Exact syllabus input and output):
+   ```bash
+   python scripts/run_greedy_best_first_search.py --sample
+   ```
+   *Output*:
+   ```text
+   Path chosen based on minimum h(n): A -> B -> C
+   ```
+
+2. **Full Execution Summary & Priority Queue Trace Table**:
+   ```bash
+   python scripts/run_greedy_best_first_search.py --table
+   ```
+
+3. **Optional Challenge: Suboptimality Counterexample**:
+   Demonstrates that Greedy chooses a $55\times$ more expensive path (`S -> A -> G`, cost $110$) compared to optimal Uniform Cost Search (`S -> B -> G`, cost $2$):
+   ```bash
+   python scripts/run_greedy_best_first_search.py --challenge
+   ```
+
+4. **Russell & Norvig Romania Map Benchmark (Arad to Bucharest)**:
+   ```bash
+   python scripts/run_greedy_best_first_search.py --romania
+   ```
+   *Demonstrates Greedy path (`Arad -> Sibiu -> Fagaras -> Bucharest`, cost $450$) vs. optimal UCS path (`Arad -> Sibiu -> Rimnicu Vilcea -> Pitesti -> Bucharest`, cost $418$).*
+
+5. **Local Minima Demonstration**:
+   ```bash
+   python scripts/run_greedy_best_first_search.py --local-minima
+   ```
+
+6. **Custom Graph and Heuristics via CLI**:
+   ```bash
+   python scripts/run_greedy_best_first_search.py --graph "A: B; B: C; C:" --heuristics "A:5, B:2, C:0" --start A --goal C
+   ```
+
+7. **Run via Top-Level CLI Dispatcher**:
+   ```bash
+   python -m src gbfs --sample
+   python -m src q26 --challenge
+   ```
+
+8. **Display University Viva Voce Guide**:
+   ```bash
+   python scripts/run_greedy_best_first_search.py --viva
+   ```
+
+9. **Interactive Jupyter Notebook**:
+   Open [`notebooks/greedy_best_first_search.ipynb`](notebooks/greedy_best_first_search.ipynb) in Jupyter Lab or Antigravity IDE.
 
 ---
 
