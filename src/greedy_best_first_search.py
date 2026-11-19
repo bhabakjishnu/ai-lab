@@ -244,7 +244,7 @@ class GBFSStepRecord:
         frontier_str = "[" + ", ".join(frontier_items) + "]" if frontier_items else "[]"
         enqueued_items = [f"{node}(h={h:g})" for node, h in self.neighbors_enqueued]
         enqueued_str = "[" + ", ".join(enqueued_items) + "]" if enqueued_items else "-"
-        parent_str = str(self.parent) if self.parent is not None else "START"
+        parent_str = self.parent if self.parent is not None else "START"
         h_str = f"{self.heuristic_val:g}"
         return (
             f"{self.step_number:<5} | {self.current_node:<10} | {h_str:<6} | "
@@ -516,16 +516,15 @@ def parse_graph(text: str) -> Dict[str, List[Union[str, Tuple[str, float]]]]:
                 src_part, dst_part = edge.split("->", 1)
                 src = src_part.strip()
                 dst_part = dst_part.strip()
-                if ":" in dst_part:
-                    dst, cost_str = dst_part.split(":", 1)
-                    cost = float(cost_str.strip())
-                    graph.setdefault(src, []).append((dst.strip(), cost))
-                else:
-                    graph.setdefault(src, []).append(dst_part)
                 graph.setdefault(src, [])
                 if ":" in dst_part:
-                    graph.setdefault(dst.strip(), [])
+                    dst_raw, cost_str = dst_part.split(":", 1)
+                    dst_clean = dst_raw.strip()
+                    cost = float(cost_str.strip())
+                    graph.setdefault(src, []).append((dst_clean, cost))
+                    graph.setdefault(dst_clean, [])
                 else:
+                    graph.setdefault(src, []).append(dst_part)
                     graph.setdefault(dst_part, [])
         return graph
 
@@ -639,11 +638,11 @@ def compute_path_cost(
 
         for item in neighbors:
             if isinstance(item, (list, tuple)) and len(item) == 2:
-                if str(item[0]).strip() == v:
+                if item[0].strip() == v:
                     edge_weight = float(item[1])
                     found_edge = True
                     break
-            elif str(item).strip() == v:
+            elif item.strip() == v:
                 edge_weight = 1.0
                 found_edge = True
                 break
@@ -698,8 +697,8 @@ def greedy_best_first_search(
 
     norm_graph = normalize_graph(graph)
     norm_heuristics = normalize_heuristics(heuristics)
-    start_node = str(start).strip()
-    goal_node = str(goal).strip()
+    start_node = start.strip()
+    goal_node = goal.strip()
 
     # Pre-flight validation
     if start_node not in norm_heuristics:
@@ -843,7 +842,7 @@ def greedy_best_first_search(
         neighbors_enqueued: List[Tuple[str, float]] = []
 
         for item in raw_neighbors:
-            neigh_name = str(item[0]).strip() if isinstance(item, (list, tuple)) else str(item).strip()
+            neigh_name = item[0].strip() if isinstance(item, (list, tuple)) else item.strip()
 
             # Verify neighbor has a valid heuristic
             if neigh_name not in norm_heuristics:
@@ -920,8 +919,8 @@ def uniform_cost_search_baseline(
         Tuple of (optimal_path, optimal_cost, nodes_expanded_count).
     """
     norm_graph = normalize_graph(graph)
-    start_node = str(start).strip()
-    goal_node = str(goal).strip()
+    start_node = start.strip()
+    goal_node = goal.strip()
 
     if start_node == goal_node:
         return [start_node], 0.0, 1
@@ -947,10 +946,10 @@ def uniform_cost_search_baseline(
 
         for item in norm_graph.get(current, []):
             if isinstance(item, (list, tuple)) and len(item) == 2:
-                neigh = str(item[0]).strip()
+                neigh = item[0].strip()
                 edge_cost = float(item[1])
             else:
-                neigh = str(item).strip()
+                neigh = item.strip()
                 edge_cost = 1.0
 
             new_g = g + edge_cost
@@ -1155,7 +1154,7 @@ def visualize_gbfs(
         import matplotlib
         matplotlib.use("Agg")  # Headless rendering safe for server/CLI
         import matplotlib.pyplot as plt
-        import networkx as nx
+        import networkx as nx  # type: ignore[import-untyped]
     except ImportError:
         return None
 
@@ -1169,12 +1168,12 @@ def visualize_gbfs(
         G.add_node(u)
         for item in neighbors:
             if isinstance(item, (list, tuple)) and len(item) == 2:
-                v = str(item[0]).strip()
+                v = item[0].strip()
                 w = float(item[1])
                 G.add_edge(u, v, weight=w)
                 edge_labels[(u, v)] = f"{w:g}"
             else:
-                v = str(item).strip()
+                v = item.strip()
                 G.add_edge(u, v)
 
     # Compute node colors
