@@ -64,6 +64,7 @@ ai-lab/
 │   ├── manhattan_euclidean_distance_calculators.ipynb # Question 24: Manhattan & Euclidean Distance Calculators & Viva guide
 │   ├── eight_puzzle_heuristic_evaluator.ipynb # Question 25: 8-Puzzle Heuristic Evaluator (h1 & h2) & Viva guide
 │   ├── greedy_best_first_search.ipynb   # Question 26: Greedy Best-First Search on a Graph & Viva guide
+│   ├── gbfs_grid_navigator.ipynb        # Question 27: Greedy Best-First Search Grid Navigator & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -91,11 +92,12 @@ ai-lab/
 │   ├── run_distance_calculators.py      # CLI & interactive runner for Question 24 (Distance Calculators & Metrics)
 │   ├── run_eight_puzzle_heuristics.py   # CLI & interactive runner for Question 25 (8-Puzzle h1 & h2 Evaluator)
 │   ├── run_greedy_best_first_search.py  # CLI & interactive runner for Question 26 (Greedy Best-First Search & Suboptimality)
+│   ├── run_gbfs_grid_navigator.py       # CLI & interactive runner for Question 27 (Greedy Grid Navigator & Obstacles)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,gbfs-grid,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -121,6 +123,7 @@ ai-lab/
 │   ├── distance_calculators.py          # Question 24: Manhattan, Euclidean, Chebyshev & Octile Distance Metrics
 │   ├── eight_puzzle_heuristics.py       # Question 25: 8-Puzzle Heuristic Evaluator (h1 Misplaced & h2 Manhattan)
 │   ├── greedy_best_first_search.py      # Question 26: Greedy Best-First Search on a Graph, Min-Heap Priority Queue & Suboptimality
+│   ├── gbfs_grid_navigator.py           # Question 27: Greedy Best-First Search Grid Navigator, Dynamic Heuristics & Obstacles
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -149,6 +152,7 @@ ai-lab/
 │   ├── test_distance_calculators.py     # Unit tests for Question 24 Manhattan, Euclidean & Chebyshev calculators
 │   ├── test_eight_puzzle_heuristics.py  # Unit tests for Question 25 8-Puzzle h1, h2, dominance & solvability
 │   ├── test_greedy_best_first_search.py # Unit tests for Question 26 GBFS traversal, suboptimality, cycles & local minima
+│   ├── test_gbfs_grid_navigator.py      # Unit tests for Question 27 GBFS grid navigation, suboptimality, BFS compare & challenge
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -3326,6 +3330,161 @@ flowchart TD
 
 9. **Interactive Jupyter Notebook**:
    Open [`notebooks/greedy_best_first_search.ipynb`](notebooks/greedy_best_first_search.ipynb) in Jupyter Lab or Antigravity IDE.
+
+---
+
+### Question 27: Greedy Best-First Search Grid Navigator
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Syllabus Area** | Informed Search and Heuristics |
+| **Difficulty** | 🟠 Advanced |
+| **Practical Type** | Problem Solving |
+| **Core AI Concept** | Informed Search limitations, Pure Heuristic Evaluation ($f(n) = h(n)$), Suboptimality on Grids |
+| **Python Concepts Tested** | Dynamic heuristic calculation, min-heap priority queue via `heapq`, 2D grid matrix modeling |
+| **Expected Algorithm** | Greedy Best-First Search on Grids |
+| **Recommended Libraries** | `heapq` (Python standard library) |
+| **Time Complexity** | $\mathcal{O}(N \log N)$ where $N = \text{Rows} \times \text{Cols}$ on standard grids |
+| **Space Complexity** | $\mathcal{O}(N)$ auxiliary space for priority queue frontier and explored set |
+| **Sample Input** | Start: (0,0), Goal: (9,9) on 10x10 Maze |
+| **Sample Output** | `Expanded: 25 nodes, Path Length: 22 (Suboptimal)` |
+| **Viva Voce Topics** | • Greedy vs $A^*$ Search<br>• Influence of obstacles on Greedy Search<br>• Dynamic Manhattan distance calculation<br>• Local minima and concave traps |
+| **Optional Challenge** | Output the grid with the path marked by `'*'` |
+
+#### Problem Statement & Theoretical Principles
+Develop a Python program where an agent navigates a 10x10 maze using **Greedy Best-First Search** with the **Manhattan distance heuristic**. The program must demonstrate that Greedy search explores fewer nodes than BFS but might take a suboptimal path.
+
+1. **Pure Heuristic Evaluation ($f(n) = h(n)$)**:
+   - At each step, Greedy Best-First Search selects and expands the node that appears closest to the goal according to $h(n)$.
+   - Unlike Uniform Cost Search ($f(n) = g(n)$) or $A^*$ Search ($f(n) = g(n) + h(n)$), GBFS completely ignores the accumulated step cost $g(n)$ from the start node.
+
+2. **Dynamic Manhattan Distance Heuristic**:
+   - For 4-directional grid navigation without diagonals, the Manhattan distance ($L_1$ norm) serves as the natural admissible heuristic:
+     $$h_M((r, c), (r_{\text{goal}}, c_{\text{goal}})) = |r - r_{\text{goal}}| + |c - c_{\text{goal}}|$$
+   - The heuristic function is evaluated dynamically at runtime based on the goal coordinates.
+
+3. **Trade-Off: Exploration Efficiency vs. Solution Optimality**:
+   - **Fewer Nodes Explored**: In our 10x10 benchmark maze, Greedy BFS expands only **25 nodes**, whereas Breadth-First Search (BFS) exhaustively expands **87 nodes** (a **71.3% reduction** in exploration effort).
+   - **Suboptimal Path**: BFS guarantees the optimal shortest path of **18 steps**, whereas Greedy BFS is lured by obstacles into a circuitous detour of **22 steps** (suboptimality penalty: +4 steps).
+
+#### Greedy Best-First Search Grid Navigator Architecture
+```mermaid
+flowchart TD
+    Start["Start (0,0), Goal (9,9), 10x10 Maze"] --> InitQ["Initialize Min-Heap Frontier Q with (h_M(start, goal), counter, start, [start])<br/>Explored Set = empty"]
+    InitQ --> CheckEmpty{"Is Frontier Q Empty?"}
+    CheckEmpty -->|Yes| Fail["Goal Unreachable (Return None)"]
+    CheckEmpty -->|No| PopMin["Pop Node (r,c) with Min h(n)<br/>h_val, _, curr, path = heappop(Q)"]
+    PopMin --> CheckExplored{"Is (r,c) in Explored Set?"}
+    CheckExplored -->|Yes| CheckEmpty
+    CheckExplored -->|No| MarkExplored["Add (r,c) to Explored Set<br/>Record Node Expansion"]
+    MarkExplored --> GoalTest{"Is (r,c) == Goal (9,9)?"}
+    GoalTest -->|Yes| Success["Goal Reached!<br/>Return Path, Path Length, Expansions Count"]
+    GoalTest -->|No| GenSucc["Generate 4 Orthogonal Neighbors<br/>(Down, Right, Up, Left) within Bounds and not Walls"]
+    GenSucc --> CalcH["For each valid unvisited neighbor:<br/>Calculate Dynamic h_M(neighbor, goal)<br/>heappush(Q, (h_M, counter++, neighbor, path + [neighbor]))"]
+    CalcH --> CheckEmpty
+```
+
+#### Comparative Performance Analysis (10x10 Maze Benchmark)
+
+| Metric | Greedy Best-First Search | Breadth-First Search (BFS) | $A^*$ Search (Informed Baseline) |
+| :--- | :--- | :--- | :--- |
+| **Evaluation Strategy** | $f(n) = h(n)$ (Pure Heuristic) | $f(n) = \text{depth}$ (Blind Level-Order) | $f(n) = g(n) + h(n)$ (Optimal Heuristic) |
+| **Heuristic Function** | Dynamic Manhattan Distance | None (Uniform Unit Step Cost) | Dynamic Manhattan Distance |
+| **Nodes Expanded** | **25 nodes** (71.3% fewer) | **87 nodes** (Exhaustive) | **77 nodes** |
+| **Solution Path Length** | **22 steps** (Suboptimal detour) | **18 steps** (Guaranteed Shortest) | **18 steps** (Guaranteed Optimal) |
+| **Path Optimality** | ❌ **Suboptimal** (+4 steps) |  **Optimal** |  **Optimal** |
+| **Execution Time** | ~0.15 ms | ~0.35 ms | ~0.40 ms |
+
+#### Optional Challenge: Path-Marked Grid Visualization
+```text
+   0 1 2 3 4 5 6 7 8 9
+  +--------------------
+0 | S * . . . . . . . .
+1 | # * . . . . . . . .
+2 | # * # . . . . . . .
+3 | . * * . . . . . . .
+4 | . # * . . . . . . .
+5 | # . * # . . . # # .
+6 | . # * . # . . . # .
+7 | . . * . * * * . . .
+8 | . . * . * # * * . .
+9 | . . * * * . # * * G
+```
+*Legend: `S` = Start (0,0), `G` = Goal (9,9), `*` = Greedy Path, `#` = Wall / Obstacle, `.` = Open Walkable Cell.*
+
+#### Running Greedy Best-First Search Grid Navigator
+
+1. **Default Sample Run** (Exact syllabus input and output):
+   ```bash
+   python scripts/run_gbfs_grid_navigator.py --sample
+   ```
+   *Output:*
+   ```text
+   Expanded: 25 nodes, Path Length: 22 (Suboptimal)
+   ```
+
+2. **Full Execution with Comparison and Coordinates**:
+   ```bash
+   python scripts/run_gbfs_grid_navigator.py
+   ```
+
+3. **Optional Challenge: Render Maze Grid with Path Marked by `*`**:
+   ```bash
+   python scripts/run_gbfs_grid_navigator.py --grid
+   ```
+
+4. **Comprehensive Comparative Benchmark (Greedy vs. BFS vs. $A^*$)**:
+   ```bash
+   python scripts/run_gbfs_grid_navigator.py --compare
+   ```
+
+5. **Step-by-Step Priority Queue Trace Table**:
+   ```bash
+   python scripts/run_gbfs_grid_navigator.py --trace
+   ```
+
+6. **Multi-Benchmark Evaluation** (Default, Concave Trap, Open Grid, Unsolvable):
+   ```bash
+   python scripts/run_gbfs_grid_navigator.py --benchmarks
+   ```
+
+7. **Top-Level CLI Dispatcher**:
+   ```bash
+   python -m src gbfs-grid --sample
+   python -m src q27 --compare
+   ```
+
+8. **Display University Viva Voce Guide**:
+   ```bash
+   python scripts/run_gbfs_grid_navigator.py --viva
+   ```
+
+9. **Interactive Jupyter Notebook**:
+   Open [`notebooks/gbfs_grid_navigator.ipynb`](notebooks/gbfs_grid_navigator.ipynb) in Jupyter Lab or Antigravity IDE.
+
+#### Viva Voce Examination Reference
+
+##### Q1: What is the primary difference between Greedy Best-First Search and $A^*$ Search?
+- **Answer**:
+  - **Greedy Best-First Search** evaluates nodes using purely the heuristic function $f(n) = h(n)$, completely ignoring the accumulated path cost $g(n)$ incurred from the start node.
+  - In contrast, **$A^*$ Search** balances past cost and future estimate: $f(n) = g(n) + h(n)$.
+  - Because Greedy ignores $g(n)$, it is **not optimal** and can take arbitrarily long or circuitous paths. $A^*$ is mathematically guaranteed to find the optimal (minimal cost) path when $h(n)$ is admissible.
+
+##### Q2: How do obstacles influence the behavior and performance of Greedy Best-First Search?
+- **Answer**:
+  - Obstacles create barriers between the agent and the goal. When facing **convex obstacles**, Greedy can often slide around edges.
+  - However, when encountering **concave (U-shaped) obstacles** or cul-de-sacs, Greedy search aggressively moves deeper into the trap because cells near the back wall have lower $h(n)$ values (physically closer to the goal).
+  - Once trapped at a **local minimum** where all successors have higher $h(n)$, Greedy is forced to backtrack, expanding many unnecessary nodes before escaping around the barrier.
+
+##### Q3: Why does Greedy Search often explore fewer nodes than Breadth-First Search (BFS)?
+- **Answer**:
+  - BFS is an uninformed (blind) search that expands nodes exhaustively in concentric circular ripples of increasing depth in every direction, exploring nodes that lead away from the goal.
+  - Greedy Search is informed: its priority queue steers exploration like a beam directly towards the goal, expanding only nodes that appear closest to the destination, often finding a path with drastically fewer node expansions (e.g. 25 expansions vs 87 in our 10x10 benchmark).
+
+##### Q4: Why is Manhattan distance the natural heuristic for 4-directional grid navigation?
+- **Answer**:
+  - On a grid where movement is restricted to 4 orthogonal cardinal directions (Up, Down, Left, Right), the $L_1$ Manhattan distance $|r_1 - r_2| + |c_1 - c_2|$ represents the exact number of steps required to reach the goal in an obstacle-free grid.
+  - When obstacles are present, it is **admissible** (never overestimates) and **consistent** (monotonic), strictly dominating Euclidean distance on orthogonal grids.
 
 ---
 

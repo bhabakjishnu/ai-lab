@@ -177,6 +177,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 26: Greedy Best-First Search on a Graph (Priority Queue & Pure Heuristics)",
     )
 
+    # Greedy Best-First Search Grid Navigator runner
+    subparsers.add_parser(
+        "gbfs-grid",
+        aliases=["gbfs-grid-nav", "greedy-grid", "gbfs-grid-navigator", "q27"],
+        help="Run Question 27: Greedy Best-First Search Grid Navigator (10x10 Maze)",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -261,6 +268,11 @@ def main(argv: Optional[List[str]] = None) -> None:
         "greedy-best-first-search",
         "best-first-search",
         "q26",
+        "gbfs-grid",
+        "gbfs-grid-nav",
+        "greedy-grid",
+        "gbfs-grid-navigator",
+        "q27",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -366,6 +378,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_greedy_best_first_search import main as gbfs_main
             sys.argv = [sys.argv[0]] + remaining
             gbfs_main()
+        elif cmd in ("gbfs-grid", "gbfs-grid-nav", "greedy-grid", "gbfs-grid-navigator", "q27"):
+            from scripts.run_gbfs_grid_navigator import main as gbfs_grid_main
+            sys.argv = [sys.argv[0]] + remaining
+            gbfs_grid_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
