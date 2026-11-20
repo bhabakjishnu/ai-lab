@@ -41,6 +41,7 @@ from scripts.run_multi_goal_bfs_maze import main as multi_goal_bfs_script_main
 from scripts.run_distance_calculators import main as distance_script_main
 from scripts.run_eight_puzzle_heuristics import main as eight_puzzle_script_main
 from scripts.run_greedy_best_first_search import main as gbfs_script_main
+from scripts.run_gbfs_grid_navigator import main as gbfs_grid_script_main
 from src.__main__ import main as cli_main
 
 
@@ -1666,6 +1667,77 @@ class TestScriptExecution(unittest.TestCase):
                 cli_main([cmd, "--sample"])
             out = stdout_trap.getvalue()
             self.assertEqual(out.strip(), "Path chosen based on minimum h(n): A -> B -> C")
+
+    def test_gbfs_grid_navigator_script_execution(self) -> None:
+        """Verify Question 27 runner across all flags, benchmarks, and CLI dispatcher."""
+        # 1. Default run
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_gbfs_grid_navigator.py"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Greedy Best-First Search (GBFS) Grid Navigator", out)
+        self.assertIn("Expanded: 25 nodes, Path Length: 22 (Suboptimal)", out)
+
+        # 2. Exact syllabus sample output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_gbfs_grid_navigator.py", "--sample"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), "Expanded: 25 nodes, Path Length: 22 (Suboptimal)")
+
+        # 3. Optional Challenge: Render grid with path marked by '*'
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_gbfs_grid_navigator.py", "--grid"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("OPTIONAL CHALLENGE: 10x10 Maze Path Visualization ('*')", out)
+        self.assertIn("*", out)
+
+        # 4. Comparative analysis: GBFS vs BFS
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_gbfs_grid_navigator.py", "--compare"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Greedy Best-First Search vs. Breadth-First Search", out)
+        self.assertIn("Fewer Nodes Explored?       : YES", out)
+        self.assertIn("Suboptimal Path Chosen?     : YES", out)
+
+        # 5. Viva Voce guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_gbfs_grid_navigator.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION 27 VIVA VOCE GUIDE", out)
+        self.assertIn("Greedy Best-First Search vs A*", out)
+
+        # 6. Step trace
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_gbfs_grid_navigator.py", "--trace"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Greedy Best-First Search: Step-by-Step Priority Queue Trace", out)
+
+        # 7. Benchmarks
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_gbfs_grid_navigator.py", "--benchmarks"]):
+            with patch("sys.stdout", stdout_trap):
+                gbfs_grid_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("GREEDY BEST-FIRST SEARCH: MULTI-BENCHMARK EVALUATION", out)
+
+        # 8. Top-level CLI dispatcher & aliases
+        for cmd in ("gbfs-grid", "gbfs-grid-nav", "greedy-grid", "gbfs-grid-navigator", "q27"):
+            stdout_trap = io.StringIO()
+            with patch("sys.stdout", stdout_trap):
+                cli_main([cmd, "--sample"])
+            out = stdout_trap.getvalue()
+            self.assertEqual(out.strip(), "Expanded: 25 nodes, Path Length: 22 (Suboptimal)")
 
 
 if __name__ == "__main__":
