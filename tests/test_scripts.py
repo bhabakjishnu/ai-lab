@@ -42,6 +42,7 @@ from scripts.run_distance_calculators import main as distance_script_main
 from scripts.run_eight_puzzle_heuristics import main as eight_puzzle_script_main
 from scripts.run_greedy_best_first_search import main as gbfs_script_main
 from scripts.run_gbfs_grid_navigator import main as gbfs_grid_script_main
+from scripts.run_a_star_search import main as astar_script_main
 from src.__main__ import main as cli_main
 
 
@@ -1738,6 +1739,92 @@ class TestScriptExecution(unittest.TestCase):
                 cli_main([cmd, "--sample"])
             out = stdout_trap.getvalue()
             self.assertEqual(out.strip(), "Expanded: 25 nodes, Path Length: 22 (Suboptimal)")
+
+    def test_run_a_star_search(self) -> None:
+        """Test Question 28: A* Search Algorithm CLI and dispatcher integration."""
+        # 1. Default execution
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_search.py"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), "Optimal Path: S -> C -> G, Total Cost: 9")
+
+        # 2. Exact syllabus sample output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_search.py", "--sample"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), "Optimal Path: S -> C -> G, Total Cost: 9")
+
+        # 3. Optional Challenge: Print frontier contents at each step
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_search.py", "--challenge"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("=== A* Frontier (Priority Queue) Contents at Each Step ===", out)
+        self.assertIn("Optimal Path: S -> C -> G, Total Cost: 9", out)
+
+        # 4. Detailed ASCII step table
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_search.py", "--table"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("A* SEARCH: STEP-BY-STEP EXECUTION TRACE TABLE", out)
+
+        # 5. Romania benchmark
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_search.py", "--romania"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Arad -> Sibiu -> Rimnicu Vilcea -> Pitesti -> Bucharest", out)
+        self.assertIn("Total Cost: 418", out)
+
+        # 6. Reopen demo
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_search.py", "--reopen-demo"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("DEMO: Reopening Closed Nodes", out)
+        self.assertIn("Closed Nodes Reopened: 1", out)
+
+        # 7. Comparison with UCS and Greedy Best-First
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_search.py", "--compare"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("ALGORITHM COMPARISON: A* Search vs. Uniform Cost Search", out)
+
+        # 8. Heuristic verification
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_search.py", "--check-heuristics"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("HEURISTIC VERIFICATION REPORT", out)
+        self.assertIn("Admissibility  : YES", out)
+
+        # 9. Viva Voce study guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_search.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("A* Search Algorithm University Viva Voce Reference Guide", out)
+
+        # 10. Top-level CLI dispatcher & aliases
+        for cmd in ("a-star", "astar", "a-star-search", "astar-search", "q28"):
+            stdout_trap = io.StringIO()
+            with patch("sys.stdout", stdout_trap):
+                cli_main([cmd, "--sample"])
+            out = stdout_trap.getvalue()
+            self.assertEqual(out.strip(), "Optimal Path: S -> C -> G, Total Cost: 9")
 
 
 if __name__ == "__main__":

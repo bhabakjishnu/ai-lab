@@ -65,6 +65,7 @@ ai-lab/
 │   ├── eight_puzzle_heuristic_evaluator.ipynb # Question 25: 8-Puzzle Heuristic Evaluator (h1 & h2) & Viva guide
 │   ├── greedy_best_first_search.ipynb   # Question 26: Greedy Best-First Search on a Graph & Viva guide
 │   ├── gbfs_grid_navigator.ipynb        # Question 27: Greedy Best-First Search Grid Navigator & Viva guide
+│   ├── a_star_search.ipynb              # Question 28: A* Search Algorithm on a Graph & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -93,11 +94,12 @@ ai-lab/
 │   ├── run_eight_puzzle_heuristics.py   # CLI & interactive runner for Question 25 (8-Puzzle h1 & h2 Evaluator)
 │   ├── run_greedy_best_first_search.py  # CLI & interactive runner for Question 26 (Greedy Best-First Search & Suboptimality)
 │   ├── run_gbfs_grid_navigator.py       # CLI & interactive runner for Question 27 (Greedy Grid Navigator & Obstacles)
+│   ├── run_a_star_search.py             # CLI & interactive runner for Question 28 (A* Search on Graph & Re-evaluation)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,gbfs-grid,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,gbfs-grid,a-star,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -124,6 +126,7 @@ ai-lab/
 │   ├── eight_puzzle_heuristics.py       # Question 25: 8-Puzzle Heuristic Evaluator (h1 Misplaced & h2 Manhattan)
 │   ├── greedy_best_first_search.py      # Question 26: Greedy Best-First Search on a Graph, Min-Heap Priority Queue & Suboptimality
 │   ├── gbfs_grid_navigator.py           # Question 27: Greedy Best-First Search Grid Navigator, Dynamic Heuristics & Obstacles
+│   ├── a_star_search.py                 # Question 28: A* Search Algorithm on a Weighted Graph, Min-Heap & Re-evaluation
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -153,6 +156,7 @@ ai-lab/
 │   ├── test_eight_puzzle_heuristics.py  # Unit tests for Question 25 8-Puzzle h1, h2, dominance & solvability
 │   ├── test_greedy_best_first_search.py # Unit tests for Question 26 GBFS traversal, suboptimality, cycles & local minima
 │   ├── test_gbfs_grid_navigator.py      # Unit tests for Question 27 GBFS grid navigation, suboptimality, BFS compare & challenge
+│   ├── test_a_star_search.py            # Unit tests for Question 28 A* Search on graphs, re-evaluation, reopening & challenge
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -3485,6 +3489,182 @@ flowchart TD
 - **Answer**:
   - On a grid where movement is restricted to 4 orthogonal cardinal directions (Up, Down, Left, Right), the $L_1$ Manhattan distance $|r_1 - r_2| + |c_1 - c_2|$ represents the exact number of steps required to reach the goal in an obstacle-free grid.
   - When obstacles are present, it is **admissible** (never overestimates) and **consistent** (monotonic), strictly dominating Euclidean distance on orthogonal grids.
+
+---
+
+### Question 28: A* Search Algorithm on a Graph
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Syllabus Area** | Informed Search and Heuristics |
+| **Difficulty** | 🟠 Advanced |
+| **Practical Type** | Implementation |
+| **Core AI Concept** | A* Search, Optimal & Complete Informed Search ($f(n) = g(n) + h(n)$), Node Re-evaluation & Reopening |
+| **Python Concepts Tested** | Min-heap priority queue via `heapq`, dynamic dictionary updates, lazy deletion |
+| **Expected Algorithm** | A* Graph Search |
+| **Recommended Libraries** | `heapq`, `dataclasses`, `typing` (Python Standard Library) |
+| **Time Complexity** | $\mathcal{O}(E \log V)$ with binary min-heap; $\mathcal{O}(b^d)$ worst-case |
+| **Space Complexity** | $\mathcal{O}(V)$ auxiliary space for priority queue frontier, explored set, and path dictionaries |
+| **Constraints / Conditions** | Heuristics are admissible ($0 \le h(n) \le h^*(n)$) |
+| **Sample Input** | Start: `S`, Goal: `G` |
+| **Sample Output** | `Optimal Path: S -> C -> G, Total Cost: 9` |
+| **Viva Voce Topics** | • $f(n)$, $g(n)$, and $h(n)$ components<br>• Conditions for $A^*$ optimality (admissibility vs consistency)<br>• Handling visited nodes with lower costs (re-evaluation & reopening) |
+| **Optional Challenge** | Print the frontier contents at each step |
+
+#### Problem Statement & Theoretical Principles
+Develop a Python program to implement the **A* Search algorithm** on a weighted graph. The program must evaluate nodes using the evaluation function:
+
+$$f(n) = g(n) + h(n)$$
+
+and find the optimal path from source to destination.
+
+1. **Evaluation Function Components ($f(n) = g(n) + h(n)$)**:
+   - **$g(n)$ (Actual Cost Incurred)**: The exact accumulated cost to travel from the start node $S$ to the current node $n$.
+   - **$h(n)$ (Heuristic Estimate)**: An estimated cost of the cheapest path from node $n$ to the goal $G$.
+   - **$f(n)$ (Total Estimated Cost)**: The estimated total cost of the cheapest solution path passing through node $n$. A* always expands the frontier node minimizing $f(n)$.
+
+2. **Node Re-Evaluation with Lower $g(n)$**:
+   - The algorithm maintains the minimum known $g(n)$ cost in a dynamic dictionary `best_g_costs`.
+   - When evaluating an edge $(u, v)$ with step cost $c(u, v)$, if $\text{tentative\_g} = g(u) + c(u, v) < g(v)$:
+     - `best_g_costs[v]` is dynamically updated with the lower cost.
+     - Its predecessor parent pointer is updated to $u$.
+     - A new tuple $(f(v), \text{tie\_key}, \text{tentative\_g}, v, \text{path})$ is pushed to the min-heap.
+     - Older entries in the heap with higher $g(n)$ are superseded and safely pruned via **lazy deletion** when popped in $\mathcal{O}(1)$ time.
+
+3. **Conditions for Optimality (Admissibility vs. Consistency)**:
+   - **Tree Search**: Optimal if $h(n)$ is **admissible** ($0 \le h(n) \le h^*(n)$).
+   - **Graph Search**: Optimal without reopening closed nodes if $h(n)$ is **consistent** (monotonic), satisfying the triangle inequality:
+     $$h(u) \le c(u, v) + h(v) \quad \forall (u, v) \in E$$
+     Consistency ensures that $f(n)$ never decreases along any search path, guaranteeing that whenever a node is selected for expansion, its discovered $g(n)$ cost is already optimal.
+   - **Reopening Closed Nodes**: If an admissible heuristic is non-monotonic, graph search remains optimal if closed nodes can be reopened upon discovering a lower $g(n)$.
+
+#### A* Graph Search Architecture
+```mermaid
+flowchart TD
+    Start["Start Node S, Goal Node G, Admissible Heuristics h(n)"] --> Init["Initialize Priority Queue Min-Heap Q with (f(S), counter, g(S)=0, S, [S])<br/>best_g_costs = {S: 0}, closed_set = empty"]
+    Init --> CheckEmpty{"Is Priority Queue Q Empty?"}
+    CheckEmpty -->|Yes| Fail["Goal Unreachable (Return None, Cost: Infinity)"]
+    CheckEmpty -->|No| PopMin["Pop Node with Min f(n)<br/>(f, _, g, curr, path) = heappop(Q)"]
+    PopMin --> CheckLazy{"Is g > best_g_costs[curr]?"}
+    CheckLazy -->|Yes (Superseded)| Discard["Skip Stale Entry (Lazy Deletion)"] --> CheckEmpty
+    CheckLazy -->|No| GoalTest{"Is curr == Goal G?"}
+    GoalTest -->|Yes| Success["Goal Reached!<br/>Return Optimal Path, Total Cost, Nodes Expanded"]
+    GoalTest -->|No| MarkClosed["Add curr to closed_set<br/>Record Node Expansion"]
+    MarkClosed --> ExpandSucc["For each neighbor v with edge cost c(curr, v):<br/>tentative_g = g + c(curr, v)"]
+    ExpandSucc --> CheckCheaper{"Is tentative_g < best_g_costs[v]?"}
+    CheckCheaper -->|No| NextSucc["Skip Neighbor"]
+    CheckCheaper -->|Yes| ReopenCheck{"Is v in closed_set?"}
+    ReopenCheck -->|Yes & allow_reopen| RemoveClosed["Reopen Node: closed_set.remove(v)"]
+    ReopenCheck -->|No| UpdateCost["Update best_g_costs[v] = tentative_g<br/>parent[v] = curr<br/>f(v) = tentative_g + h(v)"]
+    RemoveClosed --> UpdateCost
+    UpdateCost --> PushQ["heappush(Q, (f(v), counter++, tentative_g, v, path + [v]))"]
+    PushQ --> CheckEmpty
+```
+
+#### Optional Challenge: Frontier (Priority Queue) Contents at Each Step
+
+```text
+=== A* Frontier (Priority Queue) Contents at Each Step ===
+Step 01 | Popped: S    (Action: EXPAND        ) | Frontier: [B(f=8, g=1), A(f=9, g=3), C(f=8, g=4)]
+Step 02 | Popped: B    (Action: EXPAND        ) | Frontier: [C(f=8, g=4), A(f=9, g=3), A(f=8, g=2)]
+Step 03 | Popped: C    (Action: EXPAND        ) | Frontier: [A(f=8, g=2), A(f=9, g=3), G(f=9, g=9)]
+Step 04 | Popped: A    (Action: EXPAND        ) | Frontier: [A(f=9, g=3), G(f=9, g=9)]
+Step 05 | Popped: A    (Action: SKIP_SUPERSEDED) | Frontier: [G(f=9, g=9)]
+Step 06 | Popped: G    (Action: GOAL_REACHED  ) | Frontier: []
+```
+
+#### Algorithm Comparison (Default Sample Benchmark)
+
+| Metric | A* Search | Uniform Cost Search (UCS) | Greedy Best-First Search (GBFS) |
+| :--- | :--- | :--- | :--- |
+| **Evaluation Strategy** | $f(n) = g(n) + h(n)$ | $f(n) = g(n)$ (Blind) | $f(n) = h(n)$ (Pure Heuristic) |
+| **Guaranteed Optimal?** |  **Yes** (with admissible $h$) |  **Yes** | ❌ **No** (ignores step cost $g$) |
+| **Path Found** | `S -> C -> G` | `S -> C -> G` | `S -> C -> G` |
+| **Total Cost** | **9** | **9** | **9** |
+| **Nodes Expanded** | **5 nodes** | **5 nodes** | **3 nodes** |
+| **Guided Exploration** |  **Balanced** | ❌ Exhaustive circular wavefront | ⚠️ Aggressive but prone to traps |
+
+#### Running A* Search Algorithm
+
+1. **Default Sample Run** (Exact syllabus input and output):
+   ```bash
+   python scripts/run_a_star_search.py --sample
+   ```
+   *Output:*
+   ```text
+   Optimal Path: S -> C -> G, Total Cost: 9
+   ```
+
+2. **Optional Challenge: Print Frontier Contents at Each Step**:
+   ```bash
+   python scripts/run_a_star_search.py --challenge
+   ```
+
+3. **Step-by-Step Priority Queue Trace Table**:
+   ```bash
+   python scripts/run_a_star_search.py --table
+   ```
+
+4. **AIMA Romania Map Benchmark (Arad to Bucharest: 418 km)**:
+   ```bash
+   python scripts/run_a_star_search.py --romania
+   ```
+
+5. **Reopening Closed Node Demonstration (Inconsistent Heuristic)**:
+   ```bash
+   python scripts/run_a_star_search.py --reopen-demo
+   ```
+
+6. **Algorithm Comparison (A* vs. UCS vs. Greedy)**:
+   ```bash
+   python scripts/run_a_star_search.py --compare
+   ```
+
+7. **Verify Heuristic Admissibility and Monotonicity**:
+   ```bash
+   python scripts/run_a_star_search.py --check-heuristics
+   ```
+
+8. **Top-Level CLI Dispatcher**:
+   ```bash
+   python -m src a-star --sample
+   python -m src q28 --table
+   ```
+
+9. **Display University Viva Voce Guide**:
+   ```bash
+   python scripts/run_a_star_search.py --viva
+   ```
+
+10. **Interactive Jupyter Notebook**:
+    Open [`notebooks/a_star_search.ipynb`](notebooks/a_star_search.ipynb) in Jupyter Lab or Antigravity IDE.
+
+#### Viva Voce Examination Reference
+
+##### Q1: What are the three components $f(n)$, $g(n)$, and $h(n)$ in A* Search?
+- **Answer**:
+  - In A* Search, $f(n) = g(n) + h(n)$.
+  - **$g(n)$** represents the actual, exact path cost accumulated from the start node to the current node $n$.
+  - **$h(n)$** is the heuristic estimated cost from node $n$ to the nearest goal state.
+  - **$f(n)$** is the estimated total cost of the cheapest complete path going from start to goal through node $n$. At every expansion, A* extracts the node with the minimum $f(n)$, balancing past travel cost against anticipated future cost.
+
+##### Q2: What are the conditions for A* optimality in Tree Search vs. Graph Search?
+- **Answer**:
+  - **Tree Search**: Requires $h(n)$ to be **admissible** ($0 \le h(n) \le h^*(n)$), meaning it never overestimates the true remaining distance. This guarantees an optimal goal node is expanded before any suboptimal goal.
+  - **Graph Search**: Requires $h(n)$ to be **consistent (monotonic)**, satisfying $h(u) \le c(u, v) + h(v)$ for all edges $(u, v)$. Consistency implies admissibility and guarantees that $f(n)$ values along any path are monotonically non-decreasing, ensuring that the first time a node is expanded, its path cost $g(n)$ is already strictly optimal without needing to reopen closed nodes.
+  - If $h(n)$ is admissible but not consistent, graph search remains optimal only if **closed nodes are reopened** when a cheaper $g(n)$ path is found.
+
+##### Q3: How does A* handle visited nodes when a cheaper $g(n)$ path is discovered?
+- **Answer**:
+  - When evaluating edge $(u, v)$ with $\text{tentative\_g} = g(u) + c(u, v) < g(v)$:
+    1. **Dynamic Update**: `best_g_costs[v]` is updated with the lower cost, and its parent pointer is updated to $u$.
+    2. **Priority Queue**: Because binary min-heaps in Python (`heapq`) do not support an $\mathcal{O}(1)$ or $\mathcal{O}(\log N)$ `decrease_key` operation, a new entry with the lower $(f, g)$ values is pushed into the heap. Superseded entries with higher $g$ are discarded via **lazy deletion** when popped.
+    3. **Reopening Closed Nodes**: If $v$ has already been expanded and added to the closed set, and the heuristic is not consistent, $v$ must be removed from the closed set (reopened) and pushed back into the frontier to propagate the cost reduction downstream.
+
+##### Q4: What is the time and space complexity of A* Search?
+- **Answer**:
+  - **Time Complexity**: $\mathcal{O}(E \log V)$ with a binary min-heap for finite graphs. In the worst case with an uninformative heuristic ($h=0$), it degenerates to $\mathcal{O}(b^d)$ where $b$ is the branching factor and $d$ is the goal depth.
+  - **Space Complexity**: $\mathcal{O}(b^d)$ or $\mathcal{O}(V)$, as all generated states must remain stored in memory (in either the open frontier or closed explored set) to prevent cycles and ensure optimality. Memory consumption is the primary practical bottleneck of A*.
 
 ---
 
