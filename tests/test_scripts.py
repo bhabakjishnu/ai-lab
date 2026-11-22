@@ -43,6 +43,7 @@ from scripts.run_eight_puzzle_heuristics import main as eight_puzzle_script_main
 from scripts.run_greedy_best_first_search import main as gbfs_script_main
 from scripts.run_gbfs_grid_navigator import main as gbfs_grid_script_main
 from scripts.run_a_star_search import main as astar_script_main
+from scripts.run_a_star_maze_solver import main as astar_maze_script_main
 from src.__main__ import main as cli_main
 
 
@@ -1825,6 +1826,101 @@ class TestScriptExecution(unittest.TestCase):
                 cli_main([cmd, "--sample"])
             out = stdout_trap.getvalue()
             self.assertEqual(out.strip(), "Optimal Path: S -> C -> G, Total Cost: 9")
+
+    def test_run_a_star_maze_solver(self) -> None:
+        """Test Question 29: A* Pathfinding in 2D Maze CLI and dispatcher integration."""
+        # 1. Default execution (formatted overview and ASCII visualization)
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_maze_solver.py"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_maze_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("A* PATHFINDING IN 2D MAZE: ASCII VISUALIZATION", out)
+        self.assertIn("Optimal Steps   : 8 transitions", out)
+        self.assertIn("Nodes Expanded  : 16 nodes", out)
+        self.assertIn("* # X . .", out)
+
+        # 2. Exact syllabus sample output (pure ASCII grid)
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_maze_solver.py", "--sample"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_maze_script_main()
+        out = stdout_trap.getvalue()
+        expected_sample = (
+            "* # X . .\n"
+            "* # X . .\n"
+            "* # X . .\n"
+            "* # # # #\n"
+            "* * * * *"
+        )
+        self.assertEqual(out.strip(), expected_sample)
+
+        # 3. Optional Challenge: Live terminal animation
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_maze_solver.py", "--animate", "--delay", "0"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_maze_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("A* 2D MAZE EXPANSION ANIMATION", out)
+        self.assertIn("GOAL REACHED! Optimal Path Length: 8 steps", out)
+
+        # 4. Comparative analysis: A* vs BFS vs Greedy
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_maze_solver.py", "--compare"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_maze_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("SEARCH ALGORITHM COMPARISON: A* vs. BFS vs. GREEDY BEST-FIRST", out)
+        self.assertIn("Nodes Explored Reduction vs BFS", out)
+
+        # 5. Step-by-step priority queue trace table
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_maze_solver.py", "--table"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_maze_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("A* PATHFINDING: STEP-BY-STEP PRIORITY QUEUE EXECUTION TRACE TABLE", out)
+        self.assertIn("GOAL_REACHED", out)
+
+        # 6. Benchmark suite
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_maze_solver.py", "--benchmarks"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_maze_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("A* 2D MAZE PATHFINDING: MULTI-BENCHMARK SUITE", out)
+        self.assertIn("Benchmark 10x10 Maze", out)
+
+        # 7. Viva Voce guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_maze_solver.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_maze_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 29: A* PATHFINDING IN 2D MAZE - VIVA VOCE REFERENCE GUIDE", out)
+        self.assertIn("A* IN VIDEO GAMES", out)
+        self.assertIn("EXPLORED SET SIZE RELATIVE TO BFS", out)
+
+        # 8. Custom grid input via CLI
+        stdout_trap = io.StringIO()
+        with patch.object(
+            sys,
+            "argv",
+            ["run_a_star_maze_solver.py", "--grid", ". . X\n. . .\n. X .", "--start", "0,0", "--goal", "2,2"],
+        ):
+            with patch("sys.stdout", stdout_trap):
+                astar_maze_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Maze Dimensions : 3 rows x 3 columns", out)
+        self.assertIn("Start / Goal    : (0, 0) -> (2, 2)", out)
+
+        # 9. Top-level CLI dispatcher & aliases
+        for cmd in ("a-star-maze", "astar-maze", "a-star-maze-solver", "astar-2d-maze", "q29"):
+            stdout_trap = io.StringIO()
+            with patch("sys.stdout", stdout_trap):
+                cli_main([cmd, "--sample"])
+            out = stdout_trap.getvalue()
+            self.assertEqual(out.strip(), expected_sample)
 
 
 if __name__ == "__main__":

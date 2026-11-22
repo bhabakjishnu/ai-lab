@@ -191,6 +191,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 28: A* Search Algorithm on a Weighted Graph (f(n) = g(n) + h(n))",
     )
 
+    # A* Pathfinding in 2D Maze runner
+    subparsers.add_parser(
+        "a-star-maze",
+        aliases=["astar-maze", "a-star-maze-solver", "astar-2d-maze", "q29"],
+        help="Run Question 29: A* Pathfinding in 2D Maze Simulation (f(n) = g(n) + h(n))",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -285,6 +292,11 @@ def main(argv: Optional[List[str]] = None) -> None:
         "a-star-search",
         "astar-search",
         "q28",
+        "a-star-maze",
+        "astar-maze",
+        "a-star-maze-solver",
+        "astar-2d-maze",
+        "q29",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -398,6 +410,10 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_a_star_search import main as astar_main
             sys.argv = [sys.argv[0]] + remaining
             astar_main()
+        elif cmd in ("a-star-maze", "astar-maze", "a-star-maze-solver", "astar-2d-maze", "q29"):
+            from scripts.run_a_star_maze_solver import main as astar_maze_main
+            sys.argv = [sys.argv[0]] + remaining
+            astar_maze_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining

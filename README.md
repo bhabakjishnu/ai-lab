@@ -66,6 +66,7 @@ ai-lab/
 │   ├── greedy_best_first_search.ipynb   # Question 26: Greedy Best-First Search on a Graph & Viva guide
 │   ├── gbfs_grid_navigator.ipynb        # Question 27: Greedy Best-First Search Grid Navigator & Viva guide
 │   ├── a_star_search.ipynb              # Question 28: A* Search Algorithm on a Graph & Viva guide
+│   ├── a_star_maze_solver.ipynb         # Question 29: A* Pathfinding in 2D Maze & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -95,11 +96,12 @@ ai-lab/
 │   ├── run_greedy_best_first_search.py  # CLI & interactive runner for Question 26 (Greedy Best-First Search & Suboptimality)
 │   ├── run_gbfs_grid_navigator.py       # CLI & interactive runner for Question 27 (Greedy Grid Navigator & Obstacles)
 │   ├── run_a_star_search.py             # CLI & interactive runner for Question 28 (A* Search on Graph & Re-evaluation)
+│   ├── run_a_star_maze_solver.py        # CLI & interactive runner for Question 29 (A* 2D Maze Simulation & ASCII Visualization)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,gbfs-grid,a-star,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,gbfs-grid,a-star,a-star-maze,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -127,6 +129,7 @@ ai-lab/
 │   ├── greedy_best_first_search.py      # Question 26: Greedy Best-First Search on a Graph, Min-Heap Priority Queue & Suboptimality
 │   ├── gbfs_grid_navigator.py           # Question 27: Greedy Best-First Search Grid Navigator, Dynamic Heuristics & Obstacles
 │   ├── a_star_search.py                 # Question 28: A* Search Algorithm on a Weighted Graph, Min-Heap & Re-evaluation
+│   ├── a_star_maze_solver.py            # Question 29: A* Pathfinding in 2D Maze, Manhattan Heuristic & ASCII Rendering
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -157,6 +160,7 @@ ai-lab/
 │   ├── test_greedy_best_first_search.py # Unit tests for Question 26 GBFS traversal, suboptimality, cycles & local minima
 │   ├── test_gbfs_grid_navigator.py      # Unit tests for Question 27 GBFS grid navigation, suboptimality, BFS compare & challenge
 │   ├── test_a_star_search.py            # Unit tests for Question 28 A* Search on graphs, re-evaluation, reopening & challenge
+│   ├── test_a_star_maze_solver.py       # Unit tests for Question 29 A* 2D maze pathfinding, heuristics, render & challenge
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -3665,6 +3669,170 @@ Step 06 | Popped: G    (Action: GOAL_REACHED  ) | Frontier: []
 - **Answer**:
   - **Time Complexity**: $\mathcal{O}(E \log V)$ with a binary min-heap for finite graphs. In the worst case with an uninformative heuristic ($h=0$), it degenerates to $\mathcal{O}(b^d)$ where $b$ is the branching factor and $d$ is the goal depth.
   - **Space Complexity**: $\mathcal{O}(b^d)$ or $\mathcal{O}(V)$, as all generated states must remain stored in memory (in either the open frontier or closed explored set) to prevent cycles and ensure optimality. Memory consumption is the primary practical bottleneck of A*.
+
+---
+
+### Question 29: A* Pathfinding in 2D Maze
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Syllabus Area** | Informed Search and Heuristics |
+| **Difficulty** | 🟠 Advanced |
+| **Practical Type** | Simulation |
+| **Core AI Concept** | A* Application to spatial navigation, Informed Heuristic Search ($f(n) = g(n) + h(n)$) |
+| **Python Concepts Tested** | ASCII matrix manipulation, A* logic, binary min-heap priority queue via `heapq` |
+| **Expected Algorithm** | A* Pathfinding |
+| **Recommended Libraries** | `heapq`, `dataclasses`, `typing` (Python Standard Library) |
+| **Complexity Expectation** | Time: Depends on heuristic accuracy ($\mathcal{O}(N \log N)$ on grids); Space: $\mathcal{O}(N)$ |
+| **Constraints / Conditions** | Goal is strictly reachable; step cost = 1; 4-directional moves (Up, Down, Left, Right) |
+| **Sample Input** | 5x5 Grid containing obstacles |
+| **Sample Output** | ASCII Grid output: `'X'` for obstacles, `'.'` for open, `'*'` for path, `'#'` for explored |
+| **University Practical Importance**| Very High |
+| **Viva Voce Topics** | • A* in video games<br>• Explored set size relative to BFS |
+| **Optional Challenge** | Animate the expansion process in the terminal |
+
+#### Problem Statement & Theoretical Principles
+Implement **A* Pathfinding** for a 2D grid containing obstacles. The agent can move **Up**, **Down**, **Left**, and **Right** with a uniform step cost of 1. The program must evaluate nodes using the evaluation function:
+$$f(n) = g(n) + h(n)$$
+where $g(n)$ is the accumulated path cost from the start node and $h(n)$ is the dynamic **Manhattan distance** to the goal:
+$$h_M((r, c), (r_{\text{goal}}, c_{\text{goal}})) = |r - r_{\text{goal}}| + |c - c_{\text{goal}}|$$
+
+The program must track all expanded nodes, record step-by-step priority queue transitions, and render the maze with the strict ASCII glyph mapping:
+- `'X'`: Static impassable obstacles / walls
+- `'.'`: Open walkable cells (unvisited)
+- `'*'`: Optimal solution path from start to goal
+- `'#'`: Explored nodes expanded during search (not part of the final path)
+
+#### Theoretical Proof: Admissibility and Consistency on Grids
+1. **Admissibility ($0 \le h_M(n) \le h^*(n)$)**:
+   - On a 4-connected grid without diagonals, any path between $(r, c)$ and $(r_{\text{goal}}, c_{\text{goal}})$ requires at least $|r - r_{\text{goal}}|$ vertical steps and $|c - c_{\text{goal}}|$ horizontal steps.
+   - Because obstacles only block passages and force detours, the true shortest distance $h^*(n)$ is bounded from below:
+     $$h^*(n) \ge |r - r_{\text{goal}}| + |c - c_{\text{goal}}| = h_M(n)$$
+   - Therefore, Manhattan distance never overestimates the actual cost to reach the goal.
+
+2. **Consistency / Monotonicity ($h(u) \le c(u, v) + h(v)$)**:
+   - For any two adjacent cells $u$ and $v$ connected by an orthogonal step ($c(u, v) = 1$):
+     $$|h_M(u) - h_M(v)| \le |(r_u - r_v)| + |(c_u - c_v)| = 1 = c(u, v)$$
+   - Rearranging gives $h_M(u) \le 1 + h_M(v)$, proving consistency.
+   - Consequently, $f(n)$ is monotonically non-decreasing along any path, guaranteeing that the first time a state is expanded, its path cost $g(n)$ is strictly optimal. Closed nodes never need to be reopened!
+
+#### Explored Set Size Relative to BFS
+1. **Mathematical Comparison**:
+   - **BFS (Blind Search)** expands states indiscriminately in expanding concentric diamond rings ($L_1$ metric balls) centered at the start:
+     $$\mathcal{S}_{\text{BFS}} = \{n \in V \mid g(n) \le d^*\}$$
+     expanding up to $\mathcal{O}(b^d)$ nodes where $b \approx 4$.
+   - **A* Search (Informed Search)** focuses exploration into an ellipse bounded by:
+     $$\mathcal{S}_{\text{A*}} = \{n \in V \mid f(n) = g(n) + h(n) \le C^*\}$$
+     where $C^*$ is the optimal path cost. The major axis of this ellipse directly connects the start and goal.
+   - When $h(n) = h^*(n)$ (perfect heuristic), A* expands strictly $d^* + 1$ nodes—only the nodes along the optimal path!
+2. **Empirical Benchmark Evidence**:
+   - On our 5x5 benchmark maze, A* expands only **16 nodes** vs. BFS's **17 nodes**.
+   - On our 10x10 benchmark maze, A* expands only **77 nodes** vs. BFS's **87 nodes** (an 11.5% reduction), while avoiding the 22-step suboptimal trap of Greedy Best-First Search.
+
+#### A* Pathfinding Architecture Flowchart
+```mermaid
+flowchart TD
+    Start["Start Node (0, 0), Goal (4, 4), 5x5 Grid"] --> InitQ["Initialize Min-Heap Frontier Q with (f_start, counter, g=0, start, [start])<br/>best_g[(0,0)] = 0, Explored Set = empty"]
+    InitQ --> CheckEmpty{"Is Frontier Q Empty?"}
+    CheckEmpty -->|Yes| Fail["Goal Unreachable (Return Failure)"]
+    CheckEmpty -->|No| PopMin["Pop Node (r,c) with Min f(n)<br/>f, _, g, curr, path = heappop(Q)"]
+    PopMin --> CheckExplored{"Is (r,c) in Explored Set?"}
+    CheckExplored -->|Yes| CheckEmpty
+    CheckExplored -->|No| MarkExplored["Add (r,c) to Explored Set<br/>Record Node Expansion"]
+    MarkExplored --> GoalTest{"Is (r,c) == Goal (4, 4)?"}
+    GoalTest -->|Yes| Success["Goal Reached!<br/>Return Optimal Path, Path Length, Expansions, Render Grid"]
+    GoalTest -->|No| GenSucc["Generate 4 Orthogonal Neighbors<br/>(Up, Down, Left, Right) within Bounds and not 'X'"]
+    GenSucc --> EvalNeigh["For each valid walkable neighbor:<br/>tentative_g = g + 1<br/>h_next = |nr - gr| + |nc - gc|<br/>f_next = tentative_g + h_next"]
+    EvalNeigh --> CheckBetter{"neighbor not in explored<br/>AND tentative_g < best_g[neighbor]?"}
+    CheckBetter -->|Yes| PushHeap["best_g[neighbor] = tentative_g<br/>heappush(Q, (f_next, counter++, tentative_g, neighbor, path + [neighbor]))"]
+    CheckBetter -->|No| NextNeigh["Skip Neighbor"]
+    PushHeap --> CheckEmpty
+    NextNeigh --> CheckEmpty
+```
+
+#### Benchmark Comparison: A* vs. BFS vs. Greedy Best-First Search
+
+| Metric | A* Pathfinding | Breadth-First Search (BFS) | Greedy Best-First Search |
+| :--- | :--- | :--- | :--- |
+| **Evaluation Strategy** | $f(n) = g(n) + h(n)$ | $f(n) = \text{depth}$ (Level-order) | $f(n) = h(n)$ (Pure Heuristic) |
+| **Heuristic Function** | Manhattan Distance ($L_1$) | None (Uniform Step Cost) | Manhattan Distance ($L_1$) |
+| **5x5 Nodes Expanded** | **16 nodes** | **17 nodes** | **9 nodes** |
+| **5x5 Path Length** | **8 steps** (Optimal) | **8 steps** (Optimal) | **8 steps** (Optimal) |
+| **10x10 Nodes Expanded** | **77 nodes** (Informed) | **87 nodes** (Exhaustive) | **25 nodes** (Aggressive) |
+| **10x10 Path Length** | **18 steps** (Strictly Optimal) | **18 steps** (Guaranteed Shortest) | **22 steps** (Suboptimal +4) |
+| **Path Optimality** |  **Optimal** |  **Optimal** | ❌ **Suboptimal** |
+| **Memory Footprint** | $\mathcal{O}(V)$ | $\mathcal{O}(V)$ | $\mathcal{O}(V)$ |
+
+#### Canonical 5x5 ASCII Grid Visualization
+```
+* # X . .
+* # X . .
+* # X . .
+* # # # #
+* * * * *
+```
+- `'X'`: Impassable vertical obstacle wall at $(0,2), (1,2), (2,2)$.
+- `'*'`: 8-step optimal path along $(0,0) \to (1,0) \to (2,0) \to (3,0) \to (4,0) \to (4,1) \to (4,2) \to (4,3) \to (4,4)$.
+- `'#'`: Explored cells evaluated and expanded during search before reaching the target.
+- `'.'`: Unvisited open walkable cells.
+
+#### CLI Execution & Interactive Options
+
+```bash
+# 1. Default Formatted Run (Summary metrics and ASCII visualization):
+python scripts/run_a_star_maze_solver.py
+
+# 2. Exact Syllabus Sample Output (Pure ASCII Grid):
+python scripts/run_a_star_maze_solver.py --sample
+
+# 3. Optional Challenge: Live terminal animation of expansion progression:
+python scripts/run_a_star_maze_solver.py --animate --delay 0.05
+
+# 4. Search Algorithm Comparison (A* vs. BFS vs. Greedy):
+python scripts/run_a_star_maze_solver.py --compare
+
+# 5. Step-by-Step Priority Queue Trace Table:
+python scripts/run_a_star_maze_solver.py --table
+
+# 6. Multi-Benchmark Suite (5x5, 10x10, Concave Trap, Serpentine, Open):
+python scripts/run_a_star_maze_solver.py --benchmarks
+
+# 7. University Viva Voce Preparation Guide:
+python scripts/run_a_star_maze_solver.py --viva
+
+# 8. Top-Level CLI Dispatcher:
+python -m src a-star-maze --sample
+```
+
+#### University Viva Voce Preparation Guide
+
+##### Q1: How is A* pathfinding implemented and optimized in commercial video games?
+- **Answer**:
+  - In modern games (RTS, RPGs, FPS), units navigate complex 2D and 3D maps using specialized A* variants:
+    1. **Spatial Representation**: Rather than tile grids, modern games use **Navigation Meshes (NavMeshes)**—convex polygonal decompositions of walkable geometry—or **Hierarchical A* (HPA*)**, planning high-level cluster corridors first before refining local paths.
+    2. **Jump Point Search (JPS)**: On uniform grids, JPS prunes intermediate symmetric states by scanning lines until an obstacle boundary (forced neighbor) is encountered, accelerating A* by 10x to 50x.
+    3. **Frame Budgets & Time-Slicing**: AI routines operate within a tight 1–2 ms frame budget. Paths spanning hundreds of tiles are time-sliced across game ticks or computed using **Weighted A*** ($f = g + w \cdot h$, $w > 1$) to find an $\epsilon$-admissible path in a fraction of expansions.
+    4. **Dynamic Replanning**: Algorithms like **D* Lite** repair paths incrementally when doors close or enemy units block corridors without replanning from scratch.
+
+##### Q2: How does the size of the explored set in A* compare to Breadth-First Search (BFS)?
+- **Answer**:
+  - **BFS** expands nodes indiscriminately in concentric geometric contours based on depth $d$, exploring $\mathcal{O}(b^d)$ nodes regardless of where the goal lies.
+  - **A*** restricts its expansions to an ellipse defined by $f(n) = g(n) + h(n) \le C^*$, where $C^*$ is the optimal path cost. The ellipse is oriented directly towards the goal coordinate.
+  - If $h(n) = h^*(n)$ (perfect heuristic), A* explores strictly $d^* + 1$ nodes—only the states on the optimal path.
+  - In 2D grid mazes, A* typically expands **40% to 80% fewer nodes** than BFS while guaranteeing 100% path optimality.
+
+##### Q3: Why is tie-breaking critical in A* grid search, and what strategies exist?
+- **Answer**:
+  - In 2D grid mazes, many symmetric paths share identical optimal $f$-costs. Without intelligent tie-breaking, A* expands all states sharing that $f$-value across a broad wavefront.
+  - **Prefer Greater $g$ (Smaller $h$)**: Breaking ties in favor of states with lower $h$-values directs the search along a narrow beam toward the goal, cutting node expansions by up to 50%.
+  - **FIFO / LIFO Ordering**: Using an incremental counter ensures deterministic, reproducible search traces.
+  - **Slight Heuristic Inflation**: Adding a minute factor $h = h \cdot (1 + \epsilon)$ breaks ties towards the goal with zero practical compromise in path optimality.
+
+##### Q4: What makes Manhattan distance both admissible and consistent on a 4-connected grid?
+- **Answer**:
+  - **Admissibility**: Because orthogonal movements allow only $\Delta r = \pm 1$ or $\Delta c = \pm 1$ per step, the minimum number of steps to reach the goal without obstacles is $|r - r_{\text{goal}}| + |c - c_{\text{goal}}|$. Obstacles can only increase path length, so $h_M(n) \le h^*(n)$ always.
+  - **Consistency**: Any orthogonal step from cell $u$ to adjacent cell $v$ changes coordinates by at most 1, so $|h(u) - h(v)| \le 1 = c(u, v)$. This satisfies the triangle inequality $h(u) \le c(u, v) + h(v)$.
+  - **Consequence**: Monotonicity guarantees that node expansions never need to be repeated, and closed nodes never need to be reopened.
 
 ---
 
