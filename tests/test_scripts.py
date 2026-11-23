@@ -5,6 +5,7 @@ execute cleanly with expected return codes and outputs.
 """
 
 import io
+import json
 import sys
 import unittest
 from unittest.mock import patch
@@ -44,6 +45,7 @@ from scripts.run_greedy_best_first_search import main as gbfs_script_main
 from scripts.run_gbfs_grid_navigator import main as gbfs_grid_script_main
 from scripts.run_a_star_search import main as astar_script_main
 from scripts.run_a_star_maze_solver import main as astar_maze_script_main
+from scripts.run_a_star_eight_puzzle import main as astar_puzzle_script_main
 from src.__main__ import main as cli_main
 
 
@@ -1916,6 +1918,107 @@ class TestScriptExecution(unittest.TestCase):
 
         # 9. Top-level CLI dispatcher & aliases
         for cmd in ("a-star-maze", "astar-maze", "a-star-maze-solver", "astar-2d-maze", "q29"):
+            stdout_trap = io.StringIO()
+            with patch("sys.stdout", stdout_trap):
+                cli_main([cmd, "--sample"])
+            out = stdout_trap.getvalue()
+            self.assertEqual(out.strip(), expected_sample)
+
+    def test_run_a_star_eight_puzzle(self) -> None:
+        """Test Question 30: 8-Puzzle Solver using A* (Manhattan) CLI and dispatcher."""
+        expected_sample = "Solved in 2 moves: [[1, 2, 3, 4, 0, 5, 6, 7, 8], [1, 2, 3, 4, 5, 0, 6, 7, 8], [1, 2, 3, 4, 5, 8, 6, 7, 0]]"
+
+        # 1. Default execution (formatted overview and ASCII step-by-step boards)
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_eight_puzzle.py"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("8-PUZZLE SOLVER (A* WITH MANHATTAN HEURISTIC)", out)
+        self.assertIn("Optimal Move Count: 2 moves", out)
+        self.assertIn("Step 0 (Initial State):", out)
+        self.assertIn("Step 1 (Move 5 LEFT | Blank RIGHT)", out)
+        self.assertIn("Step 2 (Move 8 UP | Blank DOWN)", out)
+
+        # 2. Exact syllabus sample output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_eight_puzzle.py", "--sample"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), expected_sample)
+
+        # 3. Optional Challenge: Solvability check
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_eight_puzzle.py", "--check-solvability"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("8-PUZZLE MATHEMATICAL SOLVABILITY VERIFICATION REPORT", out)
+        self.assertIn("Initial State Inversions: 0", out)
+        self.assertIn("Solvability Status      : SOLVABLE", out)
+
+        # 4. Comparative benchmarking
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_eight_puzzle.py", "--compare"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("8-PUZZLE HEURISTIC & SEARCH ALGORITHM COMPARISON REPORT", out)
+        self.assertIn("A* (Manhattan Distance)", out)
+        self.assertIn("A* (Misplaced Tiles)", out)
+
+        # 5. Step-by-step trace table
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_eight_puzzle.py", "--table"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("8-PUZZLE OPTIMAL SOLUTION STEP-BY-STEP TRACE TABLE", out)
+        self.assertIn("Move 5 LEFT", out)
+        self.assertIn("Move 8 UP", out)
+
+        # 6. Viva Voce reference guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_eight_puzzle.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 30: 8-PUZZLE SOLVER USING A* (MANHATTAN)", out)
+        self.assertIn("INVERSIONS TO CHECK SOLVABILITY", out)
+        self.assertIn("STATE HASHING IMPORTANCE", out)
+
+        # 7. JSON output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_eight_puzzle.py", "--json"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        data = json.loads(out)
+        self.assertTrue(data["success"])
+        self.assertEqual(data["move_count"], 2)
+
+        # 8. Custom initial state via CLI
+        stdout_trap = io.StringIO()
+        with patch.object(
+            sys,
+            "argv",
+            ["run_a_star_eight_puzzle.py", "--initial", "[1, 2, 3, 4, 0, 6, 7, 5, 8]", "--table"],
+        ):
+            with patch("sys.stdout", stdout_trap):
+                astar_puzzle_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Total Moves: 2", out)
+
+        # 9. Top-level CLI dispatcher & aliases
+        for cmd in (
+            "eight-puzzle-solver",
+            "8-puzzle-solver",
+            "astar-puzzle",
+            "astar-8-puzzle",
+            "eight-puzzle-astar",
+            "q30",
+        ):
             stdout_trap = io.StringIO()
             with patch("sys.stdout", stdout_trap):
                 cli_main([cmd, "--sample"])
