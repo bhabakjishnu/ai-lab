@@ -67,6 +67,7 @@ ai-lab/
 │   ├── gbfs_grid_navigator.ipynb        # Question 27: Greedy Best-First Search Grid Navigator & Viva guide
 │   ├── a_star_search.ipynb              # Question 28: A* Search Algorithm on a Graph & Viva guide
 │   ├── a_star_maze_solver.ipynb         # Question 29: A* Pathfinding in 2D Maze & Viva guide
+│   ├── a_star_eight_puzzle.ipynb        # Question 30: 8-Puzzle Solver using A* (Manhattan) & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -97,11 +98,12 @@ ai-lab/
 │   ├── run_gbfs_grid_navigator.py       # CLI & interactive runner for Question 27 (Greedy Grid Navigator & Obstacles)
 │   ├── run_a_star_search.py             # CLI & interactive runner for Question 28 (A* Search on Graph & Re-evaluation)
 │   ├── run_a_star_maze_solver.py        # CLI & interactive runner for Question 29 (A* 2D Maze Simulation & ASCII Visualization)
+│   ├── run_a_star_eight_puzzle.py       # CLI & interactive runner for Question 30 (8-Puzzle A* Solver & Inversions)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,gbfs-grid,a-star,a-star-maze,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,gbfs-grid,a-star,a-star-maze,eight-puzzle-solver,q30,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -130,6 +132,7 @@ ai-lab/
 │   ├── gbfs_grid_navigator.py           # Question 27: Greedy Best-First Search Grid Navigator, Dynamic Heuristics & Obstacles
 │   ├── a_star_search.py                 # Question 28: A* Search Algorithm on a Weighted Graph, Min-Heap & Re-evaluation
 │   ├── a_star_maze_solver.py            # Question 29: A* Pathfinding in 2D Maze, Manhattan Heuristic & ASCII Rendering
+│   ├── a_star_eight_puzzle.py           # Question 30: 8-Puzzle Solver using A*, Manhattan Heuristic & Inversions
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -161,6 +164,7 @@ ai-lab/
 │   ├── test_gbfs_grid_navigator.py      # Unit tests for Question 27 GBFS grid navigation, suboptimality, BFS compare & challenge
 │   ├── test_a_star_search.py            # Unit tests for Question 28 A* Search on graphs, re-evaluation, reopening & challenge
 │   ├── test_a_star_maze_solver.py       # Unit tests for Question 29 A* 2D maze pathfinding, heuristics, render & challenge
+│   ├── test_a_star_eight_puzzle.py      # Unit tests for Question 30 8-puzzle A* search, heuristics & solvability
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -3833,6 +3837,168 @@ python -m src a-star-maze --sample
   - **Admissibility**: Because orthogonal movements allow only $\Delta r = \pm 1$ or $\Delta c = \pm 1$ per step, the minimum number of steps to reach the goal without obstacles is $|r - r_{\text{goal}}| + |c - c_{\text{goal}}|$. Obstacles can only increase path length, so $h_M(n) \le h^*(n)$ always.
   - **Consistency**: Any orthogonal step from cell $u$ to adjacent cell $v$ changes coordinates by at most 1, so $|h(u) - h(v)| \le 1 = c(u, v)$. This satisfies the triangle inequality $h(u) \le c(u, v) + h(v)$.
   - **Consequence**: Monotonicity guarantees that node expansions never need to be repeated, and closed nodes never need to be reopened.
+
+---
+
+### Question 30: 8-Puzzle Solver using A* (Manhattan)
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Syllabus Area** | Informed Search and Heuristics |
+| **Difficulty** | 🔴 Expert |
+| **Practical Type** | Integrated Problem |
+| **Core AI Concept** | A* on Complex State Spaces, Informed Heuristic Search ($f(n) = g(n) + h(n)$) |
+| **Python Concepts Tested** | 1D tuple state representation, fast hashing, deepcopy avoidance, binary min-heap via `heapq` |
+| **Expected Algorithm** | A* Search Algorithm |
+| **Recommended Libraries** | `heapq`, `dataclasses`, `typing` (Python Standard Library) |
+| **Complexity Expectation** | High (Memory limits may be reached if poorly optimized: $181,440$ reachable states) |
+| **Constraints / Conditions** | Initial state must be solvable; step cost = 1 per tile sliding move |
+| **Sample Input** | `[1,2,3, 4,0,5, 6,7,8]` |
+| **Sample Output** | `Solved in 2 moves: [Board states...]` |
+| **University Practical Importance**| Advanced |
+| **Viva Voce Topics** | • Inversions to check solvability<br>• State hashing importance |
+| **Optional Challenge** | Add a function to mathematically verify if the board is solvable before searching |
+
+#### Problem Statement & Theoretical Principles
+Develop a complete **8-Puzzle Solver** in Python using the **A* Search algorithm** and the **Manhattan Distance heuristic**. The program must read the initial state, find the optimal sequence of tile movements to reach the goal, and print the step-by-step boards.
+
+The 8-puzzle sliding-tile problem consists of a $3 \times 3$ grid with numbered tiles from $1$ to $8$ and an empty slot ($0$). The evaluation function is:
+$$f(n) = g(n) + h(n)$$
+where:
+- $g(n)$ is the exact accumulated path cost (number of sliding moves) from the start state.
+- $h(n)$ is the **Manhattan distance heuristic** (strictly excluding the blank tile $0$):
+  $$h_{\text{Manhattan}}(n) = \sum_{\text{tile}=1}^{8} \left(|r_{\text{curr}}(\text{tile}) - r_{\text{goal}}(\text{tile})| + |c_{\text{curr}}(\text{tile}) - c_{\text{goal}}(\text{tile})|\right)$$
+- $f(n)$ estimates the total cost of the optimal solution passing through state $n$.
+
+#### Mathematical Solvability Verification (Optional Challenge)
+An **inversion** is any pair of numbered tiles $(A, B)$ such that $A > B$ and $A$ precedes $B$ in linear row-major reading order, ignoring the blank tile ($0$).
+
+##### Inversion Parity Theorem (Proof of Solvability Invariant):
+1. **Horizontal Blank Move**: Swapping the blank horizontally with an adjacent tile within the same row leaves the linear order of all numbered tiles completely unchanged:
+   $$\Delta \text{inversions} = 0$$
+2. **Vertical Blank Move**: Swapping the blank vertically swaps it with a tile 3 positions away in the 1D representation. This causes that tile to jump over exactly $3 - 1 = 2$ other numbered tiles.
+   - If the tile was greater than both jumped tiles, inversions change by $-2$ or $+2$.
+   - If the tile was smaller than both jumped tiles, inversions change by $+2$ or $-2$.
+   - If the tile was between the two jumped tiles, inversions change by $0$.
+   In all cases:
+   $$\Delta \text{inversions} \in \{-2, 0, +2\} \implies \Delta \text{inversions} \equiv 0 \pmod 2$$
+3. **Conclusion**: The parity of inversions $(\text{inversions} \pmod 2)$ is strictly invariant under all legal moves!
+   $$\text{Solvable} \iff \text{inversions}(\text{initial}) \equiv \text{inversions}(\text{goal}) \pmod 2$$
+   For the canonical classic goal $(1, 2, 3, 4, 5, 6, 7, 8, 0)$, $\text{inversions} = 0$ (even parity). Therefore, any board configuration is solvable if and only if its inversion count is **even**.
+   This mathematical test executes in $\mathcal{O}(N^2)$ with $N=8$ (only 28 comparisons, taking $<1\,\mu\text{s}$) and safely prevents wasteful searches on unsolvable boards.
+
+#### Heuristic Admissibility, Consistency, and Dominance
+1. **Admissibility ($0 \le h(n) \le h^*(n)$)**:
+   - Manhattan distance corresponds to the optimal cost in a relaxed puzzle where tiles can slide into already occupied cells.
+   - Because real puzzle moves require navigating around other tiles, true distance $h^*(n) \ge h_{\text{Manhattan}}(n)$.
+   - *Why Blank Tile 0 is Excluded*: Moving a tile simultaneously moves the blank. In a state 1 step from goal, counting the blank yields $h = 2 > h^* = 1$, which breaks admissibility!
+2. **Consistency (Monotonicity)**:
+   - Sliding a tile one orthogonal step alters its coordinates by $\pm 1$. Thus $|h(u) - h(v)| \le 1 = c(u, v)$.
+   - Consistency guarantees that the first time a state is popped from the priority queue, its path cost $g(n)$ is strictly optimal.
+3. **Dominance over Misplaced Tiles ($h_{\text{Manhattan}} \ge h_{\text{Misplaced}}$)**:
+   - Every misplaced tile contributes $1$ to $h_1$ and at least $1$ to $h_2$.
+   - By the heuristic dominance theorem, A* with Manhattan distance is guaranteed to expand fewer or equal nodes than A* with Misplaced Tiles across every solvable state.
+
+#### 1D Tuple State Representation & Fast Hashing
+- **Memory & Allocation Efficiency**: Using an immutable 1D tuple `tuple[int, ...]` of length 9 requires only ~112 bytes in CPython, compared to ~400 bytes for nested lists.
+- **$\mathcal{O}(1)$ Closed Set Lookups**: Python's `set` and `dict` leverage C-level SipHash for tuples. Mutable lists cannot be hashed; checking membership in a list takes $\mathcal{O}(K)$ linear time, turning the entire algorithm into an impractical $\mathcal{O}(V^2)$ bottleneck ($V \le 181,440$).
+- **Deepcopy Avoidance**: Successors are generated by transient list swapping:
+  ```python
+  lst = list(state)
+  lst[i], lst[j] = lst[j], lst[i]
+  next_state = tuple(lst)
+  ```
+
+#### A* 8-Puzzle Architecture Flowchart
+```mermaid
+flowchart TD
+    Start["Initial 3x3 Board Input<br/>[1, 2, 3, 4, 0, 5, 6, 7, 8]"] --> Parse["Parse into 1D Tuple (Length 9)<br/>Validate Permutation of 0..8"]
+    Parse --> SolvCheck{"Solvability Verification<br/>inv(initial) % 2 == inv(goal) % 2?"}
+    SolvCheck -->|No| Unsolvable["Abort Early!<br/>Unsolvable (Odd Inversion Parity)"]
+    SolvCheck -->|Yes| InitHeap["Initialize Priority Queue Frontier Q<br/>Push (f=h, h, counter, initial_state)<br/>g_score[initial] = 0, closed_set = empty"]
+    InitHeap --> EmptyCheck{"Is Frontier Q Empty?"}
+    EmptyCheck -->|Yes| Fail["Search Failed (Exhausted / Node Limit)"]
+    EmptyCheck -->|No| PopMin["Pop Node with Min f(n)<br/>Tie-break: Lower h(n), then FIFO<br/>(f, h, _, curr) = heappop(Q)"]
+    PopMin --> ClosedCheck{"Is curr in closed_set?"}
+    ClosedCheck -->|Yes| EmptyCheck
+    ClosedCheck -->|No| AddClosed["Add curr to closed_set<br/>Increment nodes_expanded"]
+    AddClosed --> GoalCheck{"Is curr == goal_state?"}
+    GoalCheck -->|Yes| Reconstruct["Reconstruct Optimal Path via Parent Map<br/>Format Step Records & Move Count<br/>Render Sequential Boards"]
+    GoalCheck -->|No| GenMoves["Generate Valid Successors<br/>Find Blank 0 Index (divmod for row, col)<br/>Swap with Orthogonal Neighbors (Up, Down, Left, Right)"]
+    GenMoves --> EvalNeighbors["For each valid next_state:<br/>tentative_g = g_score[curr] + 1"]
+    EvalNeighbors --> BetterCheck{"tentative_g < g_score.get(next_state, inf)?"}
+    BetterCheck -->|Yes| PushFrontier["g_score[next_state] = tentative_g<br/>parent[next_state] = (curr, action, tile)<br/>h = manhattan_distance(next_state, goal)<br/>f = tentative_g + h<br/>heappush(Q, (f, h, counter++, next_state))"]
+    BetterCheck -->|No| SkipNeigh["Skip Suboptimal State"]
+    PushFrontier --> EmptyCheck
+    SkipNeigh --> EmptyCheck
+    Reconstruct --> End["Solved in M moves: Output Sequential Boards"]
+```
+
+#### CLI Execution Commands
+
+```bash
+# 1. Default Run (Syllabus sample with detailed step-by-step boards):
+python scripts/run_a_star_eight_puzzle.py
+
+# 2. Exact Syllabus Sample Output:
+python scripts/run_a_star_eight_puzzle.py --sample
+# Output: Solved in 2 moves: [[1, 2, 3, 4, 0, 5, 6, 7, 8], [1, 2, 3, 4, 5, 0, 6, 7, 8], [1, 2, 3, 4, 5, 8, 6, 7, 0]]
+
+# 3. Optional Challenge: Solvability & Inversion Parity Check:
+python scripts/run_a_star_eight_puzzle.py --check-solvability
+python scripts/run_a_star_eight_puzzle.py --initial "1,2,3,4,5,6,8,7,0" --check-solvability
+
+# 4. Compare Manhattan vs. Misplaced Tiles vs. BFS Baseline:
+python scripts/run_a_star_eight_puzzle.py --compare
+
+# 5. Step-by-Step State Transition Table:
+python scripts/run_a_star_eight_puzzle.py --table
+
+# 6. University Viva Voce Reference Guide:
+python scripts/run_a_star_eight_puzzle.py --viva
+
+# 7. Run Presets (sample-2move, classic-2move, sample-classic, easy-3move, hard-18move):
+python scripts/run_a_star_eight_puzzle.py --preset sample-2move
+python scripts/run_a_star_eight_puzzle.py --preset hard-18move
+
+# 8. Custom Initial & Goal States:
+python scripts/run_a_star_eight_puzzle.py --initial "[1, 2, 3, 4, 0, 6, 7, 5, 8]" --goal "[1, 2, 3, 4, 5, 6, 7, 8, 0]"
+
+# 9. Top-Level CLI Dispatcher:
+python -m src eight-puzzle-solver --sample
+python -m src q30 --sample
+```
+
+#### University Viva Voce Preparation Guide
+
+##### Q1: What is an inversion, and why is inversion parity an invariant on a 3x3 grid?
+- **Answer**:
+  - An inversion is any pair of numbered tiles $(A, B)$ where $A > B$ and $A$ appears before $B$ in row-major reading order, ignoring the blank ($0$).
+  - **Horizontal Moves**: Sliding the blank horizontally within the same row leaves the linear ordering of numbered tiles completely unchanged ($\Delta \text{inversions} = 0$).
+  - **Vertical Moves**: Sliding the blank vertically swaps it with a tile 3 positions away in the 1D array. That tile jumps over exactly 2 other numbered tiles:
+    * If both skipped tiles were smaller: $\Delta \text{inversions} = -2$.
+    * If both skipped tiles were larger: $\Delta \text{inversions} = +2$.
+    * If one was smaller and one larger: $\Delta \text{inversions} = 0$.
+  - In all cases, $\Delta \text{inversions} \in \{-2, 0, +2\}$, which preserves the parity $(\text{inversions} \pmod 2)$.
+  - Therefore, a state is reachable if and only if $\text{inversions}(\text{initial}) \equiv \text{inversions}(\text{goal}) \pmod 2$.
+
+##### Q2: Why is state representation as a 1D tuple critical for A* performance in Python?
+- **Answer**:
+  - **$O(1)$ Hash Table Lookups**: Python's `set` (for closed states) and `dict` (for `g_score` and parent pointers) require hashable keys. 1D tuples `(1, 2, 3, 4, 0, 5, 6, 7, 8)` implement fast C-level hashing via SipHash.
+  - **Preventing $O(V^2)$ Stalling**: If mutable 2D lists were used, they cannot be hashed. Membership checks would degrade to linear scans through thousands of visited states, freezing the program.
+  - **Memory Footprint**: A 9-element tuple takes ~112 bytes, whereas a 2D list of lists takes ~400 bytes plus additional heap pointer allocations.
+  - **Heap Invariant Safety**: Mutating an object that is stored inside a priority queue corrupts the min-heap property. Tuples guarantee immutability.
+
+##### Q3: Why is the blank space (0) strictly excluded from Manhattan distance calculations?
+- **Answer**:
+  - Counting the blank tile violates heuristic **admissibility** ($h(n) \le h^*(n)$).
+  - Sliding a single tile into the empty slot simultaneously swaps that tile and the blank in a single move (true optimal cost $h^* = 1$).
+  - If the blank were counted, both the tile and the blank would contribute $1$, giving $h = 2 > h^* = 1$, which overestimates the true remaining cost. Overestimation can cause A* to return a suboptimal path.
+
+##### Q4: What is God's Number for the 8-puzzle, and how does A* memory scale?
+- **Answer**:
+  - **God's Number**: The maximum optimal solution length from any reachable state to the standard goal is **31 moves** (proven by Reinefeld in 1993).
+  - **Memory Bottleneck**: A* stores all generated states in memory (open and closed sets). For hard 31-move instances, A* may generate tens of thousands of states. To eliminate memory limits in large sliding puzzles (like the 15-puzzle with $10^{13}$ states), **Iterative Deepening A* (IDA*)** or **Simplified Memory-Bounded A* (SMA*)** is used.
 
 ---
 

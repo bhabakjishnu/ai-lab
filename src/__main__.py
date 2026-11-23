@@ -198,6 +198,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 29: A* Pathfinding in 2D Maze Simulation (f(n) = g(n) + h(n))",
     )
 
+    # 8-Puzzle A* Solver runner
+    subparsers.add_parser(
+        "eight-puzzle-solver",
+        aliases=["8-puzzle-solver", "astar-puzzle", "astar-8-puzzle", "eight-puzzle-astar", "q30"],
+        help="Run Question 30: 8-Puzzle Solver using A* and Manhattan Distance",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -297,6 +304,12 @@ def main(argv: Optional[List[str]] = None) -> None:
         "a-star-maze-solver",
         "astar-2d-maze",
         "q29",
+        "eight-puzzle-solver",
+        "8-puzzle-solver",
+        "astar-puzzle",
+        "astar-8-puzzle",
+        "eight-puzzle-astar",
+        "q30",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -414,6 +427,17 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_a_star_maze_solver import main as astar_maze_main
             sys.argv = [sys.argv[0]] + remaining
             astar_maze_main()
+        elif cmd in (
+            "eight-puzzle-solver",
+            "8-puzzle-solver",
+            "astar-puzzle",
+            "astar-8-puzzle",
+            "eight-puzzle-astar",
+            "q30",
+        ):
+            from scripts.run_a_star_eight_puzzle import main as astar_puzzle_main
+            sys.argv = [sys.argv[0]] + remaining
+            astar_puzzle_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
