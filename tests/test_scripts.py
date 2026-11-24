@@ -46,6 +46,7 @@ from scripts.run_gbfs_grid_navigator import main as gbfs_grid_script_main
 from scripts.run_a_star_search import main as astar_script_main
 from scripts.run_a_star_maze_solver import main as astar_maze_script_main
 from scripts.run_a_star_eight_puzzle import main as astar_puzzle_script_main
+from scripts.run_eight_puzzle_manhattan_vs_misplaced import main as puzzle_dominance_script_main
 from src.__main__ import main as cli_main
 
 
@@ -2018,6 +2019,112 @@ class TestScriptExecution(unittest.TestCase):
             "astar-8-puzzle",
             "eight-puzzle-astar",
             "q30",
+        ):
+            stdout_trap = io.StringIO()
+            with patch("sys.stdout", stdout_trap):
+                cli_main([cmd, "--sample"])
+            out = stdout_trap.getvalue()
+            self.assertEqual(out.strip(), expected_sample)
+
+    def test_run_eight_puzzle_manhattan_vs_misplaced(self) -> None:
+        """Test Question 31: 8-Puzzle Manhattan vs Misplaced Tiles Dominance Analysis CLI and dispatcher."""
+        expected_sample = "Path length: 18. h1 nodes expanded: 4500. h2 nodes expanded: 1200."
+        expected_computed = "Path length: 20. h1 nodes expanded: 2341. h2 nodes expanded: 92."
+
+        # 1. Default execution
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_manhattan_vs_misplaced.py"]):
+            with patch("sys.stdout", stdout_trap):
+                puzzle_dominance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("QUESTION NO. 31: 8-PUZZLE MANHATTAN VS MISPLACED TILES", out)
+        self.assertIn("8-PUZZLE COMPARISON: h1 (MISPLACED TILES) vs h2 (MANHATTAN DISTANCE)", out)
+        self.assertIn("Optimal Path Length (d)", out)
+        self.assertIn("Effective Branching Factor (b*)", out)
+        self.assertIn("[PROVED] Manhattan Distance (h2) dominates Misplaced Tiles (h1)", out)
+
+        # 2. Exact syllabus sample output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_manhattan_vs_misplaced.py", "--sample"]):
+            with patch("sys.stdout", stdout_trap):
+                puzzle_dominance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), expected_sample)
+
+        # 3. Dynamic computed sample output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_manhattan_vs_misplaced.py", "--sample-computed"]):
+            with patch("sys.stdout", stdout_trap):
+                puzzle_dominance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), expected_computed)
+
+        # 4. Solvability check
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_manhattan_vs_misplaced.py", "--check-solvability"]):
+            with patch("sys.stdout", stdout_trap):
+                puzzle_dominance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Initial State Inversions : 16", out)
+        self.assertIn("Solvability Status       : SOLVABLE", out)
+
+        # 5. Table output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_manhattan_vs_misplaced.py", "--table"]):
+            with patch("sys.stdout", stdout_trap):
+                puzzle_dominance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Metric", out)
+        self.assertIn("h1 (Misplaced)", out)
+        self.assertIn("h2 (Manhattan)", out)
+
+        # 6. Dominance proof
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_manhattan_vs_misplaced.py", "--proof"]):
+            with patch("sys.stdout", stdout_trap):
+                puzzle_dominance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("THEORETICAL PROOF OF HEURISTIC DOMINANCE", out)
+        self.assertIn("AIMA Theorem 3.6", out)
+
+        # 7. Viva guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_manhattan_vs_misplaced.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                puzzle_dominance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Concept of Heuristic Dominance", out)
+        self.assertIn("Effective Branching Factor (b*)", out)
+
+        # 8. JSON output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_manhattan_vs_misplaced.py", "--json"]):
+            with patch("sys.stdout", stdout_trap):
+                puzzle_dominance_script_main()
+        out = stdout_trap.getvalue()
+        data = json.loads(out)
+        self.assertEqual(data["path_length"], 20)
+        self.assertTrue(data["is_dominated"])
+        self.assertEqual(data["h1_misplaced"]["nodes_expanded"], 2341)
+        self.assertEqual(data["h2_manhattan"]["nodes_expanded"], 92)
+
+        # 9. Benchmark preset (18-move)
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_eight_puzzle_manhattan_vs_misplaced.py", "--preset", "sample-18move", "--table"]):
+            with patch("sys.stdout", stdout_trap):
+                puzzle_dominance_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Optimal Path Length (d)", out)
+        self.assertIn("18", out)
+
+        # 10. Top-level CLI dispatcher & aliases
+        for cmd in (
+            "eight-puzzle-dominance",
+            "eight-puzzle-comparison",
+            "manhattan-vs-misplaced",
+            "puzzle-dominance",
+            "q31",
+            "question31",
         ):
             stdout_trap = io.StringIO()
             with patch("sys.stdout", stdout_trap):

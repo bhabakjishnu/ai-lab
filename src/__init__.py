@@ -597,6 +597,14 @@ from src.a_star_eight_puzzle import (
     render_step_by_step_boards as render_eight_puzzle_step_by_step,
     validate_board as validate_eight_puzzle_board,
 )
+from src.eight_puzzle_manhattan_vs_misplaced import (
+    EightPuzzleDominanceAnalyzer,
+    HeuristicComparisonResult as EightPuzzleHeuristicComparisonResult,
+    HeuristicRunResult as EightPuzzleHeuristicRunResult,
+    compare_eight_puzzle_heuristics as compare_eight_puzzle_manhattan_vs_misplaced,
+    compute_effective_branching_factor,
+    get_viva_reference as get_eight_puzzle_dominance_viva_reference,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -1150,4 +1158,11 @@ __all__ = [
     "render_eight_puzzle_side_by_side",
     "render_eight_puzzle_step_by_step",
     "validate_eight_puzzle_board",
+    # Question 31: 8-Puzzle Manhattan vs Misplaced Tiles Heuristic Dominance
+    "EightPuzzleDominanceAnalyzer",
+    "EightPuzzleHeuristicComparisonResult",
+    "EightPuzzleHeuristicRunResult",
+    "compare_eight_puzzle_manhattan_vs_misplaced",
+    "compute_effective_branching_factor",
+    "get_eight_puzzle_dominance_viva_reference",
 ]
