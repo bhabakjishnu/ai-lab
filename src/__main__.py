@@ -205,6 +205,19 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 30: 8-Puzzle Solver using A* and Manhattan Distance",
     )
 
+    # 8-Puzzle Heuristic Dominance (Manhattan vs Misplaced Tiles) runner
+    subparsers.add_parser(
+        "eight-puzzle-dominance",
+        aliases=[
+            "eight-puzzle-comparison",
+            "manhattan-vs-misplaced",
+            "puzzle-dominance",
+            "q31",
+            "question31",
+        ],
+        help="Run Question 31: 8-Puzzle Manhattan vs Misplaced Tiles Dominance Analysis",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -310,6 +323,12 @@ def main(argv: Optional[List[str]] = None) -> None:
         "astar-8-puzzle",
         "eight-puzzle-astar",
         "q30",
+        "eight-puzzle-dominance",
+        "eight-puzzle-comparison",
+        "manhattan-vs-misplaced",
+        "puzzle-dominance",
+        "q31",
+        "question31",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -438,6 +457,17 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_a_star_eight_puzzle import main as astar_puzzle_main
             sys.argv = [sys.argv[0]] + remaining
             astar_puzzle_main()
+        elif cmd in (
+            "eight-puzzle-dominance",
+            "eight-puzzle-comparison",
+            "manhattan-vs-misplaced",
+            "puzzle-dominance",
+            "q31",
+            "question31",
+        ):
+            from scripts.run_eight_puzzle_manhattan_vs_misplaced import main as dominance_main
+            sys.argv = [sys.argv[0]] + remaining
+            dominance_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
