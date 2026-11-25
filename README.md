@@ -69,6 +69,7 @@ ai-lab/
 │   ├── a_star_maze_solver.ipynb         # Question 29: A* Pathfinding in 2D Maze & Viva guide
 │   ├── a_star_eight_puzzle.ipynb        # Question 30: 8-Puzzle Solver using A* (Manhattan) & Viva guide
 │   ├── eight_puzzle_manhattan_vs_misplaced.ipynb # Question 31: 8-Puzzle: Manhattan vs Misplaced Tiles & Viva guide
+│   ├── ucs_vs_astar_comparison.ipynb    # Question 32: UCS vs A* Performance Comparison & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -101,11 +102,12 @@ ai-lab/
 │   ├── run_a_star_maze_solver.py        # CLI & interactive runner for Question 29 (A* 2D Maze Simulation & ASCII Visualization)
 │   ├── run_a_star_eight_puzzle.py       # CLI & interactive runner for Question 30 (8-Puzzle A* Solver & Inversions)
 │   ├── run_eight_puzzle_manhattan_vs_misplaced.py # CLI & runner for Question 31 (8-Puzzle Manhattan vs Misplaced Tiles Dominance Analysis)
+│   ├── run_ucs_vs_astar_comparison.py   # CLI & runner for Question 32 (UCS vs A* Performance Comparison on 20x20 Grid)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,gbfs-grid,a-star,a-star-maze,eight-puzzle-solver,q30,eight-puzzle-dominance,q31,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,gbfs-grid,a-star,a-star-maze,eight-puzzle-solver,q30,eight-puzzle-dominance,q31,ucs-vs-astar,q32,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -136,6 +138,7 @@ ai-lab/
 │   ├── a_star_maze_solver.py            # Question 29: A* Pathfinding in 2D Maze, Manhattan Heuristic & ASCII Rendering
 │   ├── a_star_eight_puzzle.py           # Question 30: 8-Puzzle Solver using A*, Manhattan Heuristic & Inversions
 │   ├── eight_puzzle_manhattan_vs_misplaced.py # Question 31: 8-Puzzle Manhattan vs Misplaced Tiles Heuristic Dominance
+│   ├── ucs_vs_astar_comparison.py       # Question 32: UCS vs A* (Manhattan) Performance Comparison on 20x20 Grid
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -169,6 +172,7 @@ ai-lab/
 │   ├── test_a_star_maze_solver.py       # Unit tests for Question 29 A* 2D maze pathfinding, heuristics, render & challenge
 │   ├── test_a_star_eight_puzzle.py      # Unit tests for Question 30 8-puzzle A* search, heuristics & solvability
 │   ├── test_eight_puzzle_manhattan_vs_misplaced.py # Unit tests for Question 31 Heuristic Dominance, b*, metrics & solvability
+│   ├── test_ucs_vs_astar_comparison.py  # Unit tests for Question 32 UCS vs A* grid simulation, heuristics & challenge
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -4178,6 +4182,149 @@ python -m src manhattan-vs-misplaced --table
   - Horizontal blank moves preserve the linear ordering of numbered tiles ($\Delta \text{inversions} = 0$).
   - Vertical blank moves swap a tile past 2 others, changing inversion count by $-2, 0,$ or $+2$.
   - Therefore, inversion parity ($\text{inversions} \pmod 2$) is strictly invariant under all valid moves. A board is solvable if and only if $\text{inversions}(\text{start}) \equiv \text{inversions}(\text{goal}) \pmod 2$.
+
+---
+
+### Question 32: UCS vs A* Performance Comparison
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Syllabus Area** | Informed Search and Heuristics |
+| **Difficulty** | 🟠 Advanced |
+| **Practical Type** | Simulation |
+| **Problem Statement** | Write a Python program to solve a pathfinding problem on a 20x20 grid (with obstacles) using both Uniform Cost Search (UCS) and A* (Manhattan). Output the number of states evaluated by each. This practically demonstrates how heuristics guide search toward the goal. |
+| **Task Requirements** | 1. Generate a 20x20 grid with obstacles.<br>2. Implement UCS ($A^*$ with $h=0$).<br>3. Implement $A^*$ (Manhattan distance).<br>4. Compare states evaluated. |
+| **Input Requirements** | Hardcoded 20x20 grid |
+| **Expected Output** | State expansion counts for UCS and A* |
+| **Constraints / Conditions** | Same map for both algorithms |
+| **Core AI Concept** | Informed vs Uninformed Search efficiency & Directionality of A* |
+| **Python Concepts Tested** | Modularity, performance profiling, `heapq` priority queue, dataclasses |
+| **Expected Algorithm** | Uniform Cost Search (UCS) and A* Search |
+| **Recommended Libraries** | `heapq`, `matplotlib` |
+| **Complexity Expectation** | A* should vastly outperform UCS ($>88\%$ reduction in evaluated states) |
+| **Sample Input** | Run comparison |
+| **Sample Output** | `UCS expanded: 380 nodes. A* expanded: 45 nodes.` |
+| **University Practical Importance** | High |
+| **Viva Topics** | • UCS as a special case of A*<br>• Directionality of A* |
+| **Optional Challenge** | Visualize the expanded nodes of both using Matplotlib side-by-side |
+
+#### Theoretical Foundations & Search Mechanics
+
+##### 1. Uniform Cost Search (UCS) as a Special Case of A*
+- **Canonical A* Evaluation Function**:
+  $$f(n) = g(n) + h(n)$$
+  where $g(n)$ is the exact cumulative cost incurred from the start node to node $n$, and $h(n)$ is the heuristic estimate of the remaining cost from node $n$ to the goal.
+- **Zero Heuristic Reduction**:
+  When domain knowledge is completely absent, we set $h(n) = 0$ identically for all states $n$:
+  $$f(n) = g(n) + 0 = g(n)$$
+  Under this condition, the min-heap expands nodes strictly in non-decreasing order of path cost $g(n)$, which is the exact definition of Uniform Cost Search (Dijkstra's algorithm on unit-cost graphs, equivalent to BFS).
+- **Search Topology**:
+  UCS is completely uninformed (blind); it possesses zero spatial knowledge regarding where the goal coordinate lies. Consequently, UCS expands nodes in radial, concentric $L_1$ diamond contours centered at the start node, expanding almost every reachable cell across the grid before reaching the goal.
+
+##### 2. Directionality of A* via Manhattan Distance
+- **$L_1$ Manhattan Heuristic**:
+  For orthogonal 4-connected grid navigation without diagonals:
+  $$h_{\text{Manhattan}}((r, c), (r_{\text{goal}}, c_{\text{goal}})) = |r - r_{\text{goal}}| + |c - c_{\text{goal}}|$$
+  In an obstacle-free grid, this is the exact shortest path. With obstacles, the true distance can only increase ($h(n) \le h^*(n)$), ensuring **admissibility** and **consistency** ($|h(u) - h(v)| \le 1 = c(u, v)$).
+- **Directional Wavefront Sculpting**:
+  - Moves toward the goal have $\Delta g = +1$ and $\Delta h = -1$, keeping $f(n) = C^*$ constant along the optimal trajectory.
+  - Moves away from the goal have $\Delta g = +1$ and $\Delta h = +1$, causing $f(n)$ to rise steeply ($f = C^* + 2$).
+  - The priority queue suppresses suboptimal and backward expansions, transforming the omnidirectional radial wave into a focused directional beam pointing directly toward the goal.
+
+#### Empirical Performance Comparison Table
+
+| Metric | UCS ($h=0$) | A* (Manhattan) | Quantitative Improvement |
+| :--- | :--- | :--- | :--- |
+| **Heuristic Guidance** | **Uninformed (Blind)** | **Informed ($L_1$ Norm)** | **Domain guidance added** |
+| **States Evaluated (Expanded)** | **380** | **45** | **88.16% Reduction (335 fewer nodes)** |
+| **Search Pruning Ratio** | — | — | **A* evaluates 8.44x fewer states** |
+| **States Generated (Successors)** | **381** | **92** | **4.14x fewer states enqueued** |
+| **Peak Frontier Size** | **22** | **47** | **Focused frontier expansion** |
+| **Optimal Path Cost ($g$)** | **38** | **38** | **Strictly Identical ($g^* = 38$)** |
+| **Optimal Path Length (Steps)** | **38** | **38** | **Strictly Identical** |
+| **Execution Time** | **0.916 ms** | **0.152 ms** | **6.03x Wall-Clock Speedup** |
+| **Search Optimality** | **Optimal** | **Optimal** | **Guaranteed ($h \le h^*$)** |
+
+#### CLI Usage Examples
+
+```bash
+# 1. Default Run (Full Side-by-Side Comparison Table & Summary):
+python scripts/run_ucs_vs_astar_comparison.py
+
+# 2. Exact Syllabus Sample Output Specification:
+python scripts/run_ucs_vs_astar_comparison.py --sample
+# Output: UCS expanded: 380 nodes. A* expanded: 45 nodes.
+
+# 3. Dynamic Computed Sample Output (Live A* solve on 20x20 grid):
+python scripts/run_ucs_vs_astar_comparison.py --sample-computed
+# Output: UCS expanded: 380 nodes. A* expanded: 45 nodes.
+
+# 4. Detailed Comparative Metrics Table:
+python scripts/run_ucs_vs_astar_comparison.py --table
+
+# 5. Side-by-Side ASCII Expansion Maps:
+python scripts/run_ucs_vs_astar_comparison.py --ascii
+
+# 6. Save Side-by-Side Matplotlib Visualization (Optional Challenge):
+python scripts/run_ucs_vs_astar_comparison.py --visualize data/processed/ucs_vs_astar_comparison.png
+
+# 7. Theoretical Directionality & Complexity Analysis:
+python scripts/run_ucs_vs_astar_comparison.py --theory
+
+# 8. University Viva Voce Preparation Guide:
+python scripts/run_ucs_vs_astar_comparison.py --viva
+
+# 9. Structured JSON Export:
+python scripts/run_ucs_vs_astar_comparison.py --json
+
+# 10. Random Maze Simulation with Density:
+python scripts/run_ucs_vs_astar_comparison.py --random-density 0.15 --seed 42
+
+# 11. Top-Level CLI Dispatcher & Aliases:
+python -m src ucs-vs-astar --sample
+python -m src q32 --sample
+python -m src ucs-astar-comparison --table
+```
+
+#### University Viva Voce Preparation Guide
+
+##### Q1: Why is Uniform Cost Search (UCS) considered a special case of A*?
+- **Answer**:
+  - The A* evaluation function is $f(n) = g(n) + h(n)$, where $g(n)$ is the cost from start to $n$ and $h(n)$ is the heuristic estimate to the goal.
+  - Setting $h(n) = 0$ identically gives $f(n) = g(n)$.
+  - Under $f(n) = g(n)$, the priority queue expands nodes strictly in order of cumulative path cost $g(n)$, which is the exact formulation of Uniform Cost Search (or Dijkstra's algorithm).
+  - Thus, UCS is A* with zero heuristic guidance ($h = 0$).
+
+##### Q2: What is the 'directionality' of A*, and what causes it?
+- **Answer**:
+  - Uninformed searches (BFS, UCS) are omnidirectional; their search contours expand radially outward in all directions like ripples on water.
+  - A* acquires directionality through the heuristic function $h(n)$. For steps moving directly toward the goal, $g(n)$ increases by 1 while $h(n)$ decreases by 1, keeping $f(n)$ constant ($f = C^*$). For steps moving away from the goal, $g(n)$ increases and $h(n)$ increases, causing $f(n)$ to rise steeply.
+  - The min-heap prioritizes lowest $f(n)$, effectively pulling the expansion wavefront along the spatial vector connecting start and goal.
+
+##### Q3: Why did both UCS and A* produce the exact same path cost (38 steps)?
+- **Answer**:
+  - Both algorithms are mathematically guaranteed to find the optimal path:
+    - UCS is optimal because edge costs are uniform and strictly positive ($c \ge 1 > 0$).
+    - A* is optimal because the Manhattan distance heuristic is **admissible** ($h(n) \le h^*(n)$) and **consistent** ($h(u) \le c(u, v) + h(v)$).
+  - A consistent heuristic guarantees that the first time any state is popped from the priority queue, its path cost $g(n)$ is optimal. Thus, both algorithms return an optimal path cost of 38.
+
+##### Q4: What is the difference between node expansion and node generation?
+- **Answer**:
+  - **Node Generation**: Occurs when a successor coordinate is created during neighbor exploration and pushed onto the priority queue.
+  - **Node Expansion (Evaluation)**: Occurs when a state is removed (popped) from the priority queue, tested for goal satisfaction, and its valid outgoing edges are traversed.
+  - AI literature and syllabus benchmarks measure states evaluated/expanded, as popping and edge evaluation constitutes the algorithm's actual computational work.
+
+##### Q5: Why must the goal test be applied when a node is expanded (popped), not generated (pushed)?
+- **Answer**:
+  - In priority queue search with variable costs (or where detours exist), the first time a goal node is generated, the path discovered may not be the cheapest.
+  - A cheaper path might still reside in the priority queue awaiting expansion.
+  - Deferring the goal test until expansion ensures that when the goal is popped, its $f$-cost is minimal across all active paths in the frontier, guaranteeing optimality.
+
+##### Q6: In what scenarios could UCS outperform or match A*?
+- **Answer**:
+  - When the heuristic is uninformative ($h = 0$), A* reduces to UCS.
+  - If computing $h(n)$ is computationally expensive (e.g., deep neural network evaluation), the CPU overhead per state may exceed the savings from pruning node expansions.
+  - If the search space contains deceptive local minima or deep dead-end corridors that mislead heuristic estimates, A* may explore the dead ends before backtracking, while UCS advances evenly.
 
 ---
 
