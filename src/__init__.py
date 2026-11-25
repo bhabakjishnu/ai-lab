@@ -605,6 +605,29 @@ from src.eight_puzzle_manhattan_vs_misplaced import (
     compute_effective_branching_factor,
     get_viva_reference as get_eight_puzzle_dominance_viva_reference,
 )
+from src.ucs_vs_astar_comparison import (
+    CANONICAL_20X20_OBSTACLES,
+    DEFAULT_20X20_HEIGHT,
+    DEFAULT_20X20_WIDTH,
+    DEFAULT_GOAL_COORD,
+    DEFAULT_START_COORD,
+    SYLLABUS_SAMPLE_OUTPUT as UCS_VS_ASTAR_SAMPLE_OUTPUT,
+    ComparisonResult as UcsVsAstarComparisonResult,
+    Grid2D as UcsVsAstarGrid2D,
+    SearchResult as UcsVsAstarSearchResult,
+    chebyshev_distance as ucs_astar_chebyshev_distance,
+    compare_ucs_and_astar,
+    create_canonical_20x20_grid,
+    euclidean_distance as ucs_astar_euclidean_distance,
+    get_theoretical_analysis as get_ucs_vs_astar_theoretical_analysis,
+    get_viva_reference as get_ucs_vs_astar_viva_reference,
+    manhattan_distance as ucs_astar_manhattan_distance,
+    solve_astar as solve_ucs_astar_astar,
+    solve_grid_pathfinding as solve_ucs_astar_pathfinding,
+    solve_ucs as solve_ucs_astar_ucs,
+    visualize_ucs_vs_astar,
+    zero_heuristic as ucs_astar_zero_heuristic,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -1165,4 +1188,18 @@ __all__ = [
     "compare_eight_puzzle_manhattan_vs_misplaced",
     "compute_effective_branching_factor",
     "get_eight_puzzle_dominance_viva_reference",
+    # Question 32: UCS vs A* Performance Comparison
+    "CANONICAL_20X20_OBSTACLES",
+    "UCS_VS_ASTAR_SAMPLE_OUTPUT",
+    "UcsVsAstarComparisonResult",
+    "UcsVsAstarGrid2D",
+    "UcsVsAstarSearchResult",
+    "compare_ucs_and_astar",
+    "create_canonical_20x20_grid",
+    "get_ucs_vs_astar_theoretical_analysis",
+    "get_ucs_vs_astar_viva_reference",
+    "solve_ucs_astar_astar",
+    "solve_ucs_astar_pathfinding",
+    "solve_ucs_astar_ucs",
+    "visualize_ucs_vs_astar",
 ]

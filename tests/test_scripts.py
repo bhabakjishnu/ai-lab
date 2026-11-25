@@ -47,6 +47,7 @@ from scripts.run_a_star_search import main as astar_script_main
 from scripts.run_a_star_maze_solver import main as astar_maze_script_main
 from scripts.run_a_star_eight_puzzle import main as astar_puzzle_script_main
 from scripts.run_eight_puzzle_manhattan_vs_misplaced import main as puzzle_dominance_script_main
+from scripts.run_ucs_vs_astar_comparison import main as ucs_vs_astar_script_main
 from src.__main__ import main as cli_main
 
 
@@ -2125,6 +2126,99 @@ class TestScriptExecution(unittest.TestCase):
             "puzzle-dominance",
             "q31",
             "question31",
+        ):
+            stdout_trap = io.StringIO()
+            with patch("sys.stdout", stdout_trap):
+                cli_main([cmd, "--sample"])
+            out = stdout_trap.getvalue()
+            self.assertEqual(out.strip(), expected_sample)
+
+    def test_run_ucs_vs_astar_comparison(self) -> None:
+        """Test Question 32: UCS vs A* Performance Comparison CLI and dispatcher."""
+        expected_sample = "UCS expanded: 380 nodes. A* expanded: 45 nodes."
+
+        # 1. Default execution
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_vs_astar_comparison.py"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_vs_astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("UCS vs A* (MANHATTAN) PERFORMANCE COMPARISON", out)
+        self.assertIn("380", out)
+        self.assertIn("45", out)
+
+        # 2. Exact syllabus sample output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_vs_astar_comparison.py", "--sample"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_vs_astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), expected_sample)
+
+        # 3. Dynamic computed sample output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_vs_astar_comparison.py", "--sample-computed"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_vs_astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), expected_sample)
+
+        # 4. Table output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_vs_astar_comparison.py", "--table"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_vs_astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("States Evaluated (Expanded)", out)
+        self.assertIn("380", out)
+        self.assertIn("45", out)
+
+        # 5. ASCII maps
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_vs_astar_comparison.py", "--ascii"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_vs_astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("UCS Map", out)
+        self.assertIn("A* Map", out)
+
+        # 6. Theory output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_vs_astar_comparison.py", "--theory"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_vs_astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("THEORETICAL ANALYSIS", out)
+        self.assertIn("Heuristic Pull & Directionality", out)
+
+        # 7. Viva guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_vs_astar_comparison.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_vs_astar_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("UNIVERSITY VIVA VOCE PREPARATION GUIDE", out)
+        self.assertIn("special case of A*", out)
+
+        # 8. JSON output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_ucs_vs_astar_comparison.py", "--json"]):
+            with patch("sys.stdout", stdout_trap):
+                ucs_vs_astar_script_main()
+        out = stdout_trap.getvalue()
+        data = json.loads(out)
+        self.assertEqual(data["ucs"]["nodes_expanded"], 380)
+        self.assertEqual(data["astar"]["nodes_expanded"], 45)
+        self.assertEqual(data["comparison"]["nodes_saved"], 335)
+
+        # 9. Top-level CLI dispatcher & aliases
+        for cmd in (
+            "ucs-vs-astar",
+            "ucs-astar",
+            "ucs-astar-comparison",
+            "ucs-vs-astar-comparison",
+            "q32",
+            "question32",
         ):
             stdout_trap = io.StringIO()
             with patch("sys.stdout", stdout_trap):

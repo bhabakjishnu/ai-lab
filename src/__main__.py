@@ -218,6 +218,19 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 31: 8-Puzzle Manhattan vs Misplaced Tiles Dominance Analysis",
     )
 
+    # UCS vs A* Performance Comparison runner
+    subparsers.add_parser(
+        "ucs-vs-astar",
+        aliases=[
+            "ucs-astar",
+            "ucs-astar-comparison",
+            "ucs-vs-astar-comparison",
+            "q32",
+            "question32",
+        ],
+        help="Run Question 32: UCS vs A* (Manhattan) Performance Comparison on 20x20 Grid",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -329,6 +342,12 @@ def main(argv: Optional[List[str]] = None) -> None:
         "puzzle-dominance",
         "q31",
         "question31",
+        "ucs-vs-astar",
+        "ucs-astar",
+        "ucs-astar-comparison",
+        "ucs-vs-astar-comparison",
+        "q32",
+        "question32",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -468,6 +487,17 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_eight_puzzle_manhattan_vs_misplaced import main as dominance_main
             sys.argv = [sys.argv[0]] + remaining
             dominance_main()
+        elif cmd in (
+            "ucs-vs-astar",
+            "ucs-astar",
+            "ucs-astar-comparison",
+            "ucs-vs-astar-comparison",
+            "q32",
+            "question32",
+        ):
+            from scripts.run_ucs_vs_astar_comparison import main as ucs_astar_main
+            sys.argv = [sys.argv[0]] + remaining
+            ucs_astar_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
