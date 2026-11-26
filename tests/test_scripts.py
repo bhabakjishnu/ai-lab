@@ -48,6 +48,7 @@ from scripts.run_a_star_maze_solver import main as astar_maze_script_main
 from scripts.run_a_star_eight_puzzle import main as astar_puzzle_script_main
 from scripts.run_eight_puzzle_manhattan_vs_misplaced import main as puzzle_dominance_script_main
 from scripts.run_ucs_vs_astar_comparison import main as ucs_vs_astar_script_main
+from scripts.run_admissible_heuristic_validator import main as admissible_validator_script_main
 from src.__main__ import main as cli_main
 
 
@@ -2219,6 +2220,91 @@ class TestScriptExecution(unittest.TestCase):
             "ucs-vs-astar-comparison",
             "q32",
             "question32",
+        ):
+            stdout_trap = io.StringIO()
+            with patch("sys.stdout", stdout_trap):
+                cli_main([cmd, "--sample"])
+            out = stdout_trap.getvalue()
+            self.assertEqual(out.strip(), expected_sample)
+
+    def test_run_admissible_heuristic_validator_script(self) -> None:
+        """Verify Question 33 script execution across flags, JSON, and CLI aliases."""
+        expected_sample = "False. Heuristic overestimates at node A (10 > 8)."
+
+        # 1. Exact sample constant output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_admissible_heuristic_validator.py", "--sample"]):
+            with patch("sys.stdout", stdout_trap):
+                admissible_validator_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), expected_sample)
+
+        # 2. Live computed sample output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_admissible_heuristic_validator.py", "--sample-computed"]):
+            with patch("sys.stdout", stdout_trap):
+                admissible_validator_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), expected_sample)
+
+        # 3. Table output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_admissible_heuristic_validator.py", "--table"]):
+            with patch("sys.stdout", stdout_trap):
+                admissible_validator_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Comparative Heuristic vs. True Cost Table", out)
+        self.assertIn("❌ Overestimates", out)
+        self.assertIn("✅ Admissible", out)
+
+        # 4. Repair output (Optional Challenge)
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_admissible_heuristic_validator.py", "--repair"]):
+            with patch("sys.stdout", stdout_trap):
+                admissible_validator_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("Automatically Lowered Heuristic Values", out)
+        self.assertIn("Clamped from 10 -> 8", out)
+
+        # 5. Theory output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_admissible_heuristic_validator.py", "--theory"]):
+            with patch("sys.stdout", stdout_trap):
+                admissible_validator_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("THEORETICAL FOUNDATIONS", out)
+        self.assertIn("Mathematical Definition of Admissibility", out)
+
+        # 6. Viva guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_admissible_heuristic_validator.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                admissible_validator_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("UNIVERSITY VIVA VOCE PREPARATION GUIDE", out)
+        self.assertIn("formal definition of an Admissible Heuristic", out)
+
+        # 7. JSON output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_admissible_heuristic_validator.py", "--json"]):
+            with patch("sys.stdout", stdout_trap):
+                admissible_validator_script_main()
+        out = stdout_trap.getvalue()
+        data = json.loads(out)
+        self.assertFalse(data["is_admissible"])
+        self.assertEqual(data["violations_count"], 1)
+        self.assertEqual(data["violations"][0]["node"], "A")
+        self.assertEqual(data["true_costs"]["A"], 8.0)
+        self.assertEqual(data["repaired_heuristics"]["A"], 8.0)
+
+        # 8. Top-level CLI dispatcher & aliases
+        for cmd in (
+            "admissible-heuristic",
+            "admissible-validator",
+            "heuristic-validator",
+            "admissibility",
+            "q33",
+            "question33",
         ):
             stdout_trap = io.StringIO()
             with patch("sys.stdout", stdout_trap):

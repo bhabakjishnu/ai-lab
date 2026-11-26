@@ -231,6 +231,19 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 32: UCS vs A* (Manhattan) Performance Comparison on 20x20 Grid",
     )
 
+    # Admissible Heuristic Validator runner
+    subparsers.add_parser(
+        "admissible-heuristic",
+        aliases=[
+            "admissible-validator",
+            "heuristic-validator",
+            "admissibility",
+            "q33",
+            "question33",
+        ],
+        help="Run Question 33: Admissible Heuristic Validator via Reverse UCS",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -348,6 +361,12 @@ def main(argv: Optional[List[str]] = None) -> None:
         "ucs-vs-astar-comparison",
         "q32",
         "question32",
+        "admissible-heuristic",
+        "admissible-validator",
+        "heuristic-validator",
+        "admissibility",
+        "q33",
+        "question33",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -498,6 +517,17 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_ucs_vs_astar_comparison import main as ucs_astar_main
             sys.argv = [sys.argv[0]] + remaining
             ucs_astar_main()
+        elif cmd in (
+            "admissible-heuristic",
+            "admissible-validator",
+            "heuristic-validator",
+            "admissibility",
+            "q33",
+            "question33",
+        ):
+            from scripts.run_admissible_heuristic_validator import main as admissible_main
+            sys.argv = [sys.argv[0]] + remaining
+            admissible_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
