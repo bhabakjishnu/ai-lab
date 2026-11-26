@@ -70,6 +70,7 @@ ai-lab/
 │   ├── a_star_eight_puzzle.ipynb        # Question 30: 8-Puzzle Solver using A* (Manhattan) & Viva guide
 │   ├── eight_puzzle_manhattan_vs_misplaced.ipynb # Question 31: 8-Puzzle: Manhattan vs Misplaced Tiles & Viva guide
 │   ├── ucs_vs_astar_comparison.ipynb    # Question 32: UCS vs A* Performance Comparison & Viva guide
+│   ├── admissible_heuristic_validator.ipynb # Question 33: Admissible Heuristic Validator & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -103,11 +104,12 @@ ai-lab/
 │   ├── run_a_star_eight_puzzle.py       # CLI & interactive runner for Question 30 (8-Puzzle A* Solver & Inversions)
 │   ├── run_eight_puzzle_manhattan_vs_misplaced.py # CLI & runner for Question 31 (8-Puzzle Manhattan vs Misplaced Tiles Dominance Analysis)
 │   ├── run_ucs_vs_astar_comparison.py   # CLI & runner for Question 32 (UCS vs A* Performance Comparison on 20x20 Grid)
+│   ├── run_admissible_heuristic_validator.py # CLI & runner for Question 33 (Admissible Heuristic Validator via Reverse UCS)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,gbfs-grid,a-star,a-star-maze,eight-puzzle-solver,q30,eight-puzzle-dominance,q31,ucs-vs-astar,q32,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,gbfs-grid,a-star,a-star-maze,eight-puzzle-solver,q30,eight-puzzle-dominance,q31,ucs-vs-astar,q32,admissible-heuristic,q33,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -139,6 +141,7 @@ ai-lab/
 │   ├── a_star_eight_puzzle.py           # Question 30: 8-Puzzle Solver using A*, Manhattan Heuristic & Inversions
 │   ├── eight_puzzle_manhattan_vs_misplaced.py # Question 31: 8-Puzzle Manhattan vs Misplaced Tiles Heuristic Dominance
 │   ├── ucs_vs_astar_comparison.py       # Question 32: UCS vs A* (Manhattan) Performance Comparison on 20x20 Grid
+│   ├── admissible_heuristic_validator.py # Question 33: Admissible Heuristic Validator (Reverse UCS & Admissibility Analysis)
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -173,6 +176,7 @@ ai-lab/
 │   ├── test_a_star_eight_puzzle.py      # Unit tests for Question 30 8-puzzle A* search, heuristics & solvability
 │   ├── test_eight_puzzle_manhattan_vs_misplaced.py # Unit tests for Question 31 Heuristic Dominance, b*, metrics & solvability
 │   ├── test_ucs_vs_astar_comparison.py  # Unit tests for Question 32 UCS vs A* grid simulation, heuristics & challenge
+│   ├── test_admissible_heuristic_validator.py # Unit tests for Question 33 Admissible Heuristic Validator, Reverse UCS & Repair
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -4325,6 +4329,141 @@ python -m src ucs-astar-comparison --table
   - When the heuristic is uninformative ($h = 0$), A* reduces to UCS.
   - If computing $h(n)$ is computationally expensive (e.g., deep neural network evaluation), the CPU overhead per state may exceed the savings from pruning node expansions.
   - If the search space contains deceptive local minima or deep dead-end corridors that mislead heuristic estimates, A* may explore the dead ends before backtracking, while UCS advances evenly.
+
+---
+
+### Question 33: Admissible Heuristic Validator
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Syllabus Area** | Informed Search and Heuristics |
+| **Difficulty** | 🟡 Intermediate |
+| **Practical Type** | Validation |
+| **Problem Statement** | Given a graph, the true minimum costs from every node to the goal, and a heuristic dictionary $h(n)$, write a Python function to programmatically determine if the provided heuristic is Admissible. |
+| **Task Requirements** | 1. Calculate true cost $h^*(n)$ for all nodes using a reverse UCS from the goal.<br>2. Compare provided $h(n)$ against $h^*(n)$.<br>3. Identify any node where $h(n) > h^*(n)$.<br>4. Output True (Admissible) or False (Not Admissible with counterexample). |
+| **Input Requirements** | Graph structure, Goal node, Heuristic dict |
+| **Expected Output** | Boolean and list of violating nodes |
+| **Constraints / Conditions** | Graph has positive weights ($w > 0$) |
+| **Core AI Concept** | Admissibility ($0 \le h(n) \le h^*(n)$) |
+| **Python Concepts Tested** | Dictionary iteration, reverse graph search, priority queues (`heapq`), dataclasses |
+| **Expected Algorithm** | Dijkstra's from goal on transposed graph (Reverse UCS) / Validation logic |
+| **Recommended Libraries** | Pure Python standard library (`heapq`, `math`, `typing`, `dataclasses`) |
+| **Complexity Expectation** | Time Complexity: $\mathcal{O}((V + E) \log V)$, Space Complexity: $\mathcal{O}(V + E)$ |
+| **Sample Input** | $h(A) = 10$, True Cost $A \to \text{Goal} = 8$ |
+| **Sample Output** | `False. Heuristic overestimates at node A (10 > 8).` |
+| **University Practical Importance** | Viva Important |
+| **Viva Topics** | • Definition of Admissibility<br>• Why overestimation breaks optimality in A* |
+| **Optional Challenge** | Automatically lower the heuristic values to make them admissible ($h_{\text{repaired}}(n) = \min(h(n), h^*(n))$) |
+
+#### Theoretical Foundations & Validation Mechanics
+
+##### 1. Mathematical Definition of Admissibility
+- A heuristic function $h(n)$ is **admissible** if for every state $n$ in the state space:
+  $$0 \le h(n) \le h^*(n)$$
+  where $h^*(n)$ denotes the true minimum cost from state $n$ to the nearest goal state.
+- In plain terms, an admissible heuristic is **optimistic**; it never overestimates the actual remaining cost to reach the goal.
+- At the goal node itself, $h(\text{Goal}) = 0$ is strictly required because $h^*(\text{Goal}) = 0$. If $h(\text{Goal}) > 0$, it overestimates.
+
+##### 2. Single-Target Shortest Paths via Reverse UCS (Dijkstra on Transposed Graph)
+- **The Efficiency Bottleneck of Forward Search**:
+  Running a forward Dijkstra / UCS from every node $n \in V$ to the single target goal $G$ would require $|V|$ separate search passes, costing:
+  $$\mathcal{O}(|V| \cdot (V + E) \log V)$$
+- **The Reverse Transposition Transformation**:
+  By reversing all directed edges in graph $G = (V, E) \to G^R = (V, E^R)$ such that edge $u \xrightarrow{c} v$ becomes $v \xrightarrow{c} u$:
+  A single execution of Uniform Cost Search (Dijkstra) starting at node $G$ in $G^R$ yields the true shortest path distance to all nodes $n \in V$ in a single pass:
+  $$\mathcal{O}((V + E) \log V)$$
+  The distance $d_{G^R}(G, u)$ in the transposed graph is mathematically identical to the true optimal cost $h^*(u) = d_G(u, G)$.
+
+##### 3. Why Overestimation Breaks Optimality in A*
+- In A*, nodes are prioritized by:
+  $$f(n) = g(n) + h(n)$$
+- Suppose $P^*$ is the optimal path to a goal with cost $C^*$, and node $n$ lies on $P^*$.
+- If $h(n) > h^*(n)$ (overestimation), its evaluation score becomes:
+  $$f(n) = g(n) + h(n) > g(n) + h^*(n) = C^*$$
+- If an alternative, suboptimal path $P'$ leads to a goal with cost $C' > C^*$ such that $C' < f(n)$, A* will expand $P'$ and pop the suboptimal goal from the priority queue before expanding node $n$.
+- A* will therefore return a suboptimal path, breaking its fundamental promise of optimality.
+
+##### 4. Repairing Non-Admissible Heuristics (Optional Challenge)
+- To repair an overestimating heuristic while preserving domain guidance:
+  $$h_{\text{repaired}}(n) = \min(h(n), h^*(n))$$
+- For unreachable nodes ($h^*(n) = \infty$), $h_{\text{repaired}}(n) = \max(0, h(n))$.
+- This provides the tightest upper-bounded admissible heuristic that respects the user's initial heuristic without overestimating any node.
+
+#### Canonical Heuristic Comparison Table
+
+| Node | $h(n)$ (Supplied) | $h^*(n)$ (True Cost) | Validation Status | Deviation ($h - h^*$) | Repaired $h(n)$ |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **A** | **10** | **8** | ❌ **Overestimates** | **+2** | **8** (Clamped to $h^*$) |
+| **B** | **4** | **5** | ✅ **Admissible** | **-1** | **4** (Retained) |
+| **C** | **3** | **4** | ✅ **Admissible** | **-1** | **3** (Retained) |
+| **D** | **6** | **7** | ✅ **Admissible** | **-1** | **6** (Retained) |
+| **Goal** | **0** | **0** | ✅ **Admissible** | **0** | **0** (Exact) |
+
+#### CLI Usage Examples
+
+```bash
+# 1. Exact Syllabus Sample Output Specification:
+python scripts/run_admissible_heuristic_validator.py --sample
+# Output: False. Heuristic overestimates at node A (10 > 8).
+
+# 2. Dynamic Computed Run on Canonical Graph:
+python scripts/run_admissible_heuristic_validator.py --sample-computed
+# Output: False. Heuristic overestimates at node A (10 > 8).
+
+# 3. Full Comparison Table:
+python scripts/run_admissible_heuristic_validator.py --table
+
+# 4. Optional Challenge (Heuristic Repair / Lowering):
+python scripts/run_admissible_heuristic_validator.py --repair
+
+# 5. Theoretical Analysis:
+python scripts/run_admissible_heuristic_validator.py --theory
+
+# 6. University Viva Voce Preparation Guide:
+python scripts/run_admissible_heuristic_validator.py --viva
+
+# 7. Structured JSON Export:
+python scripts/run_admissible_heuristic_validator.py --json
+
+# 8. Top-Level CLI Dispatcher & Aliases:
+python -m src admissible-heuristic --sample
+python -m src q33 --sample
+python -m src heuristic-validator --table
+```
+
+#### University Viva Voce Preparation Guide
+
+##### Q1: What is the formal definition of an Admissible Heuristic?
+- **Answer**:
+  An admissible heuristic $h(n)$ is an evaluation function that never overestimates the actual minimum cost to reach the goal from node $n$:
+  $$0 \le h(n) \le h^*(n), \quad \forall n \in S$$
+  where $h^*(n)$ is the true cost of the shortest path from $n$ to the goal. In simple terms: an admissible heuristic is always optimistic.
+
+##### Q2: Why does an overestimating heuristic break the optimality of A*?
+- **Answer**:
+  A* prioritizes nodes by lowest $f(n) = g(n) + h(n)$. If a node $n$ on the true optimal path overestimates its remaining cost ($h(n) > h^*(n)$), its $f$-score $f(n) > C^*$ can exceed the cost $C'$ of an alternative suboptimal path. A* will expand the suboptimal path to completion and pop the suboptimal goal node first, terminating prematurely with a suboptimal solution.
+
+##### Q3: What is the difference between Admissibility and Consistency (Monotonicity)?
+- **Answer**:
+  - **Admissibility**: Global condition comparing $h(n)$ directly to true goal distance ($h(n) \le h^*(n)$).
+  - **Consistency (Monotonicity)**: Local condition adhering to the triangle inequality ($h(u) \le c(u, v) + h(v)$ with $h(\text{Goal}) = 0$).
+  - Every consistent heuristic is admissible, but an admissible heuristic is not necessarily consistent on general graphs.
+
+##### Q4: Why do we run Reverse UCS from the goal instead of searching forward?
+- **Answer**:
+  We need the shortest path from *all nodes* to a *single goal* (Single-Target Shortest Path). Running forward UCS requires $|V|$ independent searches. Transposing the graph transforms the problem into Single-Source Shortest Path (SSSP) from the goal, allowing a single run of Dijkstra / UCS to calculate $h^*(n)$ for all nodes in $\mathcal{O}((V + E) \log V)$ time.
+
+##### Q5: What should $h(\text{Goal})$ be for an admissible heuristic?
+- **Answer**:
+  $h(\text{Goal})$ must be 0 because the cost from the goal to itself is $h^*(\text{Goal}) = 0$. If $h(\text{Goal}) > 0$, it overestimates. If $h(\text{Goal}) < 0$, it violates non-negativity.
+
+##### Q6: What happens if $h(n) = 0$ for all nodes? Is it admissible?
+- **Answer**:
+  Yes. Since edge costs are non-negative, $0 \le h^*(n)$ holds unconditionally, so $h(n) = 0$ is always admissible. Under $h(n) = 0$, A* reduces to Uniform Cost Search (Dijkstra). It is optimal but uninformed, expanding the maximum number of states.
+
+##### Q7: What happens if $h(n) = h^*(n)$ for all nodes?
+- **Answer**:
+  $h(n) = h^*(n)$ is the 'perfect heuristic'. It is strictly admissible. With a perfect heuristic, A* only expands nodes strictly residing on the optimal path, exploring zero dead ends or detours.
 
 ---
 

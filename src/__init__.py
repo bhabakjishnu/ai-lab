@@ -628,6 +628,25 @@ from src.ucs_vs_astar_comparison import (
     visualize_ucs_vs_astar,
     zero_heuristic as ucs_astar_zero_heuristic,
 )
+from src.admissible_heuristic_validator import (
+    CANONICAL_GOAL as ADMISSIBLE_CANONICAL_GOAL,
+    CANONICAL_GRAPH as ADMISSIBLE_CANONICAL_GRAPH,
+    CANONICAL_HEURISTIC_ADMISSIBLE,
+    CANONICAL_HEURISTIC_OVERESTIMATING,
+    SYLLABUS_SAMPLE_OUTPUT as ADMISSIBLE_HEURISTIC_SAMPLE_OUTPUT,
+    AdmissibilityReport,
+    NodeViolation,
+    compute_reverse_graph as compute_admissible_reverse_graph,
+    compute_true_costs as compute_admissible_true_costs,
+    format_comparison_table as format_admissible_comparison_table,
+    get_canonical_sample_graph as get_admissible_canonical_sample_graph,
+    get_theoretical_analysis as get_admissible_theoretical_analysis,
+    get_viva_reference as get_admissible_viva_reference,
+    make_admissible,
+    normalize_graph as normalize_admissible_graph,
+    render_ascii_graph as render_admissible_ascii_graph,
+    validate_admissibility,
+)
 
 __all__ = [
     # Question 1: Simple Reflex Agent
@@ -1202,4 +1221,22 @@ __all__ = [
     "solve_ucs_astar_pathfinding",
     "solve_ucs_astar_ucs",
     "visualize_ucs_vs_astar",
+    # Question 33: Admissible Heuristic Validator
+    "ADMISSIBLE_CANONICAL_GOAL",
+    "ADMISSIBLE_CANONICAL_GRAPH",
+    "ADMISSIBLE_HEURISTIC_ADMISSIBLE",
+    "ADMISSIBLE_HEURISTIC_OVERESTIMATING",
+    "ADMISSIBLE_HEURISTIC_SAMPLE_OUTPUT",
+    "AdmissibilityReport",
+    "NodeViolation",
+    "compute_admissible_reverse_graph",
+    "compute_admissible_true_costs",
+    "format_admissible_comparison_table",
+    "get_admissible_canonical_sample_graph",
+    "get_admissible_theoretical_analysis",
+    "get_admissible_viva_reference",
+    "make_admissible",
+    "normalize_admissible_graph",
+    "render_admissible_ascii_graph",
+    "validate_admissibility",
 ]
