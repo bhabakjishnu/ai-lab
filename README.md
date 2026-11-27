@@ -71,6 +71,7 @@ ai-lab/
 │   ├── eight_puzzle_manhattan_vs_misplaced.ipynb # Question 31: 8-Puzzle: Manhattan vs Misplaced Tiles & Viva guide
 │   ├── ucs_vs_astar_comparison.ipynb    # Question 32: UCS vs A* Performance Comparison & Viva guide
 │   ├── admissible_heuristic_validator.ipynb # Question 33: Admissible Heuristic Validator & Viva guide
+│   ├── consistent_heuristic_validator.ipynb # Question 34: Consistent Heuristic Validator & Viva guide
 │   └── utility_based_agent.ipynb        # Question 5: Utility-Based Agent simulation & Viva guide
 ├── scripts/
 │   ├── __init__.py                      # Scripts package marker
@@ -105,11 +106,12 @@ ai-lab/
 │   ├── run_eight_puzzle_manhattan_vs_misplaced.py # CLI & runner for Question 31 (8-Puzzle Manhattan vs Misplaced Tiles Dominance Analysis)
 │   ├── run_ucs_vs_astar_comparison.py   # CLI & runner for Question 32 (UCS vs A* Performance Comparison on 20x20 Grid)
 │   ├── run_admissible_heuristic_validator.py # CLI & runner for Question 33 (Admissible Heuristic Validator via Reverse UCS)
+│   ├── run_consistent_heuristic_validator.py # CLI & runner for Question 34 (Consistent Heuristic Validator via Triangle Inequality)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
 │   ├── __init__.py                      # Package initialization & public exports
-│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,gbfs-grid,a-star,a-star-maze,eight-puzzle-solver,q30,eight-puzzle-dominance,q31,ucs-vs-astar,q32,admissible-heuristic,q33,smoke-test})
+│   ├── __main__.py                      # CLI dispatcher (python -m src {vacuum,randomized,model-based,goal-based,utility-based,multi-agent,stochastic,environment-classifier,agent-evaluator,state-space,bfs,dfs,ucs,maze,dls,ids,bfs-dfs,bidirectional,water-jug,missionaries-cannibals,ucs-grid,multi-goal-bfs,distance-calculators,eight-puzzle,gbfs,gbfs-grid,a-star,a-star-maze,eight-puzzle-solver,q30,eight-puzzle-dominance,q31,ucs-vs-astar,q32,admissible-heuristic,q33,consistent-heuristic,q34,smoke-test})
 │   ├── experiment.py                    # Core experiment metrics and simulation runner
 │   ├── goal_based_agent.py              # Question 4: Goal-Based Navigation Agent & 5x5 Grid Environment
 │   ├── model_based_agent.py             # Question 3: Model-Based Reflex Agent & 2x2 Grid Environment
@@ -142,6 +144,7 @@ ai-lab/
 │   ├── eight_puzzle_manhattan_vs_misplaced.py # Question 31: 8-Puzzle Manhattan vs Misplaced Tiles Heuristic Dominance
 │   ├── ucs_vs_astar_comparison.py       # Question 32: UCS vs A* (Manhattan) Performance Comparison on 20x20 Grid
 │   ├── admissible_heuristic_validator.py # Question 33: Admissible Heuristic Validator (Reverse UCS & Admissibility Analysis)
+│   ├── consistent_heuristic_validator.py # Question 34: Consistent Heuristic Validator (Monotonicity & Triangle Inequality Analysis)
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -177,6 +180,7 @@ ai-lab/
 │   ├── test_eight_puzzle_manhattan_vs_misplaced.py # Unit tests for Question 31 Heuristic Dominance, b*, metrics & solvability
 │   ├── test_ucs_vs_astar_comparison.py  # Unit tests for Question 32 UCS vs A* grid simulation, heuristics & challenge
 │   ├── test_admissible_heuristic_validator.py # Unit tests for Question 33 Admissible Heuristic Validator, Reverse UCS & Repair
+│   ├── test_consistent_heuristic_validator.py # Unit tests for Question 34 Consistent Heuristic Validator, Induction Proof & Table
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -4464,6 +4468,141 @@ python -m src heuristic-validator --table
 ##### Q7: What happens if $h(n) = h^*(n)$ for all nodes?
 - **Answer**:
   $h(n) = h^*(n)$ is the 'perfect heuristic'. It is strictly admissible. With a perfect heuristic, A* only expands nodes strictly residing on the optimal path, exploring zero dead ends or detours.
+
+---
+
+### Question 34: Consistent Heuristic Validator
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Syllabus Area** | Informed Search and Heuristics |
+| **Difficulty** | 🟠 Advanced |
+| **Practical Type** | Validation |
+| **Problem Statement** | Write a Python program to check if a given heuristic $h(n)$ for a graph is Consistent (Monotonic). The program must verify the triangle inequality: $h(n) \le c(n, a, n') + h(n')$ for every node and its successors. |
+| **Task Requirements** | 1. Iterate through every edge $(u, v)$ with cost $c$.<br>2. Check if $h(u) \le c + h(v)$.<br>3. Output True if consistent, else pinpoint the violating edge. |
+| **Input Requirements** | Graph with edge costs, Heuristic dictionary |
+| **Expected Output** | Boolean and details of violations |
+| **Constraints / Conditions** | Must check all directed edges ($w > 0$) |
+| **Core AI Concept** | Consistency / Monotonicity in Heuristics (Triangle Inequality) |
+| **Python Concepts Tested** | Nested loops, graph traversal, typing, dataclasses |
+| **Expected Algorithm** | Edge validation iteration over all directed edges $\mathcal{O}(E)$ |
+| **Recommended Libraries** | Pure Python standard library (None) |
+| **Complexity Expectation** | Time Complexity: $\mathcal{O}(E)$, Space Complexity: $\mathcal{O}(V)$ |
+| **Sample Input** | $h(A)=5, h(B)=2, \text{cost}(A, B)=2$ |
+| **Sample Output** | `False. Violation at edge A->B: 5 > 2 + 2.` |
+| **University Practical Importance** | Advanced |
+| **Viva Topics** | • Consistency vs Admissibility<br>• Why consistency prevents A* from reopening nodes |
+| **Optional Challenge** | Prove programmatically that all consistent heuristics are admissible |
+
+#### Theoretical Foundations & Validation Mechanics
+
+##### 1. Mathematical Definition of Consistency (Monotonicity)
+- In informed search, a heuristic function $h(n)$ is **consistent** (or **monotonic**) if, for every node $n$ and every successor $n'$ generated by any action $a$ with transition cost $c(n, a, n')$:
+  $$h(n) \le c(n, a, n') + h(n')$$
+  with the terminal boundary condition:
+  $$h(\text{Goal}) = 0$$
+- This condition represents the classic **triangle inequality**: the estimated cost from node $n$ directly to the goal cannot exceed the step cost to a neighbor $n'$ plus the estimated cost from $n'$ to the goal.
+
+##### 2. Consistency vs. Admissibility: The Crucial Distinction
+- **Admissibility**: A global constraint requiring $h(n) \le h^*(n)$ for all nodes $n$.
+- **Consistency**: A local constraint enforcing $h(n) \le c(n, a, n') + h(n')$ across every individual transition step $(n \to n')$.
+- **Theorem 1 (Consistency Implies Admissibility)**:
+  Every consistent heuristic with $h(\text{Goal}) = 0$ is mathematically guaranteed to be admissible.
+- **Theorem 2 (Admissibility Does NOT Imply Consistency)**:
+  A heuristic can be globally admissible (underestimating true distance everywhere) while failing the local triangle inequality on specific edges. For example:
+  $$\text{Path: } A \xrightarrow{1} B \xrightarrow{5} \text{Goal}$$
+  True costs: $h^*(\text{Goal})=0, h^*(B)=5, h^*(A)=6$.
+  If $h(A) = 3$ and $h(B) = 0.5$, both are admissible ($3 \le 6$ and $0.5 \le 5$). However, on edge $A \to B$:
+  $$h(A) = 3 > c(A, B) + h(B) = 1 + 0.5 = 1.5 \quad \text{(VIOLATION!)}$$
+
+##### 3. Why Consistency Prevents A* from Reopening Nodes
+- In **Graph Search** (where an explored/closed set is maintained):
+  - When $h(n)$ is consistent, the evaluation function $f(n) = g(n) + h(n)$ is **monotonically non-decreasing** along every path:
+    $$f(n') = g(n') + h(n') = g(n) + c(n, n') + h(n') \ge g(n) + h(n) = f(n)$$
+  - Consequently, the sequence of nodes selected for expansion from the priority queue is non-decreasing in $f$-cost.
+  - When A* expands a node $n$, the path found to $n$ is **guaranteed to be optimal** ($g(n) = g^*(n)$).
+  - No subsequent path discovered later in search will ever offer a lower $g$-cost to an already closed node.
+  - Closed nodes **never need to be reopened**, preserving $\mathcal{O}(V)$ graph-search expansions rather than exponential node reopenings.
+
+##### 4. Programmatic Proof by Path Induction (Optional Challenge)
+- For any node $n_0$, let $P = (n_0, n_1, \dots, n_k = \text{Goal})$ be the optimal shortest path to the goal with true cost $h^*(n_0) = \sum_{i=0}^{k-1} c(n_i, n_{i+1})$.
+- Applying consistency along the $k$ edges of $P$:
+  $$h(n_0) \le c(n_0, n_1) + h(n_1)$$
+  $$h(n_1) \le c(n_1, n_2) + h(n_2)$$
+  $$\dots$$
+  $$h(n_{k-1}) \le c(n_{k-1}, \text{Goal}) + h(\text{Goal})$$
+- Summing these inequalities cancels all intermediate terms $h(n_i)$ (telescoping sum):
+  $$h(n_0) \le \sum_{i=0}^{k-1} c(n_i, n_{i+1}) + h(\text{Goal}) = h^*(n_0) + 0 = h^*(n_0)$$
+- Our module programmatically computes optimal paths, verifies each inequality step, performs telescoping summation, and confirms $h(n) \le h^*(n)$ for all nodes!
+
+#### Canonical Consistency Verification Table
+
+| Edge ($u \to v$) | Step Cost $c$ | $h(u)$ | $h(v)$ | Upper Bound ($c + h(v)$) | Inequality Check | Status |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Sample Violating: A $\to$ B** | **2.0** | **5.0** | **2.0** | **4.0** | $5.0 > 4.0$ | ❌ **Violation** |
+| **Sample Consistent: A $\to$ B** | **2.0** | **4.0** | **2.0** | **4.0** | $4.0 \le 4.0$ | ✅ **Valid** |
+| **Extended: A $\to$ B** | **1.0** | **3.0** | **2.0** | **3.0** | $3.0 \le 3.0$ | ✅ **Valid** |
+| **Extended: B $\to$ Goal** | **5.0** | **2.0** | **0.0** | **5.0** | $2.0 \le 5.0$ | ✅ **Valid** |
+| **Extended: C $\to$ Goal** | **1.0** | **1.0** | **0.0** | **1.0** | $1.0 \le 1.0$ | ✅ **Valid** |
+
+#### CLI Usage Examples
+
+```bash
+# 1. Exact Syllabus Sample Output Specification:
+python scripts/run_consistent_heuristic_validator.py --sample
+# Output: False. Violation at edge A->B: 5 > 2 + 2.
+
+# 2. Canonical Consistent Heuristic Check:
+python scripts/run_consistent_heuristic_validator.py --sample-consistent
+# Output: True. All edges satisfy the triangle inequality (h(u) <= c(u, v) + h(v)).
+
+# 3. Comprehensive Verification Table:
+python scripts/run_consistent_heuristic_validator.py --table
+
+# 4. Optional Challenge (Prove Consistency => Admissibility):
+python scripts/run_consistent_heuristic_validator.py --prove
+
+# 5. Extended Multi-Node Graph Demonstration:
+python scripts/run_consistent_heuristic_validator.py --extended
+
+# 6. Theoretical Analysis:
+python scripts/run_consistent_heuristic_validator.py --theory
+
+# 7. University Viva Voce Preparation Guide:
+python scripts/run_consistent_heuristic_validator.py --viva
+
+# 8. Structured JSON Export:
+python scripts/run_consistent_heuristic_validator.py --json
+
+# 9. Top-Level CLI Dispatcher & Aliases:
+python -m src consistent-heuristic --sample
+python -m src q34 --sample
+python -m src consistent-validator --table
+```
+
+#### University Viva Voce Preparation Guide
+
+##### Q1: What is the triangle inequality in heuristic search?
+- **Answer**:
+  The triangle inequality states that the heuristic distance from node $u$ to the goal cannot exceed the step cost of transitioning from $u$ to a successor $v$ plus the heuristic distance from $v$ to the goal:
+  $$h(u) \le c(u, v) + h(v)$$
+  If this inequality holds for every directed edge in the graph, the heuristic is consistent (or monotonic).
+
+##### Q2: Does consistency imply admissibility, or vice versa?
+- **Answer**:
+  Consistency **strictly implies** admissibility (provided $h(\text{Goal}) = 0$). The converse does **not** hold: an admissible heuristic can be inconsistent if it underestimates unevenly across adjacent nodes, producing localized drops that violate the triangle inequality.
+
+##### Q3: Why does consistency prevent A* from reopening nodes?
+- **Answer**:
+  When $h$ is consistent, the $f$-cost $f(n) = g(n) + h(n)$ along any path is monotonically non-decreasing. When A* selects a node for expansion from the priority queue, the path found to it is guaranteed to be optimal. No cheaper path to that node can be discovered later. Hence, closed nodes never need to be reopened, ensuring optimal graph-search efficiency $\mathcal{O}(V)$ expansions.
+
+##### Q4: What is the computational complexity of the validator?
+- **Answer**:
+  Time complexity is $\mathcal{O}(E)$ where $E$ is the number of directed edges in the graph. The validator traverses each directed edge once, performs $\mathcal{O}(1)$ dictionary lookups for $h(u)$ and $h(v)$, and evaluates the inequality in $\mathcal{O}(1)$ arithmetic operations.
+
+##### Q5: Why must edge costs be strictly positive ($c > 0$)?
+- **Answer**:
+  Positive edge costs ensure that cycles accumulate cost, preventing infinite zero-cost or negative-cost loops, and guarantee that Dijkstra and A* can find optimal shortest paths.
 
 ---
 

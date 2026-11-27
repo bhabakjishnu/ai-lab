@@ -49,6 +49,7 @@ from scripts.run_a_star_eight_puzzle import main as astar_puzzle_script_main
 from scripts.run_eight_puzzle_manhattan_vs_misplaced import main as puzzle_dominance_script_main
 from scripts.run_ucs_vs_astar_comparison import main as ucs_vs_astar_script_main
 from scripts.run_admissible_heuristic_validator import main as admissible_validator_script_main
+from scripts.run_consistent_heuristic_validator import main as consistent_validator_script_main
 from src.__main__ import main as cli_main
 
 
@@ -2305,6 +2306,98 @@ class TestScriptExecution(unittest.TestCase):
             "admissibility",
             "q33",
             "question33",
+        ):
+            stdout_trap = io.StringIO()
+            with patch("sys.stdout", stdout_trap):
+                cli_main([cmd, "--sample"])
+            out = stdout_trap.getvalue()
+            self.assertEqual(out.strip(), expected_sample)
+
+    def test_run_consistent_heuristic_validator_script(self) -> None:
+        """Verify Question 34 script execution across flags, JSON, and CLI aliases."""
+        expected_sample = "False. Violation at edge A->B: 5 > 2 + 2."
+
+        # 1. Exact sample output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_consistent_heuristic_validator.py", "--sample"]):
+            with patch("sys.stdout", stdout_trap):
+                consistent_validator_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), expected_sample)
+
+        # 2. Consistent sample output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_consistent_heuristic_validator.py", "--sample-consistent"]):
+            with patch("sys.stdout", stdout_trap):
+                consistent_validator_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("True", out)
+
+        # 3. Table output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_consistent_heuristic_validator.py", "--table"]):
+            with patch("sys.stdout", stdout_trap):
+                consistent_validator_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("CONSISTENCY VERIFICATION TABLE", out)
+        self.assertIn("❌ Violation", out)
+        self.assertIn("✅ Valid", out)
+
+        # 4. Extended output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_consistent_heuristic_validator.py", "--extended"]):
+            with patch("sys.stdout", stdout_trap):
+                consistent_validator_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("EXTENDED MULTI-NODE GRAPH VALIDATION DEMONSTRATION", out)
+
+        # 5. Programmatic proof (Optional Challenge)
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_consistent_heuristic_validator.py", "--prove"]):
+            with patch("sys.stdout", stdout_trap):
+                consistent_validator_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("MATHEMATICAL INDUCTION PROOF", out)
+        self.assertIn("Telescoping Sum", out)
+
+        # 6. Theory output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_consistent_heuristic_validator.py", "--theory"]):
+            with patch("sys.stdout", stdout_trap):
+                consistent_validator_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("THEORETICAL FOUNDATIONS", out)
+        self.assertIn("TRIANGLE INEQUALITY", out)
+
+        # 7. Viva guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_consistent_heuristic_validator.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                consistent_validator_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("UNIVERSITY VIVA VOCE EXAMINATION GUIDE", out)
+        self.assertIn("triangle inequality", out)
+
+        # 8. JSON output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_consistent_heuristic_validator.py", "--json"]):
+            with patch("sys.stdout", stdout_trap):
+                consistent_validator_script_main()
+        out = stdout_trap.getvalue()
+        data = json.loads(out)
+        self.assertFalse(data["is_consistent"])
+        self.assertEqual(data["violations_count"], 1)
+        self.assertEqual(data["primary_violation"]["u"], "A")
+        self.assertEqual(data["primary_violation"]["v"], "B")
+
+        # 9. Top-level CLI dispatcher & aliases
+        for cmd in (
+            "consistent-heuristic",
+            "consistent-validator",
+            "consistency-validator",
+            "consistency",
+            "q34",
+            "question34",
         ):
             stdout_trap = io.StringIO()
             with patch("sys.stdout", stdout_trap):
