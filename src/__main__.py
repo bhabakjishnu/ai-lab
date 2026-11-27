@@ -244,6 +244,19 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 33: Admissible Heuristic Validator via Reverse UCS",
     )
 
+    # Consistent Heuristic Validator runner
+    subparsers.add_parser(
+        "consistent-heuristic",
+        aliases=[
+            "consistent-validator",
+            "consistency-validator",
+            "consistency",
+            "q34",
+            "question34",
+        ],
+        help="Run Question 34: Consistent Heuristic Validator via Triangle Inequality Verification",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -367,6 +380,12 @@ def main(argv: Optional[List[str]] = None) -> None:
         "admissibility",
         "q33",
         "question33",
+        "consistent-heuristic",
+        "consistent-validator",
+        "consistency-validator",
+        "consistency",
+        "q34",
+        "question34",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -528,6 +547,17 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_admissible_heuristic_validator import main as admissible_main
             sys.argv = [sys.argv[0]] + remaining
             admissible_main()
+        elif cmd in (
+            "consistent-heuristic",
+            "consistent-validator",
+            "consistency-validator",
+            "consistency",
+            "q34",
+            "question34",
+        ):
+            from scripts.run_consistent_heuristic_validator import main as consistent_main
+            sys.argv = [sys.argv[0]] + remaining
+            consistent_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining
