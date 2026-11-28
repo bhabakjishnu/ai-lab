@@ -257,6 +257,20 @@ def main(argv: Optional[List[str]] = None) -> None:
         help="Run Question 34: Consistent Heuristic Validator via Triangle Inequality Verification",
     )
 
+    # A* Octile Distance (8-Directional Movement) runner
+    subparsers.add_parser(
+        "astar-octile",
+        aliases=[
+            "octile-astar",
+            "a-star-octile",
+            "octile-distance",
+            "octile",
+            "q35",
+            "question35",
+        ],
+        help="Run Question 35: A* with Octile Distance Heuristic (8-Directional Movement)",
+    )
+
     # Starter smoke test runner
     subparsers.add_parser("smoke-test", help="Run starter experiment runner smoke test")
 
@@ -386,6 +400,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         "consistency",
         "q34",
         "question34",
+        "astar-octile",
+        "octile-astar",
+        "a-star-octile",
+        "octile-distance",
+        "octile",
+        "q35",
+        "question35",
         "smoke-test",
     }
     if argv and argv[0] in allowed_subcommands:
@@ -558,6 +579,18 @@ def main(argv: Optional[List[str]] = None) -> None:
             from scripts.run_consistent_heuristic_validator import main as consistent_main
             sys.argv = [sys.argv[0]] + remaining
             consistent_main()
+        elif cmd in (
+            "astar-octile",
+            "octile-astar",
+            "a-star-octile",
+            "octile-distance",
+            "octile",
+            "q35",
+            "question35",
+        ):
+            from scripts.run_a_star_octile_distance import main as astar_octile_main
+            sys.argv = [sys.argv[0]] + remaining
+            astar_octile_main()
         elif cmd == "smoke-test":
             from scripts.smoke_test import main as smoke_main
             sys.argv = [sys.argv[0]] + remaining

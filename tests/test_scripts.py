@@ -50,6 +50,7 @@ from scripts.run_eight_puzzle_manhattan_vs_misplaced import main as puzzle_domin
 from scripts.run_ucs_vs_astar_comparison import main as ucs_vs_astar_script_main
 from scripts.run_admissible_heuristic_validator import main as admissible_validator_script_main
 from scripts.run_consistent_heuristic_validator import main as consistent_validator_script_main
+from scripts.run_a_star_octile_distance import main as astar_octile_script_main
 from src.__main__ import main as cli_main
 
 
@@ -2398,6 +2399,114 @@ class TestScriptExecution(unittest.TestCase):
             "consistency",
             "q34",
             "question34",
+        ):
+            stdout_trap = io.StringIO()
+            with patch("sys.stdout", stdout_trap):
+                cli_main([cmd, "--sample"])
+            out = stdout_trap.getvalue()
+            self.assertEqual(out.strip(), expected_sample)
+
+    def test_a_star_octile_distance_script_execution(self) -> None:
+        """Verify run_a_star_octile_distance script executes cleanly with all CLI flags."""
+        expected_sample = "Cost: 2.828 (Two diagonal moves)"
+
+        # 1. Exact sample output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_octile_distance.py", "--sample"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_octile_script_main()
+        out = stdout_trap.getvalue()
+        self.assertEqual(out.strip(), expected_sample)
+
+        # 2. Default run (Overview + ASCII visualization)
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_octile_distance.py"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_octile_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("A* WITH OCTILE DISTANCE", out)
+        self.assertIn("Total Cost            : 2.828", out)
+        self.assertIn("ASCII Maze Visualization:", out)
+
+        # 3. Multi-heuristic comparative table
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_octile_distance.py", "--compare"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_octile_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("MULTI-HEURISTIC COMPARATIVE ANALYSIS", out)
+        self.assertIn("Octile (Canonical)", out)
+        self.assertIn("Manhattan (INADMISSIBLE)", out)
+
+        # 4. Corner pinch constraint demonstration
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_octile_distance.py", "--corner-demo"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_octile_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("CORNER WALL PINCH CONSTRAINT DEMONSTRATION", out)
+        self.assertIn("Cannot move diagonally through two corner walls", out)
+        self.assertIn("Path Found: False", out)
+        self.assertIn("Path Found: True", out)
+
+        # 5. Step-by-step priority queue trace table
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_octile_distance.py", "--table"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_octile_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("STEP-BY-STEP PRIORITY QUEUE EXPANSION TRACE", out)
+        self.assertIn("g(n)", out)
+        self.assertIn("f(n)", out)
+
+        # 6. Canonical benchmark suite
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_octile_distance.py", "--benchmarks"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_octile_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("CANONICAL BENCHMARK SUITE", out)
+        self.assertIn("Syllabus Sample Input", out)
+        self.assertIn("Canonical 5x5 Maze", out)
+
+        # 7. Theory output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_octile_distance.py", "--theory"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_octile_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("OCTILE DISTANCE", out)
+        self.assertIn("WHY MANHATTAN DISTANCE IS INADMISSIBLE", out)
+
+        # 8. Viva guide
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_octile_distance.py", "--viva"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_octile_script_main()
+        out = stdout_trap.getvalue()
+        self.assertIn("UNIVERSITY VIVA VOCE EXAMINATION GUIDE", out)
+        self.assertIn("Manhattan", out)
+
+        # 9. JSON output
+        stdout_trap = io.StringIO()
+        with patch.object(sys, "argv", ["run_a_star_octile_distance.py", "--json"]):
+            with patch("sys.stdout", stdout_trap):
+                astar_octile_script_main()
+        out = stdout_trap.getvalue()
+        data = json.loads(out)
+        self.assertTrue(data["found"])
+        self.assertEqual(data["total_cost"], 2.828)
+        self.assertEqual(data["diagonal_moves_count"], 2)
+
+        # 10. Top-level CLI dispatcher & aliases
+        for cmd in (
+            "astar-octile",
+            "octile-astar",
+            "a-star-octile",
+            "octile-distance",
+            "octile",
+            "q35",
+            "question35",
         ):
             stdout_trap = io.StringIO()
             with patch("sys.stdout", stdout_trap):
