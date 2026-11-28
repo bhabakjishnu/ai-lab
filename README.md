@@ -107,6 +107,7 @@ ai-lab/
 │   ├── run_ucs_vs_astar_comparison.py   # CLI & runner for Question 32 (UCS vs A* Performance Comparison on 20x20 Grid)
 │   ├── run_admissible_heuristic_validator.py # CLI & runner for Question 33 (Admissible Heuristic Validator via Reverse UCS)
 │   ├── run_consistent_heuristic_validator.py # CLI & runner for Question 34 (Consistent Heuristic Validator via Triangle Inequality)
+│   ├── run_a_star_octile_distance.py   # CLI & runner for Question 35 (A* with Octile Distance Heuristic & 8-Way Movement)
 │   ├── run_vacuum_agent.py              # CLI & interactive runner for Question 1 (2-Square & 3x3 Grid)
 │   └── smoke_test.py                    # Starter entry point and verification smoke test
 ├── src/
@@ -145,6 +146,7 @@ ai-lab/
 │   ├── ucs_vs_astar_comparison.py       # Question 32: UCS vs A* (Manhattan) Performance Comparison on 20x20 Grid
 │   ├── admissible_heuristic_validator.py # Question 33: Admissible Heuristic Validator (Reverse UCS & Admissibility Analysis)
 │   ├── consistent_heuristic_validator.py # Question 34: Consistent Heuristic Validator (Monotonicity & Triangle Inequality Analysis)
+│   ├── a_star_octile_distance.py        # Question 35: A* with Octile Distance Heuristic, 8-Directional Movement & Corner Wall Squeeze
 │   └── vacuum_agent.py                  # Question 1: Simple Reflex Vacuum Agent & Environments
 ├── tests/
 │   ├── __init__.py                      # Test package marker
@@ -181,6 +183,7 @@ ai-lab/
 │   ├── test_ucs_vs_astar_comparison.py  # Unit tests for Question 32 UCS vs A* grid simulation, heuristics & challenge
 │   ├── test_admissible_heuristic_validator.py # Unit tests for Question 33 Admissible Heuristic Validator, Reverse UCS & Repair
 │   ├── test_consistent_heuristic_validator.py # Unit tests for Question 34 Consistent Heuristic Validator, Induction Proof & Table
+│   ├── test_a_star_octile_distance.py   # Unit tests for Question 35 A* Octile Search, 8-Way Successors, Corner Pinch & Viva Topics
 │   └── test_vacuum_agent.py             # Unit tests for vacuum agent reflex rules & simulation traces
 ├── data/
 │   ├── processed/                       # Processed artifacts & experiment outputs
@@ -4603,6 +4606,162 @@ python -m src consistent-validator --table
 ##### Q5: Why must edge costs be strictly positive ($c > 0$)?
 - **Answer**:
   Positive edge costs ensure that cycles accumulate cost, preventing infinite zero-cost or negative-cost loops, and guarantee that Dijkstra and A* can find optimal shortest paths.
+
+---
+
+### Question 35: A* with Octile Distance (Diagonal Movement)
+
+| Attribute | Specification |
+| :--- | :--- |
+| **Syllabus Area** | Informed Search and Heuristics |
+| **Difficulty** | 🟠 Advanced |
+| **Practical Type** | Implementation |
+| **Problem Statement** | Modify the standard grid-based A* algorithm to allow 8-directional movement (diagonal moves cost 1.414, straight moves cost 1). The program must use the Octile distance heuristic instead of Manhattan to remain admissible. |
+| **Task Requirements** | 1. Add diagonal successors (8-way movement: Up, Down, Left, Right, Up-Left, Up-Right, Down-Left, Down-Right).<br>2. Implement the Octile distance heuristic.<br>3. Run A* search and output the path cost. |
+| **Input Requirements** | 2D Maze |
+| **Expected Output** | Shortest path utilizing diagonal shortcuts |
+| **Constraints / Conditions** | Cannot move diagonally through two corner walls |
+| **Core AI Concept** | 8-way movement heuristics, admissibility, heuristic dominance |
+| **Python Concepts Tested** | Advanced heuristic math, floating point costs, priority queues, dataclasses |
+| **Expected Algorithm** | A* with Octile Heuristic |
+| **Recommended Libraries** | `math`, `heapq` |
+| **Complexity Expectation** | Time Complexity: $\mathcal{O}(N \log N)$, Space Complexity: $\mathcal{O}(N)$ where $N = R \times C$ |
+| **Sample Input** | Start (0,0), Goal (2,2), open grid |
+| **Sample Output** | `Cost: 2.828 (Two diagonal moves)` |
+| **University Practical Importance** | High |
+| **Viva Topics** | • Why Manhattan is inadmissible for 8-way movement<br>• Euclidean vs Octile in grids |
+| **Optional Challenge** | Visualize the path in terminal |
+
+#### Theoretical Foundations & Algorithmic Mechanics
+
+##### 1. 8-Directional Grid Transitions & Step Costs
+- In standard grid navigation with 8 degrees of freedom:
+  - **Orthogonal / Cardinal Moves**: Up $(-1, 0)$, Down $(+1, 0)$, Left $(0, -1)$, Right $(0, +1)$ with uniform transition cost $D_1 = 1.0$.
+  - **Diagonal Moves**: Up-Left $(-1, -1)$, Up-Right $(-1, +1)$, Down-Left $(+1, -1)$, Down-Right $(+1, +1)$ with step cost $D_2 = 1.414$ ($\approx \sqrt{2}$).
+- Taking a single diagonal transition allows the agent to advance horizontally and vertically simultaneously for a cost of $1.414$, achieving a $\approx 29.3\%$ cost reduction compared to two orthogonal moves ($1.0 + 1.0 = 2.0$).
+
+##### 2. Mathematical Formulation of the Octile Distance Heuristic
+- In an obstacle-free 8-connected grid, between current coordinate $(r_1, c_1)$ and target goal $(r_2, c_2)$, coordinate differences are:
+  $$dx = |r_1 - r_2|, \quad dy = |c_1 - c_2|$$
+- The optimal path achieves minimum cost by executing as many diagonal transitions as possible. The maximum number of simultaneous diagonal steps is $\min(dx, dy)$.
+- The remaining distance along the longer dimension is $|dx - dy| = \max(dx, dy) - \min(dx, dy)$, which must be traversed by pure orthogonal moves.
+- Therefore, the exact minimum remaining cost $h^*(n)$ in open space is given by the **Octile distance**:
+  $$h_{\text{Octile}}(n) = D_1 \cdot |dx - dy| + D_2 \cdot \min(dx, dy) = D_1 \cdot \max(dx, dy) + (D_2 - D_1) \cdot \min(dx, dy)$$
+- Substituting $D_1 = 1.0$ and $D_2 = 1.414$:
+  $$h_{\text{Octile}}(n) = \max(dx, dy) + 0.414 \cdot \min(dx, dy)$$
+- **Admissibility**: Because static obstacles can only force detours and increase the actual path length, the obstacle-free cost is a strict lower bound:
+  $$0 \le h_{\text{Octile}}(n) \le h^*(n)$$
+- **Consistency (Monotonicity)**: Octile distance satisfies the triangle inequality $h(u) \le c(u, v) + h(v)$ across all 8 possible transitions, guaranteeing that the first time any node is popped from the priority queue, its path cost $g(n)$ is strictly optimal.
+
+##### 3. Why Manhattan Distance is Inadmissible for 8-Way Movement (Viva Topic)
+- The Manhattan distance assumes only 4-directional cardinal movement:
+  $$h_{\text{Manhattan}}(n) = D_1 \cdot (dx + dy)$$
+- Consider transitioning from Start $(0, 0)$ to Goal $(2, 2)$:
+  - $dx = 2, dy = 2$.
+  - True 8-way shortest path: $(0, 0) \to (1, 1) \to (2, 2)$ at true cost $h^* = 1.414 + 1.414 = 2.828$.
+  - Manhattan heuristic estimate: $h_{\text{Manhattan}} = 1.0 \cdot (2 + 2) = 4.0$.
+  - Evaluation: $h_{\text{Manhattan}}( (0, 0) ) = 4.0 > h^*( (0, 0) ) = 2.828$ (Overestimates by $41.4\%$).
+- **Consequence of Inadmissibility**: When an overestimating heuristic is used, A* loses its mathematical guarantee of optimality. It can terminate prematurely on a suboptimal path, mistakenly believing that the optimal path is more expensive than it truly is.
+
+##### 4. Euclidean vs. Octile Heuristic on Discrete Grids (Viva Topic)
+- **Euclidean Distance**: $h_{\text{Euclidean}}(n) = \sqrt{dx^2 + dy^2}$.
+- While Euclidean distance is admissible for 8-way movement, it measures continuous straight-line distance, ignoring the physical constraint that grid transitions must proceed in discrete steps of length $1.0$ and $1.414$.
+- Example for $(0, 0)$ to $(1, 2)$ ($dx = 1, dy = 2$):
+  - $h_{\text{Euclidean}} = \sqrt{1^2 + 2^2} = \sqrt{5} \approx 2.236$.
+  - True discrete cost $h^* = 1.414 \cdot 1 + 1.0 \cdot (2 - 1) = 2.414$.
+  - $h_{\text{Octile}} = 2.414 = h^*$.
+- **Heuristic Dominance**: For all grid coordinates, $h_{\text{Euclidean}}(n) \le h_{\text{Octile}}(n) \le h^*(n)$.
+  Because Octile distance is closer to the true cost function $h^*(n)$, A* with Octile distance strictly dominates A* with Euclidean distance, expanding fewer or equal nodes without sacrificing admissibility.
+
+##### 5. Corner Wall Squeeze Constraint ("Cannot move diagonally through two corner walls")
+- When an agent at $(r, c)$ attempts to move diagonally to $(r + dr, c + dc)$ with $|dr| = 1, |dc| = 1$:
+  - The two adjacent orthogonal intermediate cells are $W_1 = (r + dr, c)$ and $W_2 = (r, c + dc)$.
+  - If **both** $W_1$ and $W_2$ are solid obstacles/walls, the diagonal line of transition passes through the microscopic corner pinch point where the two obstacle cells touch.
+  - In physical robotics, a vehicle with non-zero width cannot squeeze through two touching corner walls without colliding.
+  - Hence, diagonal moves between two corner walls are strictly disallowed:
+    $$\text{If } \text{maze}[r + dr][c] == 1 \text{ and } \text{maze}[r][c + dc] == 1 \implies \text{Diagonal transition is BLOCKED!}$$
+  - If only one orthogonal neighbor is a wall, the agent can slide around the single corner into the open space.
+
+#### Canonical Heuristic Comparison Table (3x3 Open Grid)
+
+| Heuristic | Admissible? | Consistent? | Path Moves | Total Cost | Expansions | Peak Frontier | Optimality |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Octile (Canonical)** | **Yes** | **Yes** | **2** | **2.828** | **3** | **7** | **Optimal** |
+| **Euclidean (Weaker)** | Yes | Yes | 2 | 2.828 | 3 | 7 | Optimal |
+| **Manhattan (INADMISSIBLE)** | ❌ **No (4.0 > 2.828)** | ❌ No | 2 | 2.828 | 3 | 7 | Optimal (Heuristic Distortion) |
+| **Zero / UCS (Uninformed)** | Yes | Yes | 2 | 2.828 | 9 | 5 | Optimal (Blind Search) |
+
+#### CLI Usage Examples
+
+```bash
+# 1. Exact Syllabus Sample Output:
+python scripts/run_a_star_octile_distance.py --sample
+# Output: Cost: 2.828 (Two diagonal moves)
+
+# 2. Detailed Sample Output with ASCII Grid:
+python scripts/run_a_star_octile_distance.py
+
+# 3. Multi-Heuristic Comparative Benchmark (Octile vs Euclidean vs Manhattan vs UCS):
+python scripts/run_a_star_octile_distance.py --compare
+
+# 4. Corner Wall Pinch Demonstration:
+python scripts/run_a_star_octile_distance.py --corner-demo
+
+# 5. Step-by-Step Priority Queue Trace Table:
+python scripts/run_a_star_octile_distance.py --table
+
+# 6. Run Across Canonical Benchmarks (Open 3x3, Corner Pinch, 5x5 Obstacle, Concave Trap):
+python scripts/run_a_star_octile_distance.py --benchmarks
+
+# 7. Terminal Animation of Search Expansion (Optional Challenge):
+python scripts/run_a_star_octile_distance.py --animate --delay 0.05
+
+# 8. Theoretical Foundations Analysis:
+python scripts/run_a_star_octile_distance.py --theory
+
+# 9. University Viva Voce Preparation Guide:
+python scripts/run_a_star_octile_distance.py --viva
+
+# 10. Structured JSON Export:
+python scripts/run_a_star_octile_distance.py --json
+
+# 11. Top-Level CLI Dispatcher & Aliases:
+python -m src astar-octile --sample
+python -m src q35 --sample
+python -m src octile --sample
+```
+
+#### University Viva Voce Preparation Guide
+
+##### Q1: Why is Manhattan distance inadmissible for 8-way movement?
+- **Answer**:
+  An admissible heuristic must never overestimate the true remaining cost to the goal ($h(n) \le h^*(n)$). Manhattan distance assumes 4-directional cardinal movement: $h_{\text{Manhattan}} = D_1 \cdot (dx + dy)$. With 8-way movement, diagonal transitions allow the agent to traverse both horizontal and vertical units simultaneously at cost $D_2 = 1.414$. For example, from $(0, 0)$ to $(2, 2)$, $dx = 2, dy = 2$. True 8-way cost is $2 \times 1.414 = 2.828$, whereas Manhattan estimates $2 + 2 = 4.0$. Because $4.0 > 2.828$, Manhattan overestimates by $\approx 41.4\%$, breaking A*'s admissibility guarantee.
+
+##### Q2: What is the difference between Euclidean and Octile distance in discrete grid pathfinding?
+- **Answer**:
+  Both Euclidean and Octile distances are admissible for 8-way grid search, but Octile strictly dominates Euclidean:
+  1. Euclidean distance measures continuous Euclidean space ($h = \sqrt{dx^2 + dy^2}$), which ignores discrete grid movement constraints and strictly underestimates path costs (e.g. for $(0, 0)$ to $(1, 2)$, Euclidean is $\sqrt{5} \approx 2.236$ vs true grid cost $2.414$).
+  2. Octile distance directly models the discrete 8-directional geometry: $h = D_1 \cdot \max(dx, dy) + (D_2 - D_1) \cdot \min(dx, dy)$. In obstacle-free grids, Octile equals the exact minimum cost $h^*(n)$.
+  Because $h_{\text{Euclidean}}(n) \le h_{\text{Octile}}(n) \le h^*(n)$, Octile provides a tighter lower bound, pruning more states and causing A* to expand fewer or equal nodes than Euclidean distance.
+
+##### Q3: What is the corner wall cutting constraint and why is it enforced?
+- **Answer**:
+  The corner wall constraint ("Cannot move diagonally through two corner walls") prevents an agent from passing diagonally through the pinch junction formed by two diagonally touching obstacle cells. If both intermediate orthogonal cells are obstacles, traversing the diagonal cuts through the touching corners. In physical robotics, vehicles possess physical volume and non-zero clearance; attempting such a move would cause a physical collision with the obstacle corners.
+
+##### Q4: What are the computational complexities of A* with Octile distance?
+- **Answer**:
+  Let $N = R \times C$ be the total number of cells in the 2D grid:
+  - **Time Complexity**: $\mathcal{O}(N \log N)$. In the worst case, every cell is pushed to and popped from the priority queue ($\mathcal{O}(\log N)$ per heap operation), and each cell evaluates at most 8 neighboring transitions ($\mathcal{O}(1)$).
+  - **Space Complexity**: $\mathcal{O}(N)$ to store the open priority queue, explored closed set, best $g$-cost lookup table, and parent pointers.
+
+##### Q5: How is the Octile distance formula derived?
+- **Answer**:
+  Given coordinate deltas $dx = |r_1 - r_2|$ and $dy = |c_1 - c_2|$ with $dx \ge dy$:
+  A diagonal step covers 1 row and 1 column simultaneously for cost $D_2 = 1.414$, cheaper than two straight steps ($2.0$).
+  The maximum number of simultaneous diagonal steps is $\min(dx, dy) = dy$.
+  The remaining unaligned distance is $dx - dy = \max(dx, dy) - \min(dx, dy)$, which must be covered by straight steps of cost $D_1 = 1.0$.
+  Summing these:
+  $$h_{\text{Octile}} = D_1 \cdot (dx - dy) + D_2 \cdot dy = D_1 \cdot \max(dx, dy) + (D_2 - D_1) \cdot \min(dx, dy)$$
 
 ---
 
